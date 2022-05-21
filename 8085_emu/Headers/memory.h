@@ -27,7 +27,7 @@ public:
 		_Data[addr] = val;
 	}
 
-	uint8_t GetMemory(uint16_t addr)
+	uint8_t GetDataFromAddr(uint16_t addr)
 	{
 		return _Data[addr];
 	}
@@ -40,5 +40,10 @@ public:
 	uint8_t* GetData()
 	{
 		return _Data;
+	}
+
+	int GetSize()
+	{
+		return _Size;
 	}
 };

@@ -5,50 +5,66 @@
 class Register8
 {
 private:
-	uint8_t _Data;
+	union Data
+	{
+		uint8_t _DataUnsigned;
+		int8_t _DataSigned;
+	};
+
+	Data _Data;
 
 public:
-	void Set(uint8_t value = 0xff)
+	void SetUnsigned(uint8_t value = 0xff)
 	{
-		_Data = value;
+		_Data._DataUnsigned = value;
+	}
+
+	void SetSigned(int8_t value = 0b01111111)
+	{
+		_Data._DataSigned = value;
 	}
 
 	void SetBit(uint8_t bit, uint8_t value = 1)
 	{
 		value &= 0x01;
-		_Data = _Data | (1 << bit);
+		_Data._DataUnsigned = _Data._DataUnsigned | (1 << bit);
 	}
 
 	void Clear()
 	{
-		_Data = 0;
+		_Data._DataSigned = 0;
 	}
 
 	void ClearBit(uint8_t bit)
 	{
-		_Data = _Data & (~(1 << bit));
+		_Data._DataUnsigned = _Data._DataUnsigned & (~(1 << bit));
 	}
 
-	uint8_t Get()
+	uint8_t GetUnsigned()
 	{
-		return _Data;
+		return _Data._DataUnsigned;
+	}
+
+	int8_t GetSigned()
+	{
+		return _Data._DataSigned;
 	}
 
 	uint8_t GetBit(uint8_t bit)
 	{
-		return (_Data >> bit) & 0x01;
+		return (_Data._DataUnsigned >> bit) & 0x01;
 	}
 };
 
 class Register
 {
 private:
-	int* _Data;
+	uint16_t* _Data;
 
 public:
 	Register()
 	{
-		_Data = new int();
+		_Data = new uint16_t();
 	}
 
 	~Register()
@@ -56,12 +72,12 @@ public:
 		delete _Data;
 	}
 
-	void SetRef(int* ref)
+	void SetRef(uint16_t* ref)
 	{
 		_Data = ref;
 	}
 
-	void Set(int value = 0xffff)
+	void Set(uint16_t value = 0xffff)
 	{
 		*_Data = value;
 	}
@@ -82,12 +98,32 @@ public:
 		*_Data = *_Data & (~(1 << bit));
 	}
 
-	int Get()
+	void Increment()
+	{
+		(*_Data)++;
+	}
+
+	void Decrement()
+	{
+		(*_Data)--;
+	}
+
+	uint16_t Get()
 	{
 		return *_Data;
 	}
 
-	int GetBit(uint8_t bit)
+	uint8_t GetHigh()
+	{
+		return (*_Data)>>8;
+	}
+
+	uint8_t GetLow()
+	{
+		return (*_Data) & 0xff;
+	}
+
+	uint8_t GetBit(uint8_t bit)
 	{
 		return (*_Data >> bit) & 0x01;
 	}

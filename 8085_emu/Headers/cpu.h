@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include "memory.h"
 #include "stack.h"
 #include "register.h"
@@ -22,7 +23,7 @@ private:
 	std::chrono::steady_clock::time_point _PrevClockTime;
 
 public:
-	static CPU* cpu;
+	static inline CPU* cpu;
 
 	Memory* _Memory;
 	Stack* _Stack;
@@ -45,4 +46,16 @@ public:
 	void Loop();
 
 	void Clock();
+
+	void SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, uint8_t carry);
+
+	inline Memory* GetMemory()
+	{
+		return _Memory;
+	}
+
+	inline uint8_t ReadPC()
+	{
+		_Memory->GetMemory(PC->Get());
+	}
 };

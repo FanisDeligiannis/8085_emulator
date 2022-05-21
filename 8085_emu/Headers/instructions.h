@@ -1,7 +1,10 @@
 #pragma once
 
 #include <stdio.h>
+#include <bit>
 #include <cstdint>
+
+#include "cpu.h"
 
 struct Instruction
 {
@@ -12,486 +15,739 @@ struct Instruction
     char ARGS[16];
 } typedef Instruction;
 
-int ACI(int byte, char args[16])
+uint8_t GetRegisterUnsigned(char arg)
+{
+    CPU* cpu = CPU::cpu;
+
+    switch (arg)
+    {
+        case 'A':
+            return cpu->A->GetUnsigned();
+        case 'B':
+            return cpu->B->GetUnsigned();
+        case 'C':
+            return cpu->C->GetUnsigned();
+        case 'D':
+            return cpu->D->GetUnsigned();
+        case 'E':
+            return cpu->E->GetUnsigned();
+        case 'H':
+            return cpu->H->GetUnsigned();
+        case 'L':
+            return cpu->L->GetUnsigned();
+        case 'M':
+        {
+            uint8_t H = cpu->H->GetUnsigned();
+            uint8_t L = cpu->L->GetUnsigned();
+
+            uint16_t addr = (H << 8) | L;
+
+            return cpu->GetMemory()->GetDataFromAddr(addr);
+        }
+
+        default:
+            printf("Unexpected input to GetRegisterUnsigned: %c", arg);
+            return 0;
+    }
+}
+
+int8_t GetRegisterSigned(char arg)
+{
+    CPU* cpu = CPU::cpu;
+
+    switch (arg)
+    {
+    case 'A':
+        return cpu->A->GetSigned();
+    case 'B':
+        return cpu->B->GetSigned();
+    case 'C':
+        return cpu->C->GetSigned();
+    case 'D':
+        return cpu->D->GetSigned();
+    case 'E':
+        return cpu->E->GetSigned();
+    case 'H':
+        return cpu->H->GetSigned();
+    case 'L':
+        return cpu->L->GetSigned();
+    case 'M':
+    {
+        uint8_t H = cpu->H->GetUnsigned();
+        uint8_t L = cpu->L->GetUnsigned();
+
+        uint16_t addr = (H << 8) | L;
+        uint8_t result = cpu->GetMemory()->GetDataFromAddr(addr);
+
+        return *(int8_t*)&result;
+    }
+
+    default:
+        printf("Unexpected input to GetRegisterSigned: %c", arg);
+        return 0;
+    }
+}
+
+void AddSigned(int8_t data)
+{
+    CPU* cpu = CPU::cpu;
+
+    int8_t rA = cpu->A->GetSigned();
+
+    int16_t result16 = rA + data;
+    int8_t result = rA + data;
+    int8_t result4 = rA + (data & 0x0f);
+
+    cpu->SetFlags(
+        result < 0,
+        result != 0,
+        (result4 & 0xf0) > 0,
+        !(std::popcount(*(uint8_t*)&result) % 2),
+        (result16 & 0b100000000) > 0
+    );
+
+    cpu->A->SetSigned(result);
+}
+
+void AddSignedWithCarry(int8_t data)
+{
+    CPU* cpu = CPU::cpu;
+
+    int8_t rA = cpu->A->GetSigned();
+    int8_t rC = cpu->Flags->GetBit(CARRY_FLAG);
+
+    int16_t result16 = rA + data + rC;
+    int8_t result = rA + data + rC;
+    int8_t result4 = rA + (data & 0x0f) + rC;
+
+    cpu->SetFlags(
+        result < 0,
+        result != 0,
+        (result4 & 0xf0) > 0,
+        !(std::popcount(*(uint8_t*)&result) % 2),
+        (result16 & 0b100000000) > 0
+    );
+
+    cpu->A->SetSigned(result);
+}
+
+void AddUnignedWithCarry(uint8_t data)
+{
+    CPU* cpu = CPU::cpu;
+
+    uint8_t rA = cpu->A->GetUnsigned();
+    uint8_t rC = cpu->Flags->GetBit(CARRY_FLAG);
+
+    uint16_t result16 = rA + data + rC;
+    uint8_t result = rA + data + rC;
+    uint8_t result4 = rA + (data & 0x0f) + rC;
+
+    //TODO CHECK FLAGS HERE
+    cpu->SetFlags(
+        result < 0,
+        result != 0,
+        (result4 & 0xf0) > 0,
+        !(std::popcount(result) % 2),
+        (result16 & 0b100000000) > 0
+    );
+
+    cpu->A->SetUnsigned(result);
+}
+
+void And(uint8_t data)
+{
+    CPU* cpu = CPU::cpu;
+
+    int8_t rA = cpu->A->GetUnsigned();
+
+    uint8_t result = rA & data;
+
+    cpu->SetFlags(
+        (result &0b10000000) > 0,
+        result != 0,
+        0,
+        !(std::popcount(*(uint8_t*)&result) % 2),
+        0
+    );
+
+    cpu->A->SetSigned(result);
+}
+
+
+int ACI(int bytes, char args[16])
+{
+    CPU* cpu = CPU::cpu;
+    
+    cpu->PC->Increment();
+    int8_t data = cpu->ReadPC();
+
+    AddSignedWithCarry(data);
+
+    return 7;
+}
+
+int ADC(int bytes, char args[16])
+{
+    int8_t data = GetRegisterSigned(args[0]);
+
+    AddSignedWithCarry(data);
+
+    return 4;
+}
+
+int ADD(int bytes, char args[16])
+{
+    int8_t data = GetRegisterSigned(args[0]);
+
+    AddSigned(data);
+    return 4;
+}
+
+int ADI(int bytes, char args[16])
+{
+    CPU* cpu = CPU::cpu;
+
+    cpu->PC->Increment();
+    int8_t data = cpu->ReadPC();
+
+    AddSigned(data);
+
+
+    return 7;
+}
+
+int ANA(int bytes, char args[16])
+{
+    uint8_t data = GetRegisterUnsigned(args[0]);
+
+    And(data);
+
+    return 4;
+}
+
+int ANI(int bytes, char args[16])
+{
+    CPU* cpu = CPU::cpu;
+
+    cpu->PC->Increment();
+    int8_t data = cpu->ReadPC();
+
+    And(data);
+
+    return 7;
+}
+
+int CALL(int bytes, char args[16])
+{
+    CPU* cpu = CPU::cpu;
+
+    cpu->PC->Increment();
+    uint8_t LOW = cpu->ReadPC();
+    cpu->PC->Increment();
+    uint8_t HIGH = cpu->ReadPC();
+
+    Register* PC = cpu->PC;
+
+    cpu->_Stack->Push(PC->GetLow());
+    cpu->_Stack->Push(PC->GetHigh());
+
+    uint16_t addr = (HIGH << 8) | LOW;
+
+    PC->Set(addr);
+
+    return 18;
+}
+
+int CC(int bytes, char args[16])
+{
+    CPU* cpu = CPU::cpu;
+
+    if (!cpu->Flags->GetBit(CARRY_FLAG))
+    {
+        return 1;
+    }
+
+    cpu->PC->Increment();
+    uint8_t LOW = cpu->ReadPC();
+    cpu->PC->Increment();
+    uint8_t HIGH = cpu->ReadPC();
+
+    Register* PC = cpu->PC;
+
+    cpu->_Stack->Push(PC->GetLow());
+    cpu->_Stack->Push(PC->GetHigh());
+
+    uint16_t addr = (HIGH << 8) | LOW;
+
+    PC->Set(addr);
+
+    return 18;
+}
+
+int CM(int bytes, char args[16])
+{
+    CPU* cpu = CPU::cpu;
+
+    if (!cpu->Flags->GetBit(SIGN_FLAG))
+    {
+        return 1;
+    }
+
+    cpu->PC->Increment();
+    uint8_t LOW = cpu->ReadPC();
+    cpu->PC->Increment();
+    uint8_t HIGH = cpu->ReadPC();
+
+    Register* PC = cpu->PC;
+
+    cpu->_Stack->Push(PC->GetLow());
+    cpu->_Stack->Push(PC->GetHigh());
+
+    uint16_t addr = (HIGH << 8) | LOW;
+
+    PC->Set(addr);
+
+    return 18;
+}
+
+int CMA(int bytes, char args[16])
+{
+    CPU* cpu = CPU::cpu;
+
+    cpu->A->SetUnsigned(~cpu->A->GetUnsigned());
+
+    return 4;
+}
+
+int CMC(int bytes, char args[16])
+{
+    CPU* cpu = CPU::cpu;
+
+    cpu->Flags->SetBit(CARRY_FLAG, (~cpu->Flags->GetBit(CARRY_FLAG)&1));
+
+    return 4;
+}
+
+int CMP(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int ADC(int byte, char args[16])
+int CNC(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int ADD(int byte, char args[16])
+int CNZ(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int ADI(int byte, char args[16])
+int CP(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int ANA(int byte, char args[16])
+int CPE(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int ANI(int byte, char args[16])
+int CPI(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CALL(int byte, char args[16])
+int CPO(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CC(int byte, char args[16])
+int CZ(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CM(int byte, char args[16])
+int DAA(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CMA(int byte, char args[16])
+int DAD(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CMC(int byte, char args[16])
+int DCR(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CMP(int byte, char args[16])
+int DCX(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CNC(int byte, char args[16])
+int DI(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CNZ(int byte, char args[16])
+int EI(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CP(int byte, char args[16])
+int HLT(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CPE(int byte, char args[16])
+int IN(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CPI(int byte, char args[16])
+int INR(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CPO(int byte, char args[16])
+int INX(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int CZ(int byte, char args[16])
+int JC(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int DAA(int byte, char args[16])
+int JM(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int DAD(int byte, char args[16])
+int JMP(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int DCR(int byte, char args[16])
+int JNC(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int DCX(int byte, char args[16])
+int JNZ(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int DI(int byte, char args[16])
+int JP(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int EI(int byte, char args[16])
+int JPE(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int HLT(int byte, char args[16])
+int JPO(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int IN(int byte, char args[16])
+int JZ(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int INR(int byte, char args[16])
+int LDA(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int INX(int byte, char args[16])
+int LDAX(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int JC(int byte, char args[16])
+int LHLD(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int JM(int byte, char args[16])
+int LXI(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int JMP(int byte, char args[16])
+int MOV(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int JNC(int byte, char args[16])
+int MVI(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int JNZ(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int JP(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int JPE(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int JPO(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int JZ(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int LDA(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int LDAX(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int LHLD(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int LXI(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int MOV(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int MVI(int byte, char args[16])
-{
-
-    return 0;
-}
-
-int NOP(int byte, char args[16])
+int NOP(int bytes, char args[16])
 {
     printf("%s", "nop run!");
 
     return 0;
 }
 
-int ORA(int byte, char args[16])
+int ORA(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int ORI(int byte, char args[16])
+int ORI(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int OUT(int byte, char args[16])
+int OUT(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int PCHL(int byte, char args[16])
+int PCHL(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int POP(int byte, char args[16])
+int POP(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int PUSH(int byte, char args[16])
+int PUSH(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RAL(int byte, char args[16])
+int RAL(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RAR(int byte, char args[16])
+int RAR(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RC(int byte, char args[16])
+int RC(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RET(int byte, char args[16])
+int RET(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RIM(int byte, char args[16])
+int RIM(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RLC(int byte, char args[16])
+int RLC(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RM(int byte, char args[16])
+int RM(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RNC(int byte, char args[16])
+int RNC(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RNZ(int byte, char args[16])
+int RNZ(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RP(int byte, char args[16])
+int RP(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RPE(int byte, char args[16])
+int RPE(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RPO(int byte, char args[16])
+int RPO(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RRC(int byte, char args[16])
+int RRC(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RST(int byte, char args[16])
+int RST(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int RZ(int byte, char args[16])
+int RZ(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int SBB(int byte, char args[16])
+int SBB(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int SBI(int byte, char args[16])
+int SBI(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int SHLD(int byte, char args[16])
+int SHLD(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int SIM(int byte, char args[16])
+int SIM(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int SPHL(int byte, char args[16])
+int SPHL(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int STA(int byte, char args[16])
+int STA(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int STAX(int byte, char args[16])
+int STAX(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int STC(int byte, char args[16])
+int STC(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int SUB(int byte, char args[16])
+int SUB(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int SUI(int byte, char args[16])
+int SUI(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int XCHG(int byte, char args[16])
+int XCHG(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int XRA(int byte, char args[16])
+int XRA(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int XRI(int byte, char args[16])
+int XRI(int bytes, char args[16])
 {
 
     return 0;
 }
 
-int XTHL(int byte, char args[16])
+int XTHL(int bytes, char args[16])
 {
 
     return 0;
 }
+
+//SP = Stack pointer
+//PC = Program Counter 
+//P = Port Address
+//Ad = Address
+//La = Label
 
 Instruction Instructions[] = {
     {0x0, "NOP", 1, NOP, ""},
@@ -528,7 +784,7 @@ Instruction Instructions[] = {
     {0x1f, "RAR", 1, RAR, ""},
     {0x20, "RIM", 1, RIM, ""},
     {0x21, "LXI", 3, LXI, "H"},
-    {0x22, "SHLD", 3, SHLD, "O"},
+    {0x22, "SHLD", 3, SHLD, "Ad"},
     {0x23, "INX", 1, INX, "H"},
     {0x24, "INR", 1, INR, "H"},
     {0x25, "DCR", 1, DCR, "H"},
@@ -536,7 +792,7 @@ Instruction Instructions[] = {
     {0x27, "DAA", 1, DAA, ""},
     {},
     {0x29, "DAD", 1, DAD, "H"},
-    {0x2a, "LHLD", 3, LHLD, "O"},
+    {0x2a, "LHLD", 3, LHLD, "Ad"},
     {0x2b, "DCX", 1, DCX, "H"},
     {0x2c, "INR", 1, INR, "L"},
     {0x2d, "DCR", 1, DCR, "L"},
@@ -544,7 +800,7 @@ Instruction Instructions[] = {
     {0x2f, "CMA", 1, CMA, ""},
     {0x30, "SIM", 1, SIM, ""},
     {0x31, "LXI", 3, LXI, "SP"},
-    {0x32, "STA", 3, STA, "O"},
+    {0x32, "STA", 3, STA, "Ad"},
     {0x33, "INX", 1, INX, "SP"},
     {0x34, "INR", 1, INR, "M"},
     {0x35, "DCR", 1, DCR, "M"},
@@ -552,7 +808,7 @@ Instruction Instructions[] = {
     {0x37, "STC", 1, STC, ""},
     {},
     {0x39, "DAD", 1, DAD, "SP"},
-    {0x3a, "LDA", 3, LDA, "O"},
+    {0x3a, "LDA", 3, LDA, "Ad"},
     {0x3b, "DCX", 1, DCX, "SP"},
     {0x3c, "INR", 1, INR, "A"},
     {0x3d, "DCR", 1, DCR, "A"},

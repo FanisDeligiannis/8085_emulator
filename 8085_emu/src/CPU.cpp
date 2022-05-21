@@ -1,8 +1,6 @@
 #include "cpu.h"
 
 #include <stdio.h>
-#include <chrono>
-
 
 CPU::CPU()
 {
@@ -57,4 +55,15 @@ void CPU::Loop()
 void CPU::Clock()
 {
 
+}
+
+void CPU::SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, uint8_t carry)
+{
+	Flags->Set(
+		((sign != -1) ? (sign & 1) << 7 : Flags->GetBit(SIGN_FLAG)) &
+		((zero != -1) ? (zero & 1) << 6 : Flags->GetBit(ZERO_FLAG)) &
+		((aux_c != -1) ? (aux_c & 1) << 4 : Flags->GetBit(AUX_CARRY_FLAG)) &
+		((parity != -1) ? (parity & 1) << 2 : Flags->GetBit(PARITY_FLAG)) &
+		((carry != -1) ? (carry & 1) << 0 : Flags->GetBit(CARRY_FLAG))
+	);
 }
