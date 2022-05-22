@@ -59,7 +59,7 @@ void CPU::Clock()
 
 void CPU::SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, uint8_t carry)
 {
-	Flags->Set(
+	Flags->SetUnsigned(
 		((sign != -1) ? (sign & 1) << 7 : Flags->GetBit(SIGN_FLAG)) &
 		((zero != -1) ? (zero & 1) << 6 : Flags->GetBit(ZERO_FLAG)) &
 		((aux_c != -1) ? (aux_c & 1) << 4 : Flags->GetBit(AUX_CARRY_FLAG)) &

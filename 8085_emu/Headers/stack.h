@@ -2,19 +2,20 @@
 
 #include <memory>
 #include <cmath>
+#include <cstdint>
 
 class Stack 
 {
 private:
 	int _Size;
 	uint8_t* _Data;
-	int _SP;
+	uint16_t _SP;
 public:
 	Stack(int bits)
 	{
 		_Size = pow(2, bits);
 		_Data = nullptr;
-		_SP = int(_Size - 1);
+		_SP = uint16_t(_Size - 1);
 	}
 
 	~Stack() {}
@@ -32,7 +33,7 @@ public:
 		//TODO error checking
 	}
 
-	int Pop()
+	uint8_t Pop()
 	{
 		_SP--;
 		uint8_t ret = _Data[_SP];
@@ -41,12 +42,12 @@ public:
 		return ret;
 	}
 
-	int GetSP()
+	uint16_t GetSP()
 	{
 		return _SP;
 	}
 
-	int* GetSPPointer()
+	uint16_t* GetSPPointer()
 	{
 		return &_SP;
 	}

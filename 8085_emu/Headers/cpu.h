@@ -56,6 +56,6 @@ public:
 
 	inline uint8_t ReadPC()
 	{
-		_Memory->GetMemory(PC->Get());
+		_Memory->GetDataFromAddr(PC->Get());
 	}
 };

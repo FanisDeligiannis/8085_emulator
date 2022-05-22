@@ -1,0 +1,7 @@
+.org 8000h
+
+test:
+	ACI 69h
+	ACI 69
+	ACI 230
+	ACI 11111111b
