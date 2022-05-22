@@ -89,13 +89,13 @@ std::string IntToHex(int num, int c)
 	return std::format("{:#06X}", num);
 }
 
-std::string parse(SourceFile* source)
+uint8_t* parse(SourceFile* source)
 {
 	_Memory = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
 
 	if (_Memory == nullptr)
 	{
-		printf("Error allocating memory");
+		perror("Unable to allocate memory");
 		exit(1);
 	}
 
@@ -103,13 +103,13 @@ std::string parse(SourceFile* source)
 
 	while (source->HasMore())
 	{
-		std::string word = source->Next();
+		std::string word = source->Next(true);
 
 		if (word == ".ORG")
 		{
 			if (!firstLine)
 			{
-				printf("Error: .ORG can only be in the first line!");
+				Error(".ORG should be the first line.", source);
 				exit(1);
 			}
 
@@ -135,7 +135,7 @@ std::string parse(SourceFile* source)
 			}
 			else
 			{
-				printf("Expected a name for the label!"); //errors
+				Error("Expected a name for the label", source);
 				exit(1);
 			}
 		}
@@ -154,26 +154,26 @@ std::string parse(SourceFile* source)
 
 			if (!found)
 			{
-				printf("Instruction '%s' not found!", word.c_str());
+				Error("Instruction " + word + " not found!", source);
 				exit(1);
 			}
 		}
 	}
 
-	int i = startingAddr;
-	int j = 0;
+	//int i = startingAddr;
+	//int j = 0;
 
-	while (_Memory[i] != 0x76 && j < 20)
-	{
-		printf("%s: %s\n", IntToHex(i).c_str(), IntToHex(_Memory[i], 2).c_str());
-		i++;
-		j++;
-	}
+	//while (_Memory[i] != 0x76 && j < 20)
+	//{
+	//	printf("%s: %s\n", IntToHex(i).c_str(), IntToHex(_Memory[i], 2).c_str());
+	//	i++;
+	//	j++;
+	//}
 
-	for (int i = 0; i < labels.size(); i++)
-	{
-		printf("%s: %d\n", labels.at(i).first.c_str(), labels.at(i).second);
-	}
+	//for (int i = 0; i < labels.size(); i++)
+	//{
+	//	printf("%s: %d\n", labels.at(i).first.c_str(), labels.at(i).second);
+	//}
 
-	return "";
+	return _Memory;
 }

@@ -12,4 +12,4 @@ uint16_t StringToUInt16(std::string str);
 
 std::string IntToHex(int num, int c = 4);
 
-std::string parse(SourceFile* source);
+uint8_t* parse(SourceFile* source);

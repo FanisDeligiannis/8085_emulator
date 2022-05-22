@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <format>
 
 #include "source_file.h"
 #include "assembler.h"
@@ -28,7 +29,20 @@ int main()
 
 	SourceFile* source = new SourceFile(file);
 
-	parse(source);
+	uint8_t* Memory = parse(source);
+
+	std::ofstream outFile;
+	outFile.open("out.bin", std::ios::out | std::ios::trunc | std::ios::binary);
+	
+	for (int i = 0; i < 0xffff; i++)
+	{
+		outFile << std::hex << Memory[i];
+	}
+
+	outFile.close();
+
+	free(Memory);
+	delete source;
 
 	return 0;
 }

@@ -16,6 +16,8 @@ struct Instruction
     char ARGS[16];
 } typedef Instruction;
 
+//Scan for labels BEFORE
+
 uint16_t FindLabel(std::string label)
 {
     auto labels = GetLabels();
@@ -31,54 +33,91 @@ uint16_t FindLabel(std::string label)
     return 0;
 }
 
+void Error(std::string err, SourceFile* source)
+{
+    printf("Error: Line %d, Character %d\n%s", source->GetLine(), source->GetCharCount(), err.c_str());
+    exit(1);
+}
+
+uint8_t GetNextRegister(SourceFile* source)
+{
+    std::string str = source->Next();
+    if (str.length() != 1)
+    {
+        Error("Error: Expected Register: " + str, source);
+        return false;
+    }
+    char R = str[0];
+
+    switch (R)
+    {
+    case 'A':
+        return 7;
+    case 'B':
+        return 0;
+    case 'C':
+        return 1;
+    case 'D':
+        return 2;
+    case 'E':
+        return 3;
+    case 'H':
+        return 4;
+    case 'L':
+        return 5;
+    case 'M':
+        return 6;
+    default:
+        Error("Error: Unknown Register: " + R, source);
+        return 0;
+    }
+}
+
+uint8_t GetNextDoubleRegister(SourceFile* source)
+{
+
+}
+
+//TODO: ERRORS!
+
+uint8_t GetImmediate8(SourceFile* source)
+{
+    std::string nextWord = source->Next();
+
+    if (nextWord.length() == 0)
+    {
+        Error("Expected a number", source);
+    }
+
+    return StringToUInt8(nextWord);
+}
+
+uint16_t GetImmediate16(SourceFile* source)
+{
+    std::string nextWord = source->Next();
+
+    if (nextWord.length() == 0)
+    {
+        Error("Expected a number", source);
+    }
+
+    return StringToUInt16(nextWord);
+}
+
 //TODO: LOTS OF ERROR CHECKING
 
 
 bool ACI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
     _Memory[0] = (uint8_t) 0xCE;
-
-    std::string nextWord = source->Next();
-    _Memory[1] = StringToUInt8(nextWord);
+    _Memory[1] = GetImmediate8(source);
 
     return true;
 }
 
 bool ADC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    std::string str = source->Next();
-    if (str.length() > 1)
-    {
-        printf("Error: Unknown R: %s", str.c_str());
-        return false;
-    }
-    char R = str[0];
-
-    uint8_t opcode = 0;
-
-    switch (R)
-    {
-        case 'A' :
-            opcode = 0x8f;
-        case 'B' :
-            opcode = 0x88;
-        case 'C' :
-            opcode = 0x89;
-        case 'D' :
-            opcode = 0x8a;
-        case 'E' :
-            opcode = 0x8b;
-        case 'H' :
-            opcode = 0x8c;
-        case 'L' :
-            opcode = 0x8d;
-        case 'M':
-            opcode = 0x8e;
-        default:
-            printf("Error: Unknown R: %c", R);
-            return false;
-    }
-
+    uint8_t opcode = 0x88 + GetNextRegister(source);
     _Memory[0] = opcode;
 
     return true;
@@ -86,39 +125,7 @@ bool ADC(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool ADD(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    std::string str = source->Next();
-    if (str.length() > 1)
-    {
-        printf("Error: Unknown R: %s", str.c_str());
-        return false;
-    }
-    char R = str[0];
-
-    uint8_t opcode = 0;
-
-    switch (R)
-    {
-    case 'A':
-        opcode = 0x87;
-    case 'B':
-        opcode = 0x80;
-    case 'C':
-        opcode = 0x81;
-    case 'D':
-        opcode = 0x82;
-    case 'E':
-        opcode = 0x83;
-    case 'H':
-        opcode = 0x84;
-    case 'L':
-        opcode = 0x85;
-    case 'M':
-        opcode = 0x86;
-    default:
-        printf("Error: Unknown R: %c", R);
-        return false;
-    }
-
+    uint8_t opcode = 0x80 + GetNextRegister(source);
     _Memory[0] = opcode;
     return true;
 }
@@ -126,48 +133,14 @@ bool ADD(int bytes, SourceFile* source, uint8_t* _Memory)
 bool ADI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
     _Memory[0] = (uint8_t) 0xc6;
-
-    std::string nextWord = source->Next();
-    _Memory[1] = StringToUInt8(nextWord);
+    _Memory[1] = GetImmediate8(source);
 
     return true;
 }
 
 bool ANA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    std::string str = source->Next();
-    if (str.length() > 1)
-    {
-        printf("Error: Unknown R: %s", str.c_str());
-        return false;
-    }
-    char R = str[0];
-
-    uint8_t opcode = 0;
-
-    switch (R)
-    {
-    case 'A':
-        opcode = 0xA7;
-    case 'B':
-        opcode = 0xA0;
-    case 'C':
-        opcode = 0xA1;
-    case 'D':
-        opcode = 0xA2;
-    case 'E':
-        opcode = 0xA3;
-    case 'H':
-        opcode = 0xA4;
-    case 'L':
-        opcode = 0xA5;
-    case 'M':
-        opcode = 0xA6;
-    default:
-        printf("Error: Unknown R: %c", R);
-        return false;
-    }
-
+    uint8_t opcode = 0xA0 + GetNextRegister(source);
     _Memory[0] = opcode;
     return true;
 }
@@ -175,9 +148,7 @@ bool ANA(int bytes, SourceFile* source, uint8_t* _Memory)
 bool ANI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
     _Memory[0] = (uint8_t)0xe6;
-
-    std::string nextWord = source->Next();
-    _Memory[1] = StringToUInt8(nextWord);
+    _Memory[1] = GetImmediate8(source);
     return true;
 }
 
@@ -245,39 +216,7 @@ bool CMC(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool CMP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    std::string str = source->Next();
-    if (str.length() > 1)
-    {
-        printf("Error: Unknown R: %s", str.c_str());
-        return false;
-    }
-    char R = str[0];
-
-    uint8_t opcode = 0;
-
-    switch (R)
-    {
-    case 'A':
-        opcode = 0xBF;
-    case 'B':
-        opcode = 0xB8;
-    case 'C':
-        opcode = 0xB9;
-    case 'D':
-        opcode = 0xBA;
-    case 'E':
-        opcode = 0xBB;
-    case 'H':
-        opcode = 0xBC;
-    case 'L':
-        opcode = 0xBD;
-    case 'M':
-        opcode = 0xBE;
-    default:
-        printf("Error: Unknown R: %c", R);
-        return false;
-    }
-
+    uint8_t opcode = 0xB8 + GetNextRegister(source);
     _Memory[0] = opcode;
     return true;
 }
@@ -348,6 +287,8 @@ bool CPE(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool CPI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xfe;
+    _Memory[1] = GetImmediate8(source);
 
     return true;
 }
@@ -386,37 +327,73 @@ bool CZ(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool DAA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x27;
 
     return true;
 }
 
 bool DAD(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-
+    _Memory[0] = 0x09 + GetNextDoubleRegister(source);
     return true;
 }
 
 bool DCR(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    std::string str = source->Next();
+    if (str.length() != 1)
+    {
+        Error("Error: Expected Register: " + str, source);
+        return false;
+    }
+    char R = str[0];
+
+    uint8_t opcode = 0;
+
+    switch (R)
+    {
+    case 'A':
+        opcode = 0x3D;
+    case 'B':
+        opcode = 0x05;
+    case 'C':
+        opcode = 0x0d;
+    case 'D':
+        opcode = 0x15;
+    case 'E':
+        opcode = 0x1d;
+    case 'H':
+        opcode = 0x25;
+    case 'L':
+        opcode = 0x2d;
+    case 'M':
+        opcode = 0x35;
+    default:
+        Error("Error: Unknown Register: " + R, source);
+        return 0;
+    }
+    
+    _Memory[0] = opcode;
 
     return true;
 }
 
 bool DCX(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x0b + GetNextDoubleRegister(source);
 
     return true;
 }
 
 bool DI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-
+    _Memory[0] = 0xf3;
     return true;
 }
 
 bool EI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-
+    _Memory[0] = 0xfb;
     return true;
 }
 
@@ -429,85 +406,255 @@ bool HLT(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool IN(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xdb;
+    _Memory[1] = GetImmediate8(source);
 
     return true;
 }
 
 bool INR(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    std::string str = source->Next();
+    if (str.length() != 1)
+    {
+        Error("Error: Expected Register: " + str, source);
+        return false;
+    }
+    char R = str[0];
+
+    uint8_t opcode = 0;
+
+    switch (R)
+    {
+    case 'A':
+        opcode = 0x3c;
+    case 'B':
+        opcode = 0x04;
+    case 'C':
+        opcode = 0x0c;
+    case 'D':
+        opcode = 0x14;
+    case 'E':
+        opcode = 0x2c;
+    case 'H':
+        opcode = 0x24;
+    case 'L':
+        opcode = 0x3c;
+    case 'M':
+        opcode = 0x34;
+    default:
+        Error("Error: Unknown Register: " + R, source);
+        return 0;
+    }
+
+    _Memory[0] = opcode;
 
     return true;
 }
 
 bool INX(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x03 + GetNextDoubleRegister(source);
 
     return true;
 }
 
 bool JC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xda;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool JM(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xfa;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
+
 
     return true;
 }
 
 bool JMP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xc3;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool JNC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xd2;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool JNZ(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xc2;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool JP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xf2;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool JPE(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xea;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool JPO(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xe2;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool JZ(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xca;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool LDA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x3a;
+
+    uint16_t addr = GetImmediate16(source);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool LDAX(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    std::string str = source->Next();
+    if (str.length() != 1)
+    {
+        Error("Error: Expected Double Register: " + str, source);
+        return false;
+    }
+    char R = str[0];
 
+    uint8_t opcode = 0;
+
+    switch (R)
+    {
+    case 'B':
+        opcode = 0x0a;
+    case 'D':
+        opcode = 0x1a;
+    case 'H':
+        Error("Error: Can't use: " + R, source);
+        return 0;
+    default:
+        Error("Error: Unknown Double Register: " + R, source);
+        return 0;
+    }
+
+    _Memory[0] = opcode;
     return true;
 }
 
