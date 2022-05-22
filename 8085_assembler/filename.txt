@@ -5,3 +5,5 @@ test:
 	ACI 69
 	ACI 230
 	ACI 11111111b
+
+hlt

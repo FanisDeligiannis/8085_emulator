@@ -12,491 +12,744 @@ struct Instruction
     uint8_t OPCODE;
     char OPERAND[16];
     uint8_t bytes;
-    uint8_t*(*ACTION)(int bytes, SourceFile* source);
+    bool (*ACTION)(int bytes, SourceFile* source, uint8_t* _Memory);
     char ARGS[16];
 } typedef Instruction;
 
-//TODO: LOTS OF ERROR CHECKING
-
-uint8_t* ACI(int bytes, SourceFile* source)
+uint16_t FindLabel(std::string label)
 {
-    uint8_t* ret = (uint8_t*)calloc(bytes, sizeof(uint8_t));
-    if (ret == nullptr)
+    auto labels = GetLabels();
+
+    for (int i = 0; i < labels.size(); i++)
     {
-        printf("Error allocating memory");
-        exit(1);
+        if (labels.at(i).first == label)
+        {
+            return labels.at(i).second;
+        }
     }
 
-    ret[0] = (uint8_t) 0xCE;
+    return 0;
+}
+
+//TODO: LOTS OF ERROR CHECKING
+
+
+bool ACI(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+    _Memory[0] = (uint8_t) 0xCE;
 
     std::string nextWord = source->Next();
-    ret[1] = StringToUInt8(nextWord);
+    _Memory[1] = StringToUInt8(nextWord);
 
-    return ret;
+    return true;
 }
 
-uint8_t* ADC(int bytes, SourceFile* source)
+bool ADC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    std::string str = source->Next();
+    if (str.length() > 1)
+    {
+        printf("Error: Unknown R: %s", str.c_str());
+        return false;
+    }
+    char R = str[0];
+
+    uint8_t opcode = 0;
+
+    switch (R)
+    {
+        case 'A' :
+            opcode = 0x8f;
+        case 'B' :
+            opcode = 0x88;
+        case 'C' :
+            opcode = 0x89;
+        case 'D' :
+            opcode = 0x8a;
+        case 'E' :
+            opcode = 0x8b;
+        case 'H' :
+            opcode = 0x8c;
+        case 'L' :
+            opcode = 0x8d;
+        case 'M':
+            opcode = 0x8e;
+        default:
+            printf("Error: Unknown R: %c", R);
+            return false;
+    }
+
+    _Memory[0] = opcode;
+
+    return true;
 }
 
-uint8_t* ADD(int bytes, SourceFile* source)
+bool ADD(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    std::string str = source->Next();
+    if (str.length() > 1)
+    {
+        printf("Error: Unknown R: %s", str.c_str());
+        return false;
+    }
+    char R = str[0];
+
+    uint8_t opcode = 0;
+
+    switch (R)
+    {
+    case 'A':
+        opcode = 0x87;
+    case 'B':
+        opcode = 0x80;
+    case 'C':
+        opcode = 0x81;
+    case 'D':
+        opcode = 0x82;
+    case 'E':
+        opcode = 0x83;
+    case 'H':
+        opcode = 0x84;
+    case 'L':
+        opcode = 0x85;
+    case 'M':
+        opcode = 0x86;
+    default:
+        printf("Error: Unknown R: %c", R);
+        return false;
+    }
+
+    _Memory[0] = opcode;
+    return true;
 }
 
-uint8_t* ADI(int bytes, SourceFile* source)
+bool ADI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    _Memory[0] = (uint8_t) 0xc6;
+
+    std::string nextWord = source->Next();
+    _Memory[1] = StringToUInt8(nextWord);
+
+    return true;
 }
 
-uint8_t* ANA(int bytes, SourceFile* source)
+bool ANA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    std::string str = source->Next();
+    if (str.length() > 1)
+    {
+        printf("Error: Unknown R: %s", str.c_str());
+        return false;
+    }
+    char R = str[0];
+
+    uint8_t opcode = 0;
+
+    switch (R)
+    {
+    case 'A':
+        opcode = 0xA7;
+    case 'B':
+        opcode = 0xA0;
+    case 'C':
+        opcode = 0xA1;
+    case 'D':
+        opcode = 0xA2;
+    case 'E':
+        opcode = 0xA3;
+    case 'H':
+        opcode = 0xA4;
+    case 'L':
+        opcode = 0xA5;
+    case 'M':
+        opcode = 0xA6;
+    default:
+        printf("Error: Unknown R: %c", R);
+        return false;
+    }
+
+    _Memory[0] = opcode;
+    return true;
 }
 
-uint8_t* ANI(int bytes, SourceFile* source)
+bool ANI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    _Memory[0] = (uint8_t)0xe6;
+
+    std::string nextWord = source->Next();
+    _Memory[1] = StringToUInt8(nextWord);
+    return true;
 }
 
-uint8_t* CALL(int bytes, SourceFile* source)
+bool CALL(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    _Memory[0] = (uint8_t)0xcd;
+
+    std::string label = source->Next();
+    
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
+
+    return true;
 }
 
-uint8_t* CC(int bytes, SourceFile* source)
+bool CC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    _Memory[0] = (uint8_t)0xdc;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
+
+    return true;
 }
 
-uint8_t* CM(int bytes, SourceFile* source)
+bool CM(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    _Memory[0] = (uint8_t)0xfc;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
+    return true;
 }
 
-uint8_t* CMA(int bytes, SourceFile* source)
+bool CMA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    _Memory[0] = 0x2f;
+    return true;
 }
 
-uint8_t* CMC(int bytes, SourceFile* source)
+bool CMC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    _Memory[0] = 0x3f;
+    return true;
 }
 
-uint8_t* CMP(int bytes, SourceFile* source)
+bool CMP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    return nullptr;
+    std::string str = source->Next();
+    if (str.length() > 1)
+    {
+        printf("Error: Unknown R: %s", str.c_str());
+        return false;
+    }
+    char R = str[0];
+
+    uint8_t opcode = 0;
+
+    switch (R)
+    {
+    case 'A':
+        opcode = 0xBF;
+    case 'B':
+        opcode = 0xB8;
+    case 'C':
+        opcode = 0xB9;
+    case 'D':
+        opcode = 0xBA;
+    case 'E':
+        opcode = 0xBB;
+    case 'H':
+        opcode = 0xBC;
+    case 'L':
+        opcode = 0xBD;
+    case 'M':
+        opcode = 0xBE;
+    default:
+        printf("Error: Unknown R: %c", R);
+        return false;
+    }
+
+    _Memory[0] = opcode;
+    return true;
 }
 
-uint8_t* CNC(int bytes, SourceFile* source)
+bool CNC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = (uint8_t)0xd4;
 
-    return nullptr;
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
+    return true;
 }
 
-uint8_t* CNZ(int bytes, SourceFile* source)
+bool CNZ(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = (uint8_t)0xc4;
 
-    return nullptr;
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
+    return true;
 }
 
-uint8_t* CP(int bytes, SourceFile* source)
+bool CP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = (uint8_t)0xf4;
 
-    return nullptr;
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
+    return true;
 }
 
-uint8_t* CPE(int bytes, SourceFile* source)
+bool CPE(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = (uint8_t)0xec;
 
-    return nullptr;
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
+    return true;
 }
 
-uint8_t* CPI(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* CPO(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* CZ(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* DAA(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* DAD(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* DCR(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* DCX(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* DI(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* EI(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* HLT(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* IN(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* INR(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* INX(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* JC(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* JM(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* JMP(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* JNC(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* JNZ(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* JP(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* JPE(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* JPO(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* JZ(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* LDA(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* LDAX(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* LHLD(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* LXI(int bytes, SourceFile* source)
-{
-
-    return nullptr;
-}
-
-uint8_t* MOV(int bytes, SourceFile* source)
+bool CPI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* MVI(int bytes, SourceFile* source)
+bool CPO(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+    _Memory[0] = (uint8_t)0xe4;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
+    return true;
+}
+
+bool CZ(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+    _Memory[0] = (uint8_t)0xcc;
+
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
+    return true;
+}
+
+bool DAA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* NOP(int bytes, SourceFile* source)
+bool DAD(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool DCR(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool DCX(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool DI(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool EI(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool HLT(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+    _Memory[0] = 0x76;
+
+    return true;
+}
+
+bool IN(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool INR(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool INX(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool JC(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool JM(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool JMP(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool JNC(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool JNZ(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool JP(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool JPE(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool JPO(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool JZ(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool LDA(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool LDAX(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool LHLD(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool LXI(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool MOV(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool MVI(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+
+    return true;
+}
+
+bool NOP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
     printf("%s", "nop run!");
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* ORA(int bytes, SourceFile* source)
+bool ORA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* ORI(int bytes, SourceFile* source)
+bool ORI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* OUT(int bytes, SourceFile* source)
+bool OUT(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* PCHL(int bytes, SourceFile* source)
+bool PCHL(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* POP(int bytes, SourceFile* source)
+bool POP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* PUSH(int bytes, SourceFile* source)
+bool PUSH(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RAL(int bytes, SourceFile* source)
+bool RAL(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RAR(int bytes, SourceFile* source)
+bool RAR(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RC(int bytes, SourceFile* source)
+bool RC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RET(int bytes, SourceFile* source)
+bool RET(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RIM(int bytes, SourceFile* source)
+bool RIM(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RLC(int bytes, SourceFile* source)
+bool RLC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RM(int bytes, SourceFile* source)
+bool RM(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RNC(int bytes, SourceFile* source)
+bool RNC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RNZ(int bytes, SourceFile* source)
+bool RNZ(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RP(int bytes, SourceFile* source)
+bool RP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RPE(int bytes, SourceFile* source)
+bool RPE(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RPO(int bytes, SourceFile* source)
+bool RPO(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RRC(int bytes, SourceFile* source)
+bool RRC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RST(int bytes, SourceFile* source)
+bool RST(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* RZ(int bytes, SourceFile* source)
+bool RZ(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* SBB(int bytes, SourceFile* source)
+bool SBB(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* SBI(int bytes, SourceFile* source)
+bool SBI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* SHLD(int bytes, SourceFile* source)
+bool SHLD(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* SIM(int bytes, SourceFile* source)
+bool SIM(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* SPHL(int bytes, SourceFile* source)
+bool SPHL(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* STA(int bytes, SourceFile* source)
+bool STA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* STAX(int bytes, SourceFile* source)
+bool STAX(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* STC(int bytes, SourceFile* source)
+bool STC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* SUB(int bytes, SourceFile* source)
+bool SUB(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* SUI(int bytes, SourceFile* source)
+bool SUI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* XCHG(int bytes, SourceFile* source)
+bool XCHG(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* XRA(int bytes, SourceFile* source)
+bool XRA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* XRI(int bytes, SourceFile* source)
+bool XRI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
-uint8_t* XTHL(int bytes, SourceFile* source)
+bool XTHL(int bytes, SourceFile* source, uint8_t* _Memory)
 {
 
-    return nullptr;
+    return true;
 }
 
 //SP = Stack pointer

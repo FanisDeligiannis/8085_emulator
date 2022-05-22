@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string>
+#include <format>
 
 #include "assembler.h"
 #include "instructions.h"
@@ -78,6 +80,15 @@ uint16_t StringToUInt16(std::string str)
 	return result;
 }
 
+std::string IntToHex(int num, int c)
+{
+	if (c==2)
+		return std::format("{:#04X}", num);
+	else if(c==4)
+		return std::format("{:#06X}", num);
+	return std::format("{:#06X}", num);
+}
+
 std::string parse(SourceFile* source)
 {
 	_Memory = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
@@ -136,17 +147,8 @@ std::string parse(SourceFile* source)
 				if (Instructions[i].OPERAND == word)
 				{
 					found = true;
-					uint8_t* m = Instructions[i].ACTION(Instructions[i].bytes, source);
-					if (m != nullptr)
-					{
-						printf("%d - %d\n", m[0], m[1]);
-
-						for (int i = 0; i < Instructions[i].bytes; i++)
-						{
-							_Memory[currentAddr] = m[i];
-							currentAddr++;
-						}
-					}
+					bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, _Memory+currentAddr);
+					currentAddr += Instructions[i].bytes;
 				}
 			}
 
@@ -156,6 +158,16 @@ std::string parse(SourceFile* source)
 				exit(1);
 			}
 		}
+	}
+
+	int i = startingAddr;
+	int j = 0;
+
+	while (_Memory[i] != 0x76 && j < 20)
+	{
+		printf("%s: %s\n", IntToHex(i).c_str(), IntToHex(_Memory[i], 2).c_str());
+		i++;
+		j++;
 	}
 
 	for (int i = 0; i < labels.size(); i++)

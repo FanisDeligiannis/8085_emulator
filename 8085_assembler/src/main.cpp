@@ -28,10 +28,6 @@ int main()
 
 	SourceFile* source = new SourceFile(file);
 
-	//uint8_t a = StringToUInt8("10101b");
-
-	//printf("%d\n", a);
-
 	parse(source);
 
 	return 0;
