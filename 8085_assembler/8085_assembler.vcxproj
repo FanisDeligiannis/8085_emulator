@@ -150,6 +150,7 @@
   <ItemGroup>
     <ClInclude Include="Headers\assembler.h" />
     <ClInclude Include="Headers\instructions.h" />
+    <ClInclude Include="Headers\main.h" />
     <ClInclude Include="Headers\source_file.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

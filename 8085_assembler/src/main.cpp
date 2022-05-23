@@ -2,18 +2,52 @@
 #include <cstring>
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <format>
 
-#include "source_file.h"
+#include "main.h"
+
 #include "assembler.h"
 
-int main()
+uint8_t* Memory;
+std::ofstream outFile;
+
+void Error(std::string err, SourceFile* source)
 {
+	printf("Error: Line %d, Character %d\n%s", source->GetLine(), source->GetCharCount(), err.c_str());
+
+	outFile.close();
+	free(Memory);
+	delete source;
+
+	exit(1);
+}
+
+int main(int argc, char* argv[])
+{
+	std::string sourceFileName = "";
+	if (argc < 2)
+	{
+		sourceFileName = "source.8085";
+		//printf("Usage: %s source [out]\n", argv[0]);
+		//std::cin.get();
+		//return 1;
+	}
+	else
+	{
+		sourceFileName = argv[1];
+	}
+	
+	std::string outFileName = "out.bin";
+
+	if (argc > 2)
+	{
+		outFileName = argv[2];
+	}
+
 	std::string file;
 	std::string line;
 
-	std::ifstream inFile("filename.txt");
+	std::ifstream inFile(sourceFileName);
 
 	while (std::getline(inFile, line)) {
 		for (int i = 0; i < line.length(); i++)
@@ -29,10 +63,9 @@ int main()
 
 	SourceFile* source = new SourceFile(file);
 
-	uint8_t* Memory = parse(source);
+	Memory = parse(source);
 
-	std::ofstream outFile;
-	outFile.open("out.bin", std::ios::out | std::ios::trunc | std::ios::binary);
+	outFile.open(outFileName.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
 	
 	for (int i = 0; i < 0xffff; i++)
 	{

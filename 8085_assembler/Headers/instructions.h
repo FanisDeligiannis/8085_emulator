@@ -16,9 +16,7 @@ struct Instruction
     char ARGS[16];
 } typedef Instruction;
 
-//Scan for labels BEFORE
-
-uint16_t FindLabel(std::string label)
+uint16_t FindLabel(std::string label, SourceFile* source)
 {
     auto labels = GetLabels();
 
@@ -30,21 +28,17 @@ uint16_t FindLabel(std::string label)
         }
     }
 
+    Error("Label " + label + " not found!", source);
+
     return 0;
 }
 
-void Error(std::string err, SourceFile* source)
-{
-    printf("Error: Line %d, Character %d\n%s", source->GetLine(), source->GetCharCount(), err.c_str());
-    exit(1);
-}
-
-uint8_t GetNextRegister(SourceFile* source)
+uint8_t GetNextRegister(SourceFile* source, bool a = true, bool m = true)
 {
     std::string str = source->Next();
     if (str.length() != 1)
     {
-        Error("Error: Expected Register: " + str, source);
+        Error("Expected Register: " + str, source);
         return false;
     }
     char R = str[0];
@@ -52,7 +46,10 @@ uint8_t GetNextRegister(SourceFile* source)
     switch (R)
     {
     case 'A':
-        return 7;
+        if (a)
+            return 7;
+        else
+            Error("Can't use register A for this operationr", source);
     case 'B':
         return 0;
     case 'C':
@@ -66,16 +63,52 @@ uint8_t GetNextRegister(SourceFile* source)
     case 'L':
         return 5;
     case 'M':
-        return 6;
+        if (m)
+            return 6;
+        else
+            Error("Can't use register M for this operation", source);
     default:
-        Error("Error: Unknown Register: " + R, source);
+        Error("Unknown Register: " + R, source);
         return 0;
     }
 }
 
-uint8_t GetNextDoubleRegister(SourceFile* source)
+uint8_t GetNextDoubleRegister(SourceFile* source, bool h = true, bool sp = false, bool psw = false)
 {
+    std::string str = source->Next();
+    
+    if (sp && str == "SP")
+    {
+        return 0x30;
+    }
 
+    if (psw && str == "PSW")
+    {
+        return 0x30;
+    }
+    
+    if (str.length() != 1)
+    {
+        Error("Expected Double Register: " + str, source);
+        return false;
+    }
+    char R = str[0];
+
+    switch (R)
+    {
+    case 'B':
+        return 0x00;
+    case 'D':
+        return 0x10;
+    case 'H':
+        if (h)
+            return 0x20;
+        else
+            Error("Can't use double register H in this operation", source);
+    default:
+        Error("Unknown Double Register: " + R, source);
+        return 0;
+    }
 }
 
 //TODO: ERRORS!
@@ -158,7 +191,7 @@ bool CALL(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
     
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -175,7 +208,7 @@ bool CC(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -192,7 +225,7 @@ bool CM(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -227,7 +260,7 @@ bool CNC(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -243,7 +276,7 @@ bool CNZ(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -259,7 +292,7 @@ bool CP(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -275,7 +308,7 @@ bool CPE(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -299,7 +332,7 @@ bool CPO(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -315,7 +348,7 @@ bool CZ(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -340,40 +373,7 @@ bool DAD(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool DCR(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    std::string str = source->Next();
-    if (str.length() != 1)
-    {
-        Error("Error: Expected Register: " + str, source);
-        return false;
-    }
-    char R = str[0];
-
-    uint8_t opcode = 0;
-
-    switch (R)
-    {
-    case 'A':
-        opcode = 0x3D;
-    case 'B':
-        opcode = 0x05;
-    case 'C':
-        opcode = 0x0d;
-    case 'D':
-        opcode = 0x15;
-    case 'E':
-        opcode = 0x1d;
-    case 'H':
-        opcode = 0x25;
-    case 'L':
-        opcode = 0x2d;
-    case 'M':
-        opcode = 0x35;
-    default:
-        Error("Error: Unknown Register: " + R, source);
-        return 0;
-    }
-    
-    _Memory[0] = opcode;
+    _Memory[0] = 0x05 + (GetNextRegister(source) * 0x08);
 
     return true;
 }
@@ -414,40 +414,7 @@ bool IN(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool INR(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    std::string str = source->Next();
-    if (str.length() != 1)
-    {
-        Error("Error: Expected Register: " + str, source);
-        return false;
-    }
-    char R = str[0];
-
-    uint8_t opcode = 0;
-
-    switch (R)
-    {
-    case 'A':
-        opcode = 0x3c;
-    case 'B':
-        opcode = 0x04;
-    case 'C':
-        opcode = 0x0c;
-    case 'D':
-        opcode = 0x14;
-    case 'E':
-        opcode = 0x2c;
-    case 'H':
-        opcode = 0x24;
-    case 'L':
-        opcode = 0x3c;
-    case 'M':
-        opcode = 0x34;
-    default:
-        Error("Error: Unknown Register: " + R, source);
-        return 0;
-    }
-
-    _Memory[0] = opcode;
+    _Memory[0] = 0x04 + (GetNextRegister(source) * 0x08);
 
     return true;
 }
@@ -465,7 +432,7 @@ bool JC(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -482,7 +449,7 @@ bool JM(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -500,7 +467,7 @@ bool JMP(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -517,7 +484,7 @@ bool JNC(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -534,7 +501,7 @@ bool JNZ(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -551,7 +518,7 @@ bool JP(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -568,7 +535,7 @@ bool JPE(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -585,7 +552,7 @@ bool JPO(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -602,7 +569,7 @@ bool JZ(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label);
+    uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -630,271 +597,371 @@ bool LDA(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool LDAX(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    std::string str = source->Next();
-    if (str.length() != 1)
-    {
-        Error("Error: Expected Double Register: " + str, source);
-        return false;
-    }
-    char R = str[0];
+    _Memory[0] = 0x0a + GetNextDoubleRegister(source, false);
 
-    uint8_t opcode = 0;
-
-    switch (R)
-    {
-    case 'B':
-        opcode = 0x0a;
-    case 'D':
-        opcode = 0x1a;
-    case 'H':
-        Error("Error: Can't use: " + R, source);
-        return 0;
-    default:
-        Error("Error: Unknown Double Register: " + R, source);
-        return 0;
-    }
-
-    _Memory[0] = opcode;
     return true;
 }
 
 bool LHLD(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x2a;
 
+    std::string label = source->Next();
+
+    uint16_t addr = FindLabel(label, source);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
     return true;
 }
 
 bool LXI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x01 + GetNextDoubleRegister(source, true, true);
+    
+    uint16_t addr = GetImmediate16(source);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool MOV(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-
+    uint8_t firstR = GetNextRegister(source);
+    uint8_t secondR = GetNextRegister(source);
+    if (firstR == 6)
+    {
+        _Memory[0] = 0x70 + firstR;
+    }
+    if (secondR == 6)
+    {
+        _Memory[0] = 0x46 + (firstR * 0x08);
+    }
+    else
+    {
+        _Memory[0] = 0x40 + secondR + (0x08 * firstR);
+    }
     return true;
 }
 
 bool MVI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x06 + (GetNextRegister(source) * 0x08);
+    _Memory[1] = GetImmediate8(source);
 
     return true;
 }
 
 bool NOP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    printf("%s", "nop run!");
-
+    // nothing
     return true;
 }
 
 bool ORA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-
+    _Memory[0] = 0xb0 + GetNextRegister(source);
     return true;
 }
 
 bool ORI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xf6;
+    _Memory[1] = GetImmediate8(source);
 
     return true;
 }
 
 bool OUT(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xd3;
+    _Memory[0] = GetImmediate8(source);
 
     return true;
 }
 
 bool PCHL(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xe9;
 
     return true;
 }
 
 bool POP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xc1 + GetNextDoubleRegister(source, true, false, true);
 
     return true;
 }
 
 bool PUSH(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xc5 + GetNextDoubleRegister(source, true, false, true);
 
     return true;
 }
 
 bool RAL(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x17;
 
     return true;
 }
 
 bool RAR(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xf1;
 
     return true;
 }
 
 bool RC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xd8;
 
     return true;
 }
 
 bool RET(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xc9;
 
     return true;
 }
 
 bool RIM(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x20;
 
     return true;
 }
 
 bool RLC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x07;
 
     return true;
 }
 
 bool RM(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xf8;
 
     return true;
 }
 
 bool RNC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xd0;
 
     return true;
 }
 
 bool RNZ(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xc0;
 
     return true;
 }
 
 bool RP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xf0;
 
     return true;
 }
 
 bool RPE(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xe8;
 
     return true;
 }
 
 bool RPO(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xe0;
 
     return true;
 }
 
 bool RRC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x0f;
 
     return true;
 }
 
 bool RST(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    std::string str = source->Next();
+    if (str.length() != 1)
+    {
+        Error("Expected Register: " + str, source);
+        return false;
+    }
+    char R = str[0];
+
+    switch (R)
+    {
+    case '0':
+        _Memory[0] = 0xc7;
+        return true;
+    case '1':
+        _Memory[0] = 0xcf;
+        return true;
+    case '2':
+        _Memory[0] = 0xd7;
+        return true;
+    case '3':
+        _Memory[0] = 0xdf;
+        return true;
+    case '4':
+        _Memory[0] = 0xe7;
+        return true;
+    case '5':
+        _Memory[0] = 0xef;
+        return true;
+    case '6':
+        _Memory[0] = 0xf7;
+        return true;
+    case '7':
+        _Memory[0] = 0xff;
+        return true;
+    default:
+        Error("Expected number (0-7): " + R, source);
+        return 0;
+    }
 
     return true;
 }
 
 bool RZ(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xc8;
 
     return true;
 }
 
 bool SBB(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x98 + GetNextRegister(source);
 
     return true;
 }
 
 bool SBI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xde;
+    _Memory[1] = GetImmediate8(source);
 
     return true;
 }
 
 bool SHLD(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x22;
+    uint16_t addr = GetImmediate16(source);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool SIM(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x30;
 
     return true;
 }
 
 bool SPHL(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xf9;
 
     return true;
 }
 
 bool STA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x32;
+
+    uint16_t addr = GetImmediate16(source);
+
+    uint8_t HIGH = (addr >> 8) & 0xff;
+    uint8_t LOW = addr & 0xff;
+
+    _Memory[1] = LOW;
+    _Memory[2] = HIGH;
 
     return true;
 }
 
 bool STAX(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-
+    _Memory[0] = 0x02 + GetNextDoubleRegister(source, false);
     return true;
 }
 
 bool STC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x37;
 
     return true;
 }
 
 bool SUB(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0x90 + GetNextRegister(source);
 
     return true;
 }
 
 bool SUI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xd6;
+    _Memory[1] = GetImmediate8(source);
 
     return true;
 }
 
 bool XCHG(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xeb;
 
     return true;
 }
 
 bool XRA(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xa8 + GetNextRegister(source);
 
     return true;
 }
 
 bool XRI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xee;
+    _Memory[1] = GetImmediate8(source);
 
     return true;
 }
 
 bool XTHL(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    _Memory[0] = 0xe3;
 
     return true;
 }

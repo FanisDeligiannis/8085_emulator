@@ -1,14 +1,18 @@
 #include <stdio.h>
 #include <string>
 #include <format>
+#include <iostream>
 
+#include "main.h"
 #include "assembler.h"
 #include "instructions.h"
 
+//TODO: MACRO
+
 uint8_t* _Memory;
 
-uint16_t startingAddr = 0x8000;
-uint16_t currentAddr = 0x8000;
+uint16_t startingAddr = 0x0800;
+uint16_t currentAddr = 0x0800;
 
 std::vector < std::pair<std::string, uint16_t> > labels;
 
@@ -23,25 +27,53 @@ uint8_t StringToUInt8(std::string str)
 	{
 		std::string numStr = str.substr(0, str.length() - 1);
 
-		unsigned int num = std::stoul(numStr, nullptr, 16);
+		unsigned int num;
+
+		try
+		{
+			num = std::stoul(numStr, nullptr, 16);
+		}
+		catch (...)
+		{
+			printf("Error: Expected number, got: %s", str.c_str());
+			exit(1);
+		}
 
 		uint8_t result = *(uint8_t*) &num;
 	
 		return result;
 	}
-
-	if (str[str.length() - 1] == 'B')
+	else if (str[str.length() - 1] == 'B')
 	{
 		std::string numStr = str.substr(0, str.length() - 1);
+		unsigned int num;
 
-		unsigned int num = std::stoul(numStr, nullptr, 2);
+		try
+		{
+			num = std::stoul(numStr, nullptr, 2);
+		}
+		catch (...)
+		{
+			printf("Error: Expected number, got: %s", str.c_str());
+			exit(1);
+		}
 
 		uint8_t result = *(uint8_t*)&num;
 
 		return result;
 	}
+	
+	unsigned int num;
 
-	unsigned int num = std::stoul(str, nullptr, 10);
+	try
+	{
+		num = std::stoul(str, nullptr, 10);
+	}
+	catch (...)
+	{
+		printf("Error: Expected number, got: %s", str.c_str());
+		exit(1);
+	}
 
 	uint8_t result = *(uint8_t*)&num;
 
@@ -54,8 +86,17 @@ uint16_t StringToUInt16(std::string str)
 	if (str[str.length() - 1] == 'H')
 	{
 		std::string numStr = str.substr(0, str.length() - 1);
+		unsigned int num;
 
-		unsigned int num = std::stoul(numStr, nullptr, 16);
+		try
+		{
+			num = std::stoul(numStr, nullptr, 16);
+		}
+		catch (...)
+		{
+			printf("Error: Expected number, got: %s", str.c_str());
+			exit(1);
+		}
 
 		uint16_t result = *(uint16_t*)&num;
 
@@ -65,15 +106,34 @@ uint16_t StringToUInt16(std::string str)
 	if (str[str.length() - 1] == 'B')
 	{
 		std::string numStr = str.substr(0, str.length() - 1);
+		unsigned int num;
 
-		unsigned int num = std::stoul(numStr, nullptr, 2);
+		try
+		{
+			num = std::stoul(numStr, nullptr, 2);
+		}
+		catch (...)
+		{
+			printf("Error: Expected number, got: %s", str.c_str());
+			exit(1);
+		}
 
 		uint16_t result = *(uint16_t*)&num;
 
 		return result;
 	}
 
-	unsigned int num = std::stoul(str, nullptr, 10);
+	unsigned int num;
+
+	try
+	{
+		num = std::stoul(str, nullptr, 10);
+	}
+	catch (...)
+	{
+		printf("Error: Expected number, got: %s", str.c_str());
+		exit(1);
+	}
 
 	uint16_t result = *(uint16_t*)&num;
 
@@ -89,48 +149,45 @@ std::string IntToHex(int num, int c)
 	return std::format("{:#06X}", num);
 }
 
-uint8_t* parse(SourceFile* source)
+void ScanForLabels(SourceFile* source)
 {
-	_Memory = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
+	bool ended = false;
 
-	if (_Memory == nullptr)
-	{
-		perror("Unable to allocate memory");
-		exit(1);
-	}
-
-	bool firstLine = true;
-
-	while (source->HasMore())
+	while (source->HasMore() && !ended)
 	{
 		std::string word = source->Next(true);
 
-		if (word == ".ORG")
+		if (word == "ORG")
 		{
-			if (!firstLine)
-			{
-				Error(".ORG should be the first line.", source);
-				exit(1);
-			}
-
-			firstLine = false;
-
 			std::string addrStr = source->Next();
 
 			//TODO: ERROR CHECK
 
 			uint16_t addr = StringToUInt16(addrStr);
 
-			startingAddr = addr;
 			currentAddr = addr;
 		}
+		else if (word == "EQU") {}
+		else if (word == "END")
+		{
+			ended = true;
+		}
+		else if (word == "DB") {}
+		else if (word == "DW") {}
 		else if (word[word.length() - 1] == ':')
 		{
-			firstLine = false;
-
 			if (word.length() > 1)
 			{
 				std::string label = word.substr(0, word.length() - 1);
+
+				for (int i = 0; i < labels.size(); i++)
+				{
+					if (labels.at(i).first == label)
+					{
+						Error("Label " + label + " already exists", source);
+					}
+				}
+
 				labels.push_back({ label, currentAddr });
 			}
 			else
@@ -142,16 +199,140 @@ uint8_t* parse(SourceFile* source)
 		else
 		{
 			bool found = false;
-			for (int i = 0; i < 0xff; i++)
+			int i = 0;
+			
+			while (i < 0xff && !found)
 			{
 				if (Instructions[i].OPERAND == word)
 				{
 					found = true;
-					bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, _Memory+currentAddr);
 					currentAddr += Instructions[i].bytes;
 				}
+				i++;
 			}
+		}
+	}
+}
 
+uint8_t* parse(SourceFile* source)
+{
+	_Memory = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
+
+	source->_Equ.push_back({"CODE", "0800H"});
+
+
+	if (_Memory == nullptr)
+	{
+		perror("Unable to allocate memory");
+		exit(1);
+	}
+
+	ScanForLabels(source);
+	source->ResetFile();
+
+	currentAddr = startingAddr;
+
+	bool ended = false;
+
+	while (source->HasMore() && !ended)
+	{
+		std::string word = source->Next(true);
+
+		if (word == "ORG")
+		{
+			std::string addrStr = source->Next();
+
+			//TODO: ERROR CHECK
+
+			uint16_t addr = StringToUInt16(addrStr);
+
+			currentAddr = addr;
+		}
+		else if (source->NextNoCursor() == "EQU")
+		{
+
+			std::string label = word;
+			source->Next();
+			std::string val = source->Next();
+
+			source->_Equ.push_back({ label, val });
+		}
+		else if (word[word.length() - 1] == ':') {}
+		else if (word == "END")
+		{
+			ended = true;
+		}
+		else if (word == "DB")
+		{
+			std::string nextWord = source->Next();
+
+			if (nextWord[0] == '\'')
+			{
+				if (nextWord.length() != 3)
+				{
+					Error("Expected ONE character and closing apostrophe", source);
+				}
+
+				if (nextWord[nextWord.length() - 1] != '\'')
+				{
+					Error("Expected closing apostrophe", source);
+				}
+
+				std::string numStr = nextWord.substr(1, nextWord.length() - 2);
+
+				_Memory[currentAddr++] = numStr[0];
+			}
+			else if (nextWord[0] == '\"')
+			{
+				if (nextWord.length() < 2)
+				{
+					Error("Expected closing double apostrophe", source);
+				}
+
+				if (nextWord[nextWord.length() - 1] != '\"')
+				{
+					Error("Expected closing double apostrophe", source);
+				}
+
+				std::string numStr = nextWord.substr(1, nextWord.length() - 2);
+
+				for (int i = 0; i < numStr.length(); i++)
+				{
+					_Memory[currentAddr++] = numStr[i];
+				}
+			}
+			else
+			{
+				_Memory[currentAddr++] = StringToUInt8(nextWord);
+			}
+		}
+		else if (word == "DW")
+		{
+			uint16_t addr = GetImmediate16(source);
+
+			uint8_t HIGH = (addr >> 8) & 0xff;
+			uint8_t LOW = addr & 0xff;
+			
+			//TODO: LITTLE/BIG endian??
+
+			_Memory[currentAddr++] = LOW;
+			_Memory[currentAddr++] = HIGH;
+		}
+		else
+		{
+			bool found = false;
+			int i = 0;
+			while (i < 0xff && !found)
+			{
+				if (Instructions[i].OPERAND == word)
+				{
+					found = true;
+					bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, _Memory + currentAddr);
+					currentAddr += Instructions[i].bytes;
+				}
+
+				i++;
+			}
 			if (!found)
 			{
 				Error("Instruction " + word + " not found!", source);
@@ -172,7 +353,7 @@ uint8_t* parse(SourceFile* source)
 
 	//for (int i = 0; i < labels.size(); i++)
 	//{
-	//	printf("%s: %d\n", labels.at(i).first.c_str(), labels.at(i).second);
+	//	std::cout << labels.at(i).first << ": 0x" << std::hex << labels.at(i).second << std::endl;
 	//}
 
 	return _Memory;

@@ -1,0 +1,97 @@
+org 0900h
+
+org CODE
+
+IN 10H
+LXI D,0900H  			; Initialize all 7 segment as 0
+;CALL STDM
+
+CALL ENABLE_INTERRUPTS
+
+JMP START
+
+INTR_ROUTINE:
+	LXI H,0900H		; The start of our digits
+
+	;CALL KIND		; See which button was pressed.
+		
+	MOV M,A		; Save the number to the LSB of 7 segment display
+	INX H			; Increase H so that it points to the second number
+
+	MOV B,A		; Also save it into B
+
+	;CALL KIND		; See which button was pressed again
+		
+	MOV M,A		; Save it, this time to the second LSB
+				; BEFORE we do anything to the number
+
+	RLC			; 4 Rotations, to move the 4 LSB into the 4 MSB
+	RLC
+	RLC
+	RLC		
+
+	ADD B			; Add the two numbers in order to combine 4 MSB and 4 LSB
+	MOV B,A		; Save result to B
+
+	LXI D,0900H		; Call STDM to show the numbers in 7 segment display
+	;CALL STDM
+
+	CALL COMPARE_NUMBERS	; Routine that sets the LEDs accordingly
+
+	CALL ENABLE_INTERRUPTS	; Enable interrupts again
+
+	RET
+
+
+START:
+	;CALL DCD		; Show the 7 segment display
+
+	JMP START		; Loop forever
+
+COMPARE_NUMBERS:
+	MOV A,B		; Get B into A so we can do CMP
+
+	MVI D,25H		; K1 = 25H for example
+	MVI E,50H		; K2 = 50H for example
+
+	CMP D ; B <= K1	; Compare our number to K1
+	JC ZERO_TO_K1		; Is it smaller? 
+	JZ ZERO_TO_K1		; Is it equal? 
+				; [0, K1]
+	
+	CMP E ; K1 < B <= K2	; Compare it to K2
+	JC K1_TO_K2		; Is it smaller?
+	JZ K1_TO_K2		; Is it equal?
+				; (K1, K2]
+
+	JMP BIGGER_THAN_K2 	; Else we know it's (K2, FFH]
+
+
+	ZERO_TO_K1:		; [0, K1]
+		MVI A,FBH	; Only the third LED open
+		STA 3000H
+		RET
+
+	K1_TO_K2:		; (K1, K2]
+		MVI A,FDH	; Only the second LED open
+		STA 3000H
+		RET
+
+	BIGGER_THAN_K2:	; (K2, FFH]
+		MVI A,FEH	; Only the first LED open
+		STA 3000H
+		RET
+
+ENABLE_INTERRUPTS:	; enable interrupt 6.5
+	MVI A,0DH
+	SIM 
+	MVI C,00H 
+	MVI A,00H
+	EI	
+
+	LXI B,0010H
+
+	RET
+
+DONE:
+	HLT

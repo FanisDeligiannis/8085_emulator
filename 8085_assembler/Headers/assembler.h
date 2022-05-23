@@ -12,4 +12,6 @@ uint16_t StringToUInt16(std::string str);
 
 std::string IntToHex(int num, int c = 4);
 
+void ScanForLabels(SourceFile* source);
+
 uint8_t* parse(SourceFile* source);
