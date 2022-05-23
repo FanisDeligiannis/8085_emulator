@@ -11,7 +11,7 @@
 #define PARITY_FLAG 2
 #define CARRY_FLAG 0
 
-#define CLOCKSPEED 1
+#define CLOCKSPEED 3200000
 
 class CPU
 {
@@ -41,7 +41,9 @@ public:
 	Register* PC;
 	Register* SP;
 
-	CPU();
+public:
+
+	CPU(Memory* memory);
 
 	void Loop();
 
@@ -49,13 +51,48 @@ public:
 
 	void SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, uint8_t carry);
 
+	inline void SetRunning(bool running)
+	{
+		_Running = running;
+	}
+
 	inline Memory* GetMemory()
 	{
 		return _Memory;
 	}
 
+	inline uint8_t GetUnsignedM()
+	{
+		uint8_t H = cpu->H->GetUnsigned();
+		uint8_t L = cpu->L->GetUnsigned();
+
+		uint16_t addr = (H << 8) | L;
+		uint8_t result = cpu->GetMemory()->GetDataAtAddr(addr);
+
+		return result;
+	}
+	
+	inline int8_t GetSignedM()
+	{
+		uint8_t H = cpu->H->GetSigned();
+		uint8_t L = cpu->L->GetSigned();
+
+		uint16_t addr = (H << 8) | L;
+		uint8_t result = cpu->GetMemory()->GetDataAtAddr(addr);
+
+		return *(int8_t*)&result;
+	}
+
+	inline uint8_t NextPC()
+	{
+		PC->Increment();
+		uint8_t ret = _Memory->GetDataAtAddr(PC->Get());
+
+		return ret;
+	}
+
 	inline uint8_t ReadPC()
 	{
-		_Memory->GetDataFromAddr(PC->Get());
+		return _Memory->GetDataAtAddr(PC->Get());
 	}
 };

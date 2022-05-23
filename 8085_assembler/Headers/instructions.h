@@ -639,6 +639,10 @@ bool MOV(int bytes, SourceFile* source, uint8_t* _Memory)
     uint8_t secondR = GetNextRegister(source);
     if (firstR == 6)
     {
+        if (secondR == 6)
+        {
+            Error("MOV M,M is invalid", source);
+        }
         _Memory[0] = 0x70 + firstR;
     }
     if (secondR == 6)
@@ -662,7 +666,7 @@ bool MVI(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool NOP(int bytes, SourceFile* source, uint8_t* _Memory)
 {
-    // nothing
+    _Memory[0] = 0x00;
     return true;
 }
 

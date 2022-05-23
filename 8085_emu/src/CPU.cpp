@@ -2,13 +2,15 @@
 
 #include <stdio.h>
 
-CPU::CPU()
+#include "instructions.h"
+
+CPU::CPU(Memory* memory)
 {
 	cpu = this;
 
 	_Running = true;
 	_HangingCycles = 0;
-	_Memory = new Memory(16);
+	_Memory = memory;
 	_Stack = new Stack(16);
 	_Stack->SetDataPointer(_Memory->GetData());
 
@@ -23,6 +25,7 @@ CPU::CPU()
 	Flags = new Register8();
 
 	PC = new Register();
+	PC->Set(0x0800);
 	SP = new Register();
 
 	SP->SetRef(_Stack->GetSPPointer());
@@ -45,16 +48,20 @@ void CPU::Loop()
 			if (_HangingCycles)
 			{
 				_HangingCycles--;
-				return;
 			}
-			Clock();
+			else
+				Clock();
 		}
 	}
 }
 
 void CPU::Clock()
 {
+	uint8_t op = _Memory->GetDataAtAddr(PC->Get());
 
+	_HangingCycles = Instructions[op].ACTION(Instructions[op].bytes);
+	
+	PC->Increment();
 }
 
 void CPU::SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, uint8_t carry)

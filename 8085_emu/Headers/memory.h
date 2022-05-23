@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include <memory>
 #include <cmath>
 
@@ -11,23 +9,32 @@ private:
 	int _Size;
 	uint8_t* _Data;
 public:
-	Memory(int bits)
+	Memory()
 	{
-		_Size = pow(2, bits);
-		_Data = (uint8_t*)calloc(_Size, sizeof(uint8_t));
+		//_Size = 0xffff;
+		//_Data = (uint8_t*)calloc(_Size, sizeof(uint8_t));
+		_Size = 0;
+		_Data = nullptr;
 	}
 
 	~Memory()
 	{
-		free(_Data);
+		if(_Data != nullptr)
+			free(_Data);
 	}
 
-	void SetMemory(uint16_t addr, uint8_t val)
+	void _SetData(uint8_t* data, int size)
+	{
+		_Size = size;
+		_Data = data;
+	}
+
+	void SetDataAtAddr(uint16_t addr, uint8_t val)
 	{
 		_Data[addr] = val;
 	}
 
-	uint8_t GetDataFromAddr(uint16_t addr)
+	uint8_t GetDataAtAddr(uint16_t addr)
 	{
 		return _Data[addr];
 	}

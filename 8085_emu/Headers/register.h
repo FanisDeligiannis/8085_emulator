@@ -40,6 +40,16 @@ public:
 		_Data._DataUnsigned = _Data._DataUnsigned & (~(1 << bit));
 	}
 
+	void Increment()
+	{
+		_Data._DataSigned++;
+	}
+
+	void Decrement()
+	{
+		_Data._DataSigned--;
+	}
+
 	uint8_t GetUnsigned()
 	{
 		return _Data._DataUnsigned;
