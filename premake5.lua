@@ -13,7 +13,6 @@ outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
 -- Include directories relative to root folder (solution directory)
 IncludeDir = {}
--- IncludeDir["ImGui"] = "vendor/imgui"
 
 project "8085_assembler"
 	location "8085_assembler"
@@ -28,7 +27,7 @@ project "8085_assembler"
 	files
 	{
 		"%{prj.name}/src/**.h",
-		"%{prj.name}/Headers/**.h",
+		"%{prj.name}/include/**.h",
 		"%{prj.name}/src/**.cpp",
 	}
 
@@ -40,8 +39,7 @@ project "8085_assembler"
 	includedirs
 	{
 		"%{prj.name}/src",
-		"%{prj.name}/Headers",
-		-- "%{IncludeDir.ImGui}",
+		"%{prj.name}/include",
 	}
 
 	links 
@@ -87,7 +85,7 @@ project "8085_emu"
     files
     {
         "%{prj.name}/src/**.h",
-        "%{prj.name}/Headers/**.h",
+        "%{prj.name}/include/**.h",
         "%{prj.name}/src/**.cpp",
     }
 
@@ -99,8 +97,7 @@ project "8085_emu"
     includedirs
     {
         "%{prj.name}/src",
-        "%{prj.name}/Headers",
-        -- "%{IncludeDir.ImGui}",
+        "%{prj.name}/include",
     }
 
     links 
@@ -151,8 +148,8 @@ project "GUI"
 
 	includedirs
 	{
-        "8085_assembler/Headers",
-        "8085_emu/Headers"
+        "8085_assembler/include",
+        "8085_emu/include"
 	}
 
 	links
