@@ -13,7 +13,7 @@ private:
 public:
 	Stack(int bits)
 	{
-		_Size = pow(2, bits);
+		_Size = (int) pow(2, bits);
 		_Data = nullptr;
 		_SP = uint16_t(_Size - 1);
 	}

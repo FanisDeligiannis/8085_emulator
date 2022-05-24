@@ -28,7 +28,7 @@ uint16_t FindLabel(std::string label, SourceFile* source)
         }
     }
 
-    Error("Label " + label + " not found!", source);
+    Error("Label: " + label + " not found!", source);
 
     return 0;
 }

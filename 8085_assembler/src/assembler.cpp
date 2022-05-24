@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <string>
-#include <format>
 #include <iostream>
+#include <fstream>
 
-#include "main.h"
 #include "assembler.h"
 #include "instructions.h"
 
@@ -19,6 +18,16 @@ std::vector < std::pair<std::string, uint16_t> > labels;
 std::vector<std::pair<std::string, uint16_t>> GetLabels()
 {
 	return labels;
+}
+
+void Error(std::string err, SourceFile* source)
+{
+	printf("Error: Line %d, Character %d\n%s\n", source->GetLine(), source->GetCharCount(), err.c_str());
+
+	free(_Memory);
+	delete source;
+
+	exit(1);
 }
 
 uint8_t StringToUInt8(std::string str)
@@ -142,11 +151,12 @@ uint16_t StringToUInt16(std::string str)
 
 std::string IntToHex(int num, int c)
 {
-	if (c==2)
-		return std::format("{:#04X}", num);
-	else if(c==4)
-		return std::format("{:#06X}", num);
-	return std::format("{:#06X}", num);
+	//if (c==2)
+	//	return std::format("{:#04X}", num);
+	//else if(c==4)
+	//	return std::format("{:#06X}", num);
+	//return std::format("{:#06X}", num);
+	return "";
 }
 
 void ScanForLabels(SourceFile* source)
@@ -188,7 +198,7 @@ void ScanForLabels(SourceFile* source)
 					}
 				}
 
-				labels.push_back({ label, currentAddr });
+				labels.push_back({ label, currentAddr-1 });
 			}
 			else
 			{
@@ -358,3 +368,74 @@ uint8_t* parse(SourceFile* source)
 
 	return _Memory;
 }
+
+SourceFile* Assembler::ReadSourceFile(std::string fileName)
+{
+	std::string file;
+	std::string line;
+
+	std::ifstream inFile(fileName);
+
+	while (std::getline(inFile, line)) {
+		for (int i = 0; i < line.length(); i++)
+		{
+			line[i] = std::toupper(line[i]);
+		}
+		file += line + '\n';
+	}
+
+	file = file.substr(0, file.length() - 1);
+
+	inFile.close();
+
+	SourceFile* source = new SourceFile(file);
+
+	return source;
+}
+
+uint8_t* Assembler::GetAssembledMemory(SourceFile* source)
+{
+	return parse(source);
+}
+
+uint8_t* Assembler::GetAssembledMemory(std::string file)
+{
+	SourceFile* source = ReadSourceFile(file);
+	uint8_t* ret = parse(source);
+	
+	delete source;
+	
+	return ret;
+}
+
+void Assembler::SaveAssembledMemory(uint8_t* memory, std::string outFileName)
+{
+	std::ofstream outFile;
+
+	outFile.open(outFileName.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
+
+	for (int i = 0; i < 0xffff; i++)
+	{
+		outFile << std::hex << memory[i];
+	}
+
+	outFile.close();
+}
+
+void Assembler::SaveAssembledMemory(SourceFile* source, std::string outFileName)
+{
+	uint8_t* Memory;
+	Memory = GetAssembledMemory(source);	
+
+	SaveAssembledMemory(Memory, outFileName);
+
+	free(Memory);
+}
+
+void Assembler::SaveAssembledMemory(std::string inFileName, std::string outFileName)
+{
+	SourceFile* source = ReadSourceFile(inFileName);
+	SaveAssembledMemory(source, outFileName);
+	delete source;
+}
+

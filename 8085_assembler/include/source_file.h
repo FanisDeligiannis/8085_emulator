@@ -79,7 +79,7 @@ public:
 					}
 				}
 
-				if (_Source[i] == ' ' || _Source[i] == '\t' || _Source[i] == ',') // ignores
+				if (_Source[i] == ' ' || _Source[i] == '\r' || _Source[i] == '\t' || _Source[i] == ',') // ignores
 				{
 				}
 				else if (_Source[i] == '\"')
@@ -116,6 +116,7 @@ public:
 				{
 					done = true;
 				}
+				else if (_Source[i] == '\r'){}
 				else if (_Source[i] == '\n')
 				{
 					done = true;
@@ -162,7 +163,7 @@ public:
 					}
 				}
 
-				if (_Source[i] == ' '  || _Source[i] == '\t' || _Source[i] == ',') // ignores
+				if (_Source[i] == ' '  || _Source[i] == '\r' || _Source[i] == '\t' || _Source[i] == ',') // ignores
 				{
 					_CharCount++;
 				}
@@ -208,6 +209,7 @@ public:
 
 					done = true;
 				}
+				else if (_Source[i] == '\r') {}
 				else if (_Source[i] == '\n')
 				{
 					_PrevLineCount = _LineCount;

@@ -1,6 +1,8 @@
 #pragma once
 
 #include <chrono>
+#include <thread>
+
 #include "memory.h"
 #include "stack.h"
 #include "register.h"
@@ -20,7 +22,6 @@ private:
 	bool _Running;
 
 	const double _TimeBetweenClockCycles = 1.0 / CLOCKSPEED;
-	std::chrono::steady_clock::time_point _PrevClockTime;
 
 public:
 	static inline CPU* cpu;
@@ -44,6 +45,9 @@ public:
 public:
 
 	CPU(Memory* memory);
+	CPU(uint8_t* memory, size_t size);
+
+	std::thread Run();
 
 	void Loop();
 

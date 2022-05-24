@@ -2,19 +2,24 @@
 
 #include <memory>
 #include <cmath>
+#include <cstring>
 
 class Memory
 {
 private:
-	int _Size;
+	size_t _Size;
 	uint8_t* _Data;
 public:
 	Memory()
 	{
-		//_Size = 0xffff;
-		//_Data = (uint8_t*)calloc(_Size, sizeof(uint8_t));
 		_Size = 0;
 		_Data = nullptr;
+	}
+
+	Memory(uint8_t* data, size_t size)
+	{
+		_Size = size;
+		_Data = data;
 	}
 
 	~Memory()
@@ -23,7 +28,7 @@ public:
 			free(_Data);
 	}
 
-	void _SetData(uint8_t* data, int size)
+	void _SetData(uint8_t* data, size_t size)
 	{
 		_Size = size;
 		_Data = data;
@@ -49,7 +54,7 @@ public:
 		return _Data;
 	}
 
-	int GetSize()
+	size_t GetSize()
 	{
 		return _Size;
 	}

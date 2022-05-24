@@ -3,7 +3,7 @@
 #include <cstdint>
 
 
-struct Instruction
+struct CPUInstruction
 {
     uint8_t OPCODE;
     char OPERAND[16];
@@ -258,4 +258,4 @@ int XRAM(int bytes);
 int XRIData(int bytes);
 int XTHL(int bytes);
 
-extern Instruction Instructions[256];
+extern CPUInstruction CPUInstructions[256];

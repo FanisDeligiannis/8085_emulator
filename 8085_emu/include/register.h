@@ -27,7 +27,10 @@ public:
 	void SetBit(uint8_t bit, uint8_t value = 1)
 	{
 		value &= 0x01;
-		_Data._DataUnsigned = _Data._DataUnsigned | (1 << bit);
+		if (value)
+			_Data._DataUnsigned = _Data._DataUnsigned | (1 << bit);
+		else
+			ClearBit(bit);
 	}
 
 	void Clear()
@@ -95,7 +98,10 @@ public:
 	void SetBit(uint8_t bit, int value = 1)
 	{
 		value &= 0x01;
-		*_Data = *_Data | (1 << bit);
+		if (value)
+			*_Data = *_Data | (1 << bit);
+		else
+			ClearBit(bit);
 	}
 
 	void Clear()
