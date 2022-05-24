@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string>
 #include <thread>
+#include <iostream>
 
 #include "assembler.h"
 #include "memory.h"
@@ -41,13 +42,21 @@ int main(int argc, char* argv[])
 	std::thread t = cpu->Run();
 
 	t.join();
-	
-	for (int i = 0x0900; i < 0x090f; i++)
+
+	printf("Register A: %hhu\n", cpu->A->GetUnsigned());
+
+	int i = 0x0900;
+
+	while (memory_data[i] != '\0')
 	{
-		printf("%c",	cpu->GetMemory()->GetDataAtAddr(i));
+		printf("%c", memory_data[i]);
+		i++;
 	}
 
 	printf("\n");
+
+	printf("\n\nDone! Press enter to close this window.");
+	std::cin.get();
 
 	return 0;
 }

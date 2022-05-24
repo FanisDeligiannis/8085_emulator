@@ -1,4 +1,4 @@
-org 0000h
+org 0700h
 
 DB "Hello, world!"
 
@@ -9,7 +9,7 @@ MVI A,00h
 MVI H,09h
 MVI L,00h
 
-MVI D,00h
+MVI D,07h
 MVI E,00h
 
 loop1:

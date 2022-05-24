@@ -3,6 +3,7 @@
 ## Windows
 
 - premake5.exe [action](https://premake.github.io/docs/using-premake)
+- Visual studio
 
 ## Linux
 
@@ -14,6 +15,10 @@
 It ***probably*** works on MacOS, but I have no way to test so I didn't include it. You can download [premake5 for MacOS](https://premake.github.io/download/) 
 
 ---
+
+# Binaries
+
+In the /bin/ folder you can find binaries for windows, linux under */GUI*
 
 
 # 8085 Assembler
