@@ -1,5 +1,7 @@
 # Binaries
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/42d5d2deb6a442cfa587e825724bbe7e)](https://app.codacy.com/gh/FunIsDangerous/8085_emulator?utm_source=github.com&utm_medium=referral&utm_content=FunIsDangerous/8085_emulator&utm_campaign=Badge_Grade_Settings)
+
 - Linux: (ProjectPath)/bin/Release-linux-x86_64/GUI/GUI
 - Windows: (ProjectPath)/bin/Release-windows-x86_64/GUI/GUI.exe
 
