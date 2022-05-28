@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <utility>
+#include <algorithm>
 
 class SourceFile
 {
@@ -130,6 +131,8 @@ public:
 			i++;
 		}
 
+		std::transform(word.begin(), word.end(), word.begin(), ::toupper);
+		
 		for (int i = 0; i < _Equ.size(); i++)
 		{
 			if (_Equ.at(i).first == word)
@@ -177,6 +180,12 @@ public:
 					{
 						word += _Source[i];
 						i++;
+						_CharCount++;
+					}
+
+					if (_Source[i] == '\n')
+					{
+						i--;
 					}
 					
 					if (_Source[i] == '\"')
@@ -236,6 +245,8 @@ public:
 			_HasMore = false;
 		}
 
+		std::transform(word.begin(), word.end(), word.begin(), ::toupper);
+		
 		for (int i = 0; i < _Equ.size(); i++)
 		{
 			if (_Equ.at(i).first == word)

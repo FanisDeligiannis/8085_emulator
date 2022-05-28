@@ -24,8 +24,9 @@ public:
 
 	~Memory()
 	{
-		if(_Data != nullptr)
-			free(_Data);
+		//leave it up to the rest of the code to clean up
+		/*if(_Data != nullptr)
+			free(_Data);*/
 	}
 
 	void _SetData(uint8_t* data, size_t size)

@@ -1,8 +1,8 @@
-org 0700h
+ORG 0700h
 
 DB "Hello, world!"
 
-org CODE 
+ORG CODE 
 
 MVI A,00h
 
@@ -25,6 +25,5 @@ loop1:
 	INX D
 	
 	CPI 00h
-	jnz loop1
-
-hlt
+	JNZ loop1
+HLT

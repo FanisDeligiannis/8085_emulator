@@ -9,6 +9,7 @@ CPU::CPU(Memory* memory)
 	cpu = this;
 
 	_Running = true;
+	_Halted = false;
 	_HangingCycles = 0;
 	_Memory = memory;
 	_Stack = new Stack(16);
@@ -36,6 +37,7 @@ CPU::CPU(uint8_t* memory, size_t size)
 	cpu = this;
 
 	_Running = true;
+	_Halted = false;
 	_HangingCycles = 0;
 	
 	_Memory = new Memory(memory, size);
@@ -60,6 +62,24 @@ CPU::CPU(uint8_t* memory, size_t size)
 	SP->SetRef(_Stack->GetSPPointer());
 }
 
+CPU::~CPU()
+{
+	delete A;
+	delete B;
+	delete C;
+	delete D;
+	delete E;
+	delete H;
+	delete L;
+	delete PC;
+	delete SP;
+	delete _Stack;
+	delete _Memory;
+
+	cpu = nullptr;
+}
+
+
 std::thread CPU::Run()
 {
 	std::thread f(&CPU::Loop, this);
@@ -67,24 +87,56 @@ std::thread CPU::Run()
 	return f;
 }
 
+auto _ClockCyclesPerLoop = ((double)CLOCK_SPEED) / ((double)CLOCK_ACCURACY);
+long long currentCycles = 0;
+int FPS = 0;
+
 void CPU::Loop()
 {
-	auto _PrevClockTime = std::chrono::high_resolution_clock::now();
-	while (_Running)
+	_Running = true;
+	_Halted = false;
+
+	typedef std::chrono::milliseconds ms;
+	typedef std::chrono::duration<float> fsec;
+
+	auto _PrevPrintTime = std::chrono::system_clock::now();
+	
+	auto _StartOfFrame = std::chrono::system_clock::now();
+
+	while (_Running && !_Halted)
 	{
-		auto now = std::chrono::high_resolution_clock::now();
-
-		std::chrono::duration<double> t = std::chrono::duration_cast<std::chrono::duration<double>>(now - _PrevClockTime);
-
-		if (t.count() >= _TimeBetweenClockCycles)
+		auto now = std::chrono::system_clock::now();
+		
+		if (currentCycles >= _ClockCyclesPerLoop)
 		{
-			_PrevClockTime = now;
-			if (_HangingCycles)
-			{
-				_HangingCycles--;
-			}
-			else
-				Clock();
+			currentCycles = 0;
+			FPS++;
+
+			_StartOfFrame += std::chrono::microseconds(1000000 / CLOCK_ACCURACY);
+			std::this_thread::sleep_until(_StartOfFrame);
+		}
+		else
+		{
+			currentCycles += _HangingCycles;
+			_Cycles += _HangingCycles;
+
+			_HangingCycles = 0;
+
+			Clock();
+		}
+
+		currentCycles++;
+		_Cycles++;
+
+		fsec tp = now - _PrevPrintTime;
+		if (tp.count() >= 1)
+		{
+			_PrevPrintTime = now;
+			
+			printf("Cycles Per Second: %llu, FPS: %d\n", _Cycles, FPS);
+			
+			FPS = 0;
+			_Cycles = 0;
 		}
 	}
 }
@@ -92,8 +144,6 @@ void CPU::Loop()
 void CPU::Clock()
 {
 	uint8_t op = _Memory->GetDataAtAddr(PC->Get());
-
-	uint8_t M = GetUnsignedM();
 
 	CPUInstruction instr = CPUInstructions[op];
 
@@ -104,7 +154,9 @@ void CPU::Clock()
 	else
 	{
 		printf("Corrupted data OR bug in the code. . .\n");
-		exit(1);
+		_Running = false;
+		_Halted = true;
+		return;
 	}
 
 	

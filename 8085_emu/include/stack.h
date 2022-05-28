@@ -9,13 +9,13 @@ class Stack
 private:
 	int _Size;
 	uint8_t* _Data;
-	uint16_t _SP;
+	uint16_t* _SP;
 public:
 	Stack(int bits)
 	{
 		_Size = (int) pow(2, bits);
 		_Data = nullptr;
-		_SP = uint16_t(_Size - 1);
+		_SP = new uint16_t(_Size - 1);
 	}
 
 	~Stack() {}
@@ -27,29 +27,29 @@ public:
 
 	void Push(uint8_t data) 
 	{
-		_Data[_SP] = data;
-		_SP--;
+		_Data[*_SP] = data;
+		(* _SP)--;
 
 		//TODO error checking
 	}
 
 	uint8_t Pop()
 	{
-		_SP--;
-		uint8_t ret = _Data[_SP];
-		_Data[_SP] = 0;
+		(* _SP)--;
+		uint8_t ret = _Data[*_SP];
+		_Data[*_SP] = 0;
 
 		return ret;
 	}
 
 	uint16_t GetSP()
 	{
-		return _SP;
+		return *_SP;
 	}
 
 	uint16_t* GetSPPointer()
 	{
-		return &_SP;
+		return _SP;
 	}
 
 	uint8_t* GetData()

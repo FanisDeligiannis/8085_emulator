@@ -13,15 +13,17 @@
 #define PARITY_FLAG 2
 #define CARRY_FLAG 0
 
-#define CLOCKSPEED 3200000
+#define CLOCK_SPEED 3200000
+#define CLOCK_ACCURACY 60
 
 class CPU
 {
 private:
 	int _HangingCycles;
 	bool _Running;
+	bool _Halted;
 
-	const double _TimeBetweenClockCycles = 1.0 / CLOCKSPEED;
+	unsigned long long int _Cycles = 0;
 
 public:
 	static inline CPU* cpu;
@@ -46,6 +48,7 @@ public:
 
 	CPU(Memory* memory);
 	CPU(uint8_t* memory, size_t size);
+	~CPU();
 
 	std::thread Run();
 
@@ -58,6 +61,21 @@ public:
 	inline void SetRunning(bool running)
 	{
 		_Running = running;
+	}
+
+	inline bool GetRunning()
+	{
+		return _Running;
+	}
+
+	inline void SetHalted(bool halted)
+	{
+		_Halted = halted;
+	}
+
+	inline bool GetHalted()
+	{
+		return _Halted;
 	}
 
 	inline Memory* GetMemory()

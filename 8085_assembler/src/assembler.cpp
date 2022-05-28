@@ -20,17 +20,20 @@ std::vector<std::pair<std::string, uint16_t>> GetLabels()
 	return labels;
 }
 
+std::vector<std::pair<int, std::string>> Errors;
+
 void Error(std::string err, SourceFile* source)
 {
 	printf("Error: Line %d, Character %d\n%s\n", source->GetLine(), source->GetCharCount(), err.c_str());
-
-	free(_Memory);
-	delete source;
-
-	exit(1);
+	Errors.push_back({ source->GetLine(), err });
 }
 
-uint8_t StringToUInt8(std::string str)
+std::vector<std::pair<int, std::string>> Assembler::GetErrors()
+{
+	return Errors;
+}
+
+uint8_t StringToUInt8(std::string str, SourceFile* source)
 {
 	if (str[str.length() - 1] == 'H')
 	{
@@ -44,8 +47,8 @@ uint8_t StringToUInt8(std::string str)
 		}
 		catch (...)
 		{
-			printf("Error: Expected number, got: %s", str.c_str());
-			exit(1);
+			Error("Expected hex number, got: " + str, source);
+			return 0;
 		}
 
 		uint8_t result = *(uint8_t*) &num;
@@ -63,8 +66,8 @@ uint8_t StringToUInt8(std::string str)
 		}
 		catch (...)
 		{
-			printf("Error: Expected number, got: %s", str.c_str());
-			exit(1);
+			Error("Expected binary number, got: " + str, source);
+			return 0;
 		}
 
 		uint8_t result = *(uint8_t*)&num;
@@ -80,8 +83,8 @@ uint8_t StringToUInt8(std::string str)
 	}
 	catch (...)
 	{
-		printf("Error: Expected number, got: %s", str.c_str());
-		exit(1);
+		Error("Expected dec number, got: " + str, source);
+		return 0;
 	}
 
 	uint8_t result = *(uint8_t*)&num;
@@ -90,7 +93,7 @@ uint8_t StringToUInt8(std::string str)
 
 }
 
-uint16_t StringToUInt16(std::string str)
+uint16_t StringToUInt16(std::string str, SourceFile* source)
 {
 	if (str[str.length() - 1] == 'H')
 	{
@@ -103,8 +106,8 @@ uint16_t StringToUInt16(std::string str)
 		}
 		catch (...)
 		{
-			printf("Error: Expected number, got: %s", str.c_str());
-			exit(1);
+			Error("Expected hex number, got: " + str, source);
+			return 0;
 		}
 
 		uint16_t result = *(uint16_t*)&num;
@@ -123,8 +126,8 @@ uint16_t StringToUInt16(std::string str)
 		}
 		catch (...)
 		{
-			printf("Error: Expected number, got: %s", str.c_str());
-			exit(1);
+			Error("Expected binary number, got: " + str, source);
+			return 0;
 		}
 
 		uint16_t result = *(uint16_t*)&num;
@@ -140,8 +143,8 @@ uint16_t StringToUInt16(std::string str)
 	}
 	catch (...)
 	{
-		printf("Error: Expected number, got: %s", str.c_str());
-		exit(1);
+		Error("Expected dec number, got: " + str, source);
+		return 0;
 	}
 
 	uint16_t result = *(uint16_t*)&num;
@@ -166,14 +169,12 @@ void ScanForLabels(SourceFile* source)
 	while (source->HasMore() && !ended)
 	{
 		std::string word = source->Next(true);
-
-		if (word == "ORG")
+		if (word == "") {}
+		else if (word == "ORG")
 		{
 			std::string addrStr = source->Next();
 
-			//TODO: ERROR CHECK
-
-			uint16_t addr = StringToUInt16(addrStr);
+			uint16_t addr = StringToUInt16(addrStr, source);
 
 			currentAddr = addr;
 		}
@@ -203,7 +204,6 @@ void ScanForLabels(SourceFile* source)
 			else
 			{
 				Error("Expected a name for the label", source);
-				exit(1);
 			}
 		}
 		else
@@ -230,6 +230,9 @@ uint8_t* parse(SourceFile* source)
 
 	source->_Equ.push_back({"CODE", "0800H"});
 
+	labels.clear();
+	Errors.clear();
+
 
 	if (_Memory == nullptr)
 	{
@@ -247,14 +250,14 @@ uint8_t* parse(SourceFile* source)
 	while (source->HasMore() && !ended)
 	{
 		std::string word = source->Next(true);
-
-		if (word == "ORG")
+		if (word == "") {}
+		else if (word == "ORG")
 		{
 			std::string addrStr = source->Next();
 
 			//TODO: ERROR CHECK
 
-			uint16_t addr = StringToUInt16(addrStr);
+			uint16_t addr = StringToUInt16(addrStr, source);
 
 			currentAddr = addr;
 		}
@@ -313,7 +316,7 @@ uint8_t* parse(SourceFile* source)
 			}
 			else
 			{
-				_Memory[currentAddr++] = StringToUInt8(nextWord);
+				_Memory[currentAddr++] = StringToUInt8(nextWord, source);
 			}
 		}
 		else if (word == "DW")
@@ -346,7 +349,6 @@ uint8_t* parse(SourceFile* source)
 			if (!found)
 			{
 				Error("Instruction " + word + " not found!", source);
-				exit(1);
 			}
 		}
 	}
@@ -398,7 +400,14 @@ uint8_t* Assembler::GetAssembledMemory(SourceFile* source)
 	return parse(source);
 }
 
-uint8_t* Assembler::GetAssembledMemory(std::string file)
+uint8_t* Assembler::GetAssembledMemory(std::string code)
+{
+	SourceFile* source = new SourceFile(code);
+
+	return parse(source);
+}
+
+uint8_t* Assembler::GetAssembledMemory(char* file)
 {
 	SourceFile* source = ReadSourceFile(file);
 	uint8_t* ret = parse(source);

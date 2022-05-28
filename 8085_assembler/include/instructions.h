@@ -122,7 +122,7 @@ uint8_t GetImmediate8(SourceFile* source)
         Error("Expected a number", source);
     }
 
-    return StringToUInt8(nextWord);
+    return StringToUInt8(nextWord, source);
 }
 
 uint16_t GetImmediate16(SourceFile* source)
@@ -134,7 +134,7 @@ uint16_t GetImmediate16(SourceFile* source)
         Error("Expected a number", source);
     }
 
-    return StringToUInt16(nextWord);
+    return StringToUInt16(nextWord, source);
 }
 
 //TODO: LOTS OF ERROR CHECKING
