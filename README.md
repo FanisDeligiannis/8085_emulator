@@ -230,3 +230,14 @@ Instruction set is complete. Mistakes are expected though.
 # GUI
 Using [Dear ImGui](https://github.com/ocornut/imgui). 
  
+ TODO:
+ - Step-by-step code execution
+ - Add breakpoints
+ - Add peripherals
+ 	- LEDs
+ 	- Switches
+ 	- LCD screen (?)
+ 	- Keyboard
+ 	- More
+ - Probably more coming.
+ 
