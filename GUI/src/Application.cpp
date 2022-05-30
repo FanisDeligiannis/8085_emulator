@@ -21,7 +21,6 @@ namespace Application
 
 	void Init()
 	{
-		ConfigIni::Init();
 		Simulation::Init();
 		CodeEditor::Init();
 

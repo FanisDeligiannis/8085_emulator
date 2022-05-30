@@ -12,6 +12,8 @@
 
 #include "Application.h"
 
+#include "ConfigIni.h"
+
 #include "fonts/MonoLisa.cpp"
 
 ImFont* _Font;
@@ -20,7 +22,7 @@ int FontSize = 15;
 ImFont* LoadFont(int size)
 {
     ImGuiIO io = ImGui::GetIO();
-    _Font = io.Fonts->AddFontFromMemoryCompressedTTF(MonoLisa_compressed_data, MonoLisa_compressed_size, FontSize);
+    _Font = io.Fonts->AddFontFromMemoryCompressedTTF(MonoLisa_compressed_data, MonoLisa_compressed_size, size);
 
     return _Font;
 }
@@ -93,6 +95,10 @@ DockSpace       ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,34 Size=1920,974 Split=X
     file.close();
 }
 
+void window_maximize_callback(GLFWwindow* window, int maximized)
+{
+    ConfigIni::SetInt("Window", "Maximized", maximized);
+}
 
 int InitImGui()
 {
@@ -100,6 +106,8 @@ int InitImGui()
     {
         SaveDefaultImGuiIni();
     }
+
+    ConfigIni::Init();
 
     //Setup window
     glfwSetErrorCallback(glfw_error_callback);
@@ -113,8 +121,17 @@ int InitImGui()
 
     // Create window with graphics context
     GLFWwindow* window = glfwCreateWindow(1280, 720, "8085 Emulator", NULL, NULL);
+
     if (window == NULL)
         return 1;
+
+    glfwSetWindowMaximizeCallback(window, window_maximize_callback);
+
+    if (ConfigIni::GetInt("Window", "Maximized", 1))
+    {
+        glfwMaximizeWindow(window);
+    }
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
      // Setup Dear ImGui context

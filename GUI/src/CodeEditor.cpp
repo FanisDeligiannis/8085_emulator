@@ -28,10 +28,10 @@ namespace CodeEditor {
 		editor.SetLanguageDefinition(lang);
 		editor.SetShowWhitespaces(false);
 
-		_Font = LoadFont(20);
-		InitialFontSize = 20;
+		InitialFontSize = ConfigIni::GetInt("CodeEditor", "FontSize", 20);
+		_Font = LoadFont(InitialFontSize);
 
-		FontSize = ConfigIni::GetInt("CodeEditor", "FontSize", 20);
+		FontSize = InitialFontSize;
 
 		_Font->Scale = (float)FontSize / (float)InitialFontSize;
 
@@ -147,6 +147,16 @@ namespace CodeEditor {
 		ImGui::PushFont(_Font);
 
 		ImGui::Begin("Code Editor", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
+
+		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_Equal, false))
+		{
+			SetFontSize(FontSize + 1);
+		}
+
+		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_Minus, false))
+		{
+			SetFontSize(FontSize - 1);
+		}
 
 		if (editor.SaveFile || editor.SaveFileAs)
 		{
