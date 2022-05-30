@@ -255,8 +255,6 @@ uint8_t* parse(SourceFile* source)
 		{
 			std::string addrStr = source->Next();
 
-			//TODO: ERROR CHECK
-
 			uint16_t addr = StringToUInt16(addrStr, source);
 
 			currentAddr = addr;

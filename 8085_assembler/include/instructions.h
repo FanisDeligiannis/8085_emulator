@@ -50,6 +50,7 @@ uint8_t GetNextRegister(SourceFile* source, bool a = true, bool m = true)
             return 7;
         else
             Error("Can't use register A for this operationr", source);
+        break;
     case 'B':
         return 0;
     case 'C':
@@ -67,6 +68,7 @@ uint8_t GetNextRegister(SourceFile* source, bool a = true, bool m = true)
             return 6;
         else
             Error("Can't use register M for this operation", source);
+        break;
     default:
         Error("Unknown Register: " + R, source);
         return 0;

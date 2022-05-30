@@ -1,7 +1,12 @@
 #include "CodeEditor.h"
 #include <fstream>
 
+#include "GUI_backend.h"
 #include "Simulation.h"
+
+#include "imgui_internal.h"
+
+#include "ConfigIni.h"
 
 #ifdef NFD
 #include "nfd.h"
@@ -9,6 +14,10 @@
 
 
 namespace CodeEditor {
+
+	ImFont* _Font;
+	int FontSize;
+	int InitialFontSize;
 
 	TextEditor editor;
 	std::string FilePath = "";
@@ -19,7 +28,23 @@ namespace CodeEditor {
 		editor.SetLanguageDefinition(lang);
 		editor.SetShowWhitespaces(false);
 
+		_Font = LoadFont(20);
+		InitialFontSize = 20;
+
+		FontSize = ConfigIni::GetInt("CodeEditor", "FontSize", 20);
+
+		_Font->Scale = (float)FontSize / (float)InitialFontSize;
+
 		//editor.SetPalette(TextEditor::GetLightPalette());
+	}
+
+	void SetFontSize(int size)
+	{
+		FontSize = size;
+
+		_Font->Scale = (float)FontSize / (float)InitialFontSize;
+
+		ConfigIni::SetInt("CodeEditor", "FontSize", FontSize);
 	}
 
 	void TextEditorLoadFile()
@@ -119,6 +144,7 @@ namespace CodeEditor {
 		}
 		editor.SetErrorMarkers(markers);
 
+		ImGui::PushFont(_Font);
 
 		ImGui::Begin("Code Editor", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
 
@@ -191,6 +217,23 @@ namespace CodeEditor {
 					editor.SetPalette(TextEditor::GetLightPalette());
 				if (ImGui::MenuItem("Retro blue palette"))
 					editor.SetPalette(TextEditor::GetRetroBluePalette());
+
+				ImGui::Separator();
+
+				ImGui::PushItemFlag(ImGuiItemFlags_SelectableDontClosePopup, true);
+				
+				if (ImGui::MenuItem("Size--"))
+				{
+					SetFontSize(FontSize - 1);
+				}
+
+				if (ImGui::MenuItem("Size++"))
+				{
+					SetFontSize(FontSize + 1);
+				}
+
+				ImGui::PopItemFlag();
+				
 				ImGui::EndMenu();
 			}
 
@@ -203,7 +246,7 @@ namespace CodeEditor {
 
 				if (ImGui::MenuItem("Run"))
 				{
-					if (Simulation::Running)
+					if (Simulation::GetRunning())
 					{
 						Simulation::Stop();
 					}
@@ -224,6 +267,9 @@ namespace CodeEditor {
 			editor.GetLanguageDefinition().mName.c_str(), base_filename.c_str());
 
 		editor.Render("TextEditor");
+		
 		ImGui::End();
+
+		ImGui::PopFont();
 	}
 }

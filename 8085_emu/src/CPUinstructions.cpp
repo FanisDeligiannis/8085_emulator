@@ -179,7 +179,7 @@ void AddUnignedWithCarry(uint8_t data)
 
     //TODO CHECK FLAGS HERE
     cpu->SetFlags(
-        result < 0,
+        0,
         result != 0,
         (result4 & 0xf0) > 0,
         !(std::popcount(result) % 2),
@@ -2490,7 +2490,6 @@ int SBIData(int bytes)
     else
         CPU::cpu->Flags->ClearBit(CARRY_FLAG);
 
-    return 4;
     return 7;
 }
 
@@ -2752,7 +2751,7 @@ int XRAA(int bytes)
 {
     uint8_t A = CPU::cpu->A->GetUnsigned();
 
-    CPU::cpu->A->SetUnsigned(A ^ A);
+    CPU::cpu->A->SetUnsigned(0);
 
     return 4;
 }

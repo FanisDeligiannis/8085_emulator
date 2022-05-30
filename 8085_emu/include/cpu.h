@@ -23,8 +23,6 @@ private:
 	bool _Running;
 	bool _Halted;
 
-	unsigned long long int _Cycles = 0;
-
 public:
 	static inline CPU* cpu;
 

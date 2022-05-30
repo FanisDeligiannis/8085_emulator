@@ -88,57 +88,25 @@ std::thread CPU::Run()
 }
 
 auto _ClockCyclesPerLoop = ((double)CLOCK_SPEED) / ((double)CLOCK_ACCURACY);
-long long currentCycles = 0;
-int FPS = 0;
+long long _CurrentCycles = 0;
 
 void CPU::Loop()
 {
 	_Running = true;
 	_Halted = false;
 
-	typedef std::chrono::milliseconds ms;
-	typedef std::chrono::duration<float> fsec;
-
-	auto _PrevPrintTime = std::chrono::system_clock::now();
-	
-	auto _StartOfFrame = std::chrono::system_clock::now();
-
-	while (_Running && !_Halted)
+	while (_Running && !_Halted && _CurrentCycles <= _ClockCyclesPerLoop)
 	{
-		auto now = std::chrono::system_clock::now();
-		
-		if (currentCycles >= _ClockCyclesPerLoop)
-		{
-			currentCycles = 0;
-			FPS++;
+		_CurrentCycles += _HangingCycles;
 
-			_StartOfFrame += std::chrono::microseconds(1000000 / CLOCK_ACCURACY);
-			std::this_thread::sleep_until(_StartOfFrame);
-		}
-		else
-		{
-			currentCycles += _HangingCycles;
-			_Cycles += _HangingCycles;
+		_HangingCycles = 0;
 
-			_HangingCycles = 0;
+		Clock();
 
-			Clock();
-		}
-
-		currentCycles++;
-		_Cycles++;
-
-		fsec tp = now - _PrevPrintTime;
-		if (tp.count() >= 1)
-		{
-			_PrevPrintTime = now;
-			
-			printf("Cycles Per Second: %llu, FPS: %d\n", _Cycles, FPS);
-			
-			FPS = 0;
-			_Cycles = 0;
-		}
+		_CurrentCycles++;
 	}
+
+	_CurrentCycles = 0;
 }
 
 void CPU::Clock()

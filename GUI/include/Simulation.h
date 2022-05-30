@@ -11,7 +11,6 @@ namespace Simulation {
 	extern uint8_t* memory_data;
 	extern std::thread t;
 
-	extern bool Running;
 	extern bool Paused;
 	
 	extern std::vector<std::pair<int, std::string>> Errors;
@@ -22,6 +21,13 @@ namespace Simulation {
 	void Run();
 	void Stop();
 	void Pause();
+
+	inline bool GetRunning() {
+		if (cpu == nullptr)
+			return false;
+		return cpu->GetRunning();
+	}
+	inline bool GetPaused() { return Paused; }
 
 	void Init();
 	void thread();

@@ -2,12 +2,13 @@
 
 #include "assembler.h"
 
+#include "RegistersWindow.h"
+
 namespace Simulation {
 	CPU* cpu;
 	uint8_t* memory_data;
 	std::thread t;
 
-	bool Running = false;
 	bool Paused = false;
 	
 	std::vector<std::pair<int, std::string>> Errors;
@@ -15,9 +16,6 @@ namespace Simulation {
 
 	void Assemble(std::string text)
 	{
-		if (memory_data != nullptr)
-			free(memory_data);
-		memory_data = nullptr;
 		memory_data = Assembler::GetAssembledMemory(text);
 		Errors = Assembler::GetErrors();
 	}
@@ -26,23 +24,25 @@ namespace Simulation {
 	{
 		if (Errors.size() > 0)
 		{
+			//TODO: Fix errors popup
 			return;
 		}
 
-		if (Running && Paused)
+		if (cpu != nullptr && cpu->GetRunning() && Paused)
 		{
-			if (cpu != nullptr)
-			{
-				cpu->SetRunning(true);
-				return;
-			}
-
-			Running = false;
+			cpu->SetRunning(true);
+			cpu->SetHalted(false);
 			Paused = false;
 		}
 		
-		if (!Running)
+		if (cpu == nullptr || !cpu->GetRunning())
 		{
+			if (cpu != nullptr)
+			{
+				delete cpu;
+				cpu = nullptr;
+			}
+
 			if (t.joinable())
 			{
 				t.join();
@@ -54,30 +54,25 @@ namespace Simulation {
 
 	void Stop()
 	{
-		if (Running)
+		if (cpu != nullptr)
 		{
-			Running = false;
+			cpu->SetRunning(false);
+			cpu->SetHalted(false);
 			Paused = false;
+		}
 
-			if (cpu != nullptr)
-			{
-				cpu->SetRunning(false);
-				cpu->SetHalted(false);
-			}
-
-			if (t.joinable())
-			{
-				t.join();
-				//t.detach();
-			}
+		if (t.joinable())
+		{
+			t.join();
+			//t.detach();
 		}
 	}
 
 	void Pause()
 	{
-		if (cpu != nullptr && Running)
+		if (cpu != nullptr && cpu->GetRunning())
 		{
-			cpu->SetRunning(false);
+			cpu->SetHalted(true);
 			Paused = true;
 		}
 	}
@@ -91,19 +86,39 @@ namespace Simulation {
 	{
 		cpu = new CPU(memory_data, 0xffff);
 
-		Running = true;
+		typedef std::chrono::milliseconds ms;
+		typedef std::chrono::duration<float> fsec;
+
+		auto _StartOfFrame = std::chrono::system_clock::now();
+
+
+		cpu->SetRunning(true);
 		Paused = false;
 
-		while (Running)
+		while (cpu->GetRunning())
 		{
-			cpu->Loop();
-			
-			while (!cpu->GetRunning() && cpu->GetHalted() && Running)
+			if (cpu->GetRunning() && !cpu->GetHalted() && !Paused)
 			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(10));
+				try
+				{
+					cpu->Loop();
+				}
+				catch(...)
+				{
+					printf("CPU simulation crashed!\n");
+					cpu->SetRunning(false);
+					break;
+				}
 			}
+			
+			_StartOfFrame += std::chrono::microseconds(1000000 / CLOCK_ACCURACY);
+			std::this_thread::sleep_until(_StartOfFrame);
 		}
 
+		RegistersWindow::UpdateBuffers(true);
+
 		delete cpu;
+		cpu = nullptr;
+		Paused = false;
 	}
 }

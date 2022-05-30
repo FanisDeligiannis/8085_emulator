@@ -12,12 +12,25 @@
 
 #include "Application.h"
 
+#include "fonts/MonoLisa.cpp"
+
+ImFont* _Font;
+int FontSize = 15;
+
+ImFont* LoadFont(int size)
+{
+    ImGuiIO io = ImGui::GetIO();
+    _Font = io.Fonts->AddFontFromMemoryCompressedTTF(MonoLisa_compressed_data, MonoLisa_compressed_size, FontSize);
+
+    return _Font;
+}
+
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
 }
 
-inline bool file_exists(const std::string& name) {
+bool file_exists(const std::string& name) {
     if (FILE* file = fopen(name.c_str(), "r")) {
         fclose(file);
         return true;
@@ -149,6 +162,8 @@ int InitImGui()
     Application::Init();
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    
+    _Font = LoadFont(15);
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -161,18 +176,23 @@ int InitImGui()
         glfwPollEvents();
 
         // Start the Dear ImGui frame
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+
         ImGui::NewFrame();
 
         //-------------
-        
+        ImGui::PushFont(_Font);
+
         Application::ImGuiRender();
 
+        ImGui::PopFont();
         //-------------
 
         // Rendering
         ImGui::Render();
+
         int display_w, display_h;
         glfwGetFramebufferSize(window, &display_w, &display_h);
         glViewport(0, 0, display_w, display_h);
