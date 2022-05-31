@@ -23,6 +23,7 @@ namespace Assembler
 	SourceFile* ReadSourceFile(std::string fileName);
 
 	std::vector<std::pair<int, std::string>> GetErrors();
+	std::vector<std::pair<uint16_t, int>> GetSymbols();
 
 	uint8_t* GetAssembledMemory(SourceFile* source);
 	uint8_t* GetAssembledMemory(std::string code);

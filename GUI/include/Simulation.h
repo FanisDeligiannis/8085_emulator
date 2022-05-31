@@ -12,6 +12,7 @@ namespace Simulation {
 	extern std::thread t;
 
 	extern bool Paused;
+	extern bool _Stepping;
 	
 	extern std::vector<std::pair<int, std::string>> Errors;
 
@@ -21,6 +22,7 @@ namespace Simulation {
 	void Run();
 	void Stop();
 	void Pause();
+	void Step();
 
 	inline bool GetRunning() {
 		if (cpu == nullptr)

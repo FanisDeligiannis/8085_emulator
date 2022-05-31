@@ -6,13 +6,16 @@
 #include "imgui.h"
 #include "imgui_memory_editor/imgui_memory_editor.h"
 
-#include "Simulation.h"
-#include "CodeEditor.h"
+#include "ConfigIni.h"
 #include "Texture.h"
+#include "Simulation.h"
+
+#include "CodeEditor.h"
 #include "Controls.h"
 #include "RegistersWindow.h"
+#include "Peripherals/Leds.h"
+#include "Peripherals/Switches.h"
 
-#include "ConfigIni.h"
 
 namespace Application
 {
@@ -22,6 +25,7 @@ namespace Application
 	void Init()
 	{
 		Simulation::Init();
+		Controls::Init();
 		CodeEditor::Init();
 
 		if (!DefaultFile.empty())
@@ -35,6 +39,10 @@ namespace Application
 	void ImGuiRender()
 	{
 		ImGui::DockSpaceOverViewport();
+
+		Switches::Render();
+
+		Leds::Render();
 
 		Controls::Render();
 

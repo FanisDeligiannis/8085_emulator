@@ -3,6 +3,7 @@
 
 #include "GUI_backend.h"
 #include "Simulation.h"
+#include "assembler.h"
 
 #include "imgui_internal.h"
 
@@ -143,6 +144,23 @@ namespace CodeEditor {
 			markers.insert(Simulation::Errors.at(i));
 		}
 		editor.SetErrorMarkers(markers);
+
+		if (Simulation::GetRunning() && (Simulation::GetPaused() || Simulation::_Stepping || Simulation::cpu->GetHalted()))
+		{
+			auto symbols = Assembler::GetSymbols();
+
+			for (int i = 0; i < symbols.size(); i++)
+			{
+				if (symbols.at(i).first == Simulation::cpu->PC->Get())
+				{
+					editor.CurrentLine = symbols.at(i).second - 1;
+				}
+			}
+		}
+		else
+		{
+			editor.CurrentLine = -1;
+		}
 
 		ImGui::PushFont(_Font);
 

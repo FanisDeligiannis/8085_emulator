@@ -978,7 +978,7 @@ int EI(int bytes)
 
 int HLT(int bytes)
 {
-    CPU::cpu->SetRunning(false);
+    //CPU::cpu->SetRunning(false);
     CPU::cpu->SetHalted(true);
 
     return 5;

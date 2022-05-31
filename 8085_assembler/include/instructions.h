@@ -68,7 +68,7 @@ uint8_t GetNextRegister(SourceFile* source, bool a = true, bool m = true)
             return 6;
         else
             Error("Can't use register M for this operation", source);
-        break;
+        return 0;
     default:
         Error("Unknown Register: " + R, source);
         return 0;

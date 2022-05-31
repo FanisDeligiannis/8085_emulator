@@ -15,6 +15,7 @@ class TextEditor
 public:
 	bool SaveFile = false;
 	bool SaveFileAs = false;
+	int CurrentLine = -1;
 
 	enum class PaletteIndex
 	{

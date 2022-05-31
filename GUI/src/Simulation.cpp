@@ -10,7 +10,9 @@ namespace Simulation {
 	std::thread t;
 
 	bool Paused = false;
-	
+	bool _ScheduledStep = false;
+	bool _Stepping = false;
+
 	std::vector<std::pair<int, std::string>> Errors;
 
 
@@ -28,14 +30,14 @@ namespace Simulation {
 			return;
 		}
 
-		if (cpu != nullptr && cpu->GetRunning() && Paused)
+		if (cpu != nullptr && cpu->GetRunning() && (Paused || cpu->GetHalted() || _Stepping))
 		{
 			cpu->SetRunning(true);
 			cpu->SetHalted(false);
+			_Stepping = false;
 			Paused = false;
 		}
-		
-		if (cpu == nullptr || !cpu->GetRunning())
+		else if (cpu == nullptr || !cpu->GetRunning())
 		{
 			if (cpu != nullptr)
 			{
@@ -77,6 +79,19 @@ namespace Simulation {
 		}
 	}
 
+	void Step()
+	{
+		_Stepping = true;
+		if (cpu == nullptr || !GetRunning())
+		{
+			Run();
+		}
+		else
+		{
+			_ScheduledStep = true;
+		}
+	}
+
 	void Init()
 	{
 		memory_data = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
@@ -91,13 +106,13 @@ namespace Simulation {
 
 		auto _StartOfFrame = std::chrono::system_clock::now();
 
-
 		cpu->SetRunning(true);
+		cpu->SetHalted(false);
 		Paused = false;
 
 		while (cpu->GetRunning())
 		{
-			if (cpu->GetRunning() && !cpu->GetHalted() && !Paused)
+			if (cpu->GetRunning() && !cpu->GetHalted() && !Paused && !_Stepping)
 			{
 				try
 				{
@@ -110,6 +125,22 @@ namespace Simulation {
 					break;
 				}
 			}
+			
+			if (cpu->GetRunning() && _Stepping && _ScheduledStep)
+			{
+				try
+				{
+					cpu->Clock();
+					_ScheduledStep = false;
+				}
+				catch (...)
+				{
+					printf("CPU simulation crashed!\n");
+					cpu->SetRunning(false);
+					break;
+				}
+			}
+
 			
 			_StartOfFrame += std::chrono::microseconds(1000000 / CLOCK_ACCURACY);
 			std::this_thread::sleep_until(_StartOfFrame);

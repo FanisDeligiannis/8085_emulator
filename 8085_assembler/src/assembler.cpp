@@ -14,23 +14,29 @@ uint16_t startingAddr = 0x0800;
 uint16_t currentAddr = 0x0800;
 
 std::vector < std::pair<std::string, uint16_t> > labels;
+std::vector<std::pair<int, std::string>> Errors;
+std::vector<std::pair<uint16_t, int>> Symbols;
 
 std::vector<std::pair<std::string, uint16_t>> GetLabels()
 {
 	return labels;
 }
 
-std::vector<std::pair<int, std::string>> Errors;
+
+std::vector<std::pair<int, std::string>> Assembler::GetErrors()
+{
+	return Errors;
+}
+
+std::vector<std::pair<uint16_t, int>> Assembler::GetSymbols()
+{
+	return Symbols;
+}
 
 void Error(std::string err, SourceFile* source)
 {
 	printf("Error: Line %d, Character %d\n%s\n", source->GetLine(), source->GetCharCount(), err.c_str());
 	Errors.push_back({ source->GetLine(), err });
-}
-
-std::vector<std::pair<int, std::string>> Assembler::GetErrors()
-{
-	return Errors;
 }
 
 uint8_t StringToUInt8(std::string str, SourceFile* source)
@@ -232,6 +238,7 @@ uint8_t* parse(SourceFile* source)
 
 	labels.clear();
 	Errors.clear();
+	Symbols.clear();
 
 
 	if (_Memory == nullptr)
@@ -338,6 +345,7 @@ uint8_t* parse(SourceFile* source)
 				if (Instructions[i].OPERAND == word)
 				{
 					found = true;
+					Symbols.push_back({currentAddr, source->GetLine()});
 					bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, _Memory + currentAddr);
 					currentAddr += Instructions[i].bytes;
 				}

@@ -1,67 +1,79 @@
 #pragma once
 
+#include <imgui_internal.h>
 #include "imgui.h"
+
+#include "GUI_backend.h"
+
 #include "Simulation.h"
 #include "CodeEditor.h"
-#include <imgui_internal.h>
 
 namespace Controls
 {
+	ImFont* _Font;
+
+	void Init()
+	{
+		_Font = LoadFont(35);
+	}
+
+	bool Button(std::string text, bool condition = true, ImVec2 size = ImVec2(0,0))
+	{
+		if (!condition)
+		{
+			ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
+			ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+		}
+
+		bool ret = ImGui::Button(text.c_str(), size);
+
+		if (!condition)
+		{
+			ImGui::PopItemFlag();
+			ImGui::PopStyleVar();
+		}
+
+		return ret;
+	}
+
 	void Render()
 	{
 		ImGui::Begin("Controls");
 		{
-			bool pushed = false;
+			float width = ImGui::GetWindowWidth() / 3 - (3.5 * 2);
 
-			if (Simulation::GetRunning())
-			{
-				pushed = true;
-
-				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-			}
-
-			if (ImGui::Button("Assemble"))
+			if (Button("Assemble", 
+				!Simulation::GetRunning(), 
+				ImVec2(width * 2, 40)))
 			{
 				Simulation::Assemble(CodeEditor::editor.GetText());
 			}
 
-			if (Simulation::GetRunning() && (Simulation::GetPaused() || Simulation::cpu->GetHalted()))
-			{
-				if (pushed)
-				{
-					ImGui::PopItemFlag();
-					ImGui::PopStyleVar();
+			ImGui::SameLine();
 
-					pushed = false;
-				}
-			}
-
-
-			if (ImGui::Button("Run"))
+			if (Button("Run",
+				!Simulation::GetRunning() || Simulation::GetPaused() || Simulation::cpu->GetHalted() || Simulation::_Stepping,
+				ImVec2(width - 3, 40)))
 			{
 				Simulation::Run();
-
 			}
 
-			if (pushed)
+			ImGui::Separator();
+
+			width = ImGui::GetWindowWidth() / 3 - (3.5 * 3);
+
+			if (Button("Step", 
+				!Simulation::GetRunning() || Simulation::GetPaused() || Simulation::cpu->GetHalted() || Simulation::_Stepping,
+				ImVec2(width, 40)))
 			{
-				pushed = false;
-
-				ImGui::PopItemFlag();
-				ImGui::PopStyleVar();
-			}
-
-			if (!Simulation::GetRunning())
-			{
-				pushed = true;
-
-				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				Simulation::Step();
 			}
 
 			ImGui::SameLine();
-			if (ImGui::Button("Stop"))
+
+			if (Button("Stop", 
+				Simulation::GetRunning(),
+				ImVec2(width, 40)))
 			{
 				if (Simulation::GetRunning())
 				{
@@ -69,53 +81,50 @@ namespace Controls
 				}
 			}
 
-			if (Simulation::GetRunning() && Simulation::cpu->GetHalted())
-			{
-				if (pushed)
-				{
-					ImGui::PopItemFlag();
-					ImGui::PopStyleVar();
-				}
-
-				pushed = true;
-
-				ImGui::PushItemFlag(ImGuiItemFlags_Disabled, true);
-				ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
-			}
-
 			ImGui::SameLine();
-			if (ImGui::Button("Pause"))
+
+			if (Button("Pause", 
+				Simulation::GetRunning() && !Simulation::GetPaused() && !Simulation::cpu->GetHalted(),
+				ImVec2(width, 40)))
 			{
-				if (Simulation::GetRunning())
-				{
-					Simulation::Pause();
-				}
+				Simulation::Pause();
 
 			}
 
-			if (pushed)
-			{
-				pushed = false;
+			ImGui::Separator();
 
-				ImGui::PopItemFlag();
-				ImGui::PopStyleVar();
-			}
+			ImGui::PushFont(_Font);
 
-			if (Simulation::GetRunning())
+			std::string text = "";
+
+			if (Simulation::cpu != nullptr)
 			{
-				if (Simulation::cpu->GetHalted())
-					ImGui::Text("Halted");
+				if (Simulation::GetPaused())
+					text = "Paused";
+				else if (Simulation::cpu->GetHalted())
+					text = "Halted";
+				else if (Simulation::GetRunning())
+					text = "Running";
 				else
-					ImGui::Text("Running");
-			}
-			else if (Simulation::Paused)
-			{
-				ImGui::Text("Paused");
+					text = "Not Running";
 			}
 			else
 			{
-				ImGui::Text("Not running");
+				text = "Not Running";
 			}
+
+			auto windowWidth = ImGui::GetWindowSize().x;
+
+			auto textSize = ImGui::CalcTextSize(text.c_str());
+			auto textWidth = textSize.x;
+			
+			ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+
+			ImGui::Text(text.c_str());
+
+			ImGui::PopFont();
+			ImGui::SetWindowSize(ImVec2(ImGui::GetWindowWidth(), ImGui::GetCursorPosY() + 10));
 		}
 
 		ImGui::End();
