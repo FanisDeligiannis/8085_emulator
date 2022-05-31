@@ -247,6 +247,8 @@ uint8_t* parse(SourceFile* source)
 		exit(1);
 	}
 
+	currentAddr = startingAddr;
+
 	ScanForLabels(source);
 	source->ResetFile();
 
