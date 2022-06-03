@@ -3,6 +3,10 @@
 - Linux: (ProjectPath)/bin/Release-linux-x86_64/GUI/GUI
 - Windows: (ProjectPath)/bin/Release-windows-x86_64/GUI/GUI.exe
 
+# Examples
+
+There are examples in the "examples/" folder.
+
 ---
 
 # Usage
@@ -112,12 +116,41 @@ It ***probably*** works on MacOS, but I have no way to test so I didn't include 
 
   
 
-- EQU **CODE** is predefined to 0800H
-
-  
+- Predefined EQU:
+	- RST0 EQU 0000H
+	- RST1 EQU 0008H
+	- RST2 EQU 0010H
+	- RST3 EQU 0018H
+	- RST4 EQU 0020H
+	- RST5 EQU 0028H
+	- RST6 EQU 0030H
+	- RST7 EQU 0038H
+	- RST45 EQU 0024H
+	- RST55 EQU 002CH
+	- RST65 EQU 0034H
+	- RST75 EQU 003CH
+	- CODE EQU 0800H
 
 - Comments with ***;***
 
+- Using interrupts:
+	- Enable interrupts. (**EI**)
+	- Set the interrupt mask appropriately (**SIM**)
+	- For INTR, just define "***INTR_ROUTINE***" label and it'll be called upon INTR. Examples in "examples/"
+	- For all other interrupts, follow example bellow.
+	- By default, all interrupts, except RST0, just RET. Use JMP instead.
+	- By default RST0 jumps to 0800H.
+
+```asm
+ORG RST1
+	JMP LABEL_NAME
+	
+ORG CODE
+
+LABEL_NAME:
+	; instructions
+	RET 
+```
   
 
 <details>
@@ -202,24 +235,6 @@ HLT
 Instruction set is complete. Mistakes are expected though.
 
   
-
----
-
-  
-  
-
-# 8085 Emulator
-
-  
-
-## Instructions
-
-- There is currently no support for interrupts and IN/OUT ports.
-
-- Currently, all you can do is:
-
-- Run a program and look at the memory / registers
-
   
 
 ---
@@ -231,11 +246,12 @@ Instruction set is complete. Mistakes are expected though.
 Using [Dear ImGui](https://github.com/ocornut/imgui). 
  
  TODO:
- - Step-by-step code execution
- - Add breakpoints
+ - Step-by-step code execution - Done
+ - Add breakpoints - Done
  - Add peripherals
- 	- LEDs
- 	- Switches
+ 	- LEDs - Done 
+ 	- Switches - Done 
+ 	- 7 Segment Display - Done
  	- LCD screen (?)
  	- Keyboard
  	- More
