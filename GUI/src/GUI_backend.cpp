@@ -60,20 +60,20 @@ Size=481,363
 Collapsed=0
 
 [Window][Controls]
-Pos=887,0
-Size=303,179
-Collapsed=0
-DockId=0x00000006,0
-
-[Window][Registers]
-Pos=887,180
-Size=303,138
+Pos=885,0
+Size=305,179
 Collapsed=0
 DockId=0x00000009,0
 
+[Window][Registers]
+Pos=885,180
+Size=305,128
+Collapsed=0
+DockId=0x0000000B,0
+
 [Window][Code Editor]
 Pos=0,0
-Size=885,974
+Size=883,974
 Collapsed=0
 DockId=0x00000003,0
 
@@ -94,16 +94,22 @@ Size=485,438
 Collapsed=0
 
 [Window][LEDs]
-Pos=887,320
-Size=303,108
+Pos=885,310
+Size=305,139
 Collapsed=0
-DockId=0x00000007,0
+DockId=0x0000000C,0
 
 [Window][Switches]
-Pos=887,430
-Size=303,544
+Pos=885,451
+Size=305,110
 Collapsed=0
-DockId=0x0000000A,0
+DockId=0x0000000D,0
+
+[Window][7 Segment Display]
+Pos=885,563
+Size=305,411
+Collapsed=0
+DockId=0x00000008,0
 
 [Table][0xA1CC17D3,4]
 Column 0  Weight=1.0000
@@ -116,17 +122,21 @@ Column 0  Weight=1.0000
 Column 1  Weight=1.0000
 
 [Docking][Data]
-DockSpace         ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,34 Size=1920,974 Split=X
-  DockNode        ID=0x00000001 Parent=0x8B93E3BD SizeRef=550,720 Split=X Selected=0x529688BB
-    DockNode      ID=0x00000003 Parent=0x00000001 SizeRef=245,974 CentralNode=1 Selected=0x529688BB
-    DockNode      ID=0x00000004 Parent=0x00000001 SizeRef=303,974 Split=Y Selected=0x67284010
-      DockNode    ID=0x00000005 Parent=0x00000004 SizeRef=306,318 Split=Y Selected=0xEAEE9E08
-        DockNode  ID=0x00000006 Parent=0x00000005 SizeRef=303,178 Selected=0x67284010
-        DockNode  ID=0x00000009 Parent=0x00000005 SizeRef=303,138 Selected=0xEAEE9E08
-      DockNode    ID=0x00000008 Parent=0x00000004 SizeRef=306,654 Split=Y Selected=0x8F1A5834
-        DockNode  ID=0x00000007 Parent=0x00000008 SizeRef=303,108 Selected=0x8F1A5834
-        DockNode  ID=0x0000000A Parent=0x00000008 SizeRef=303,544 Selected=0xCF60CDE8
-  DockNode        ID=0x00000002 Parent=0x8B93E3BD SizeRef=728,720 Selected=0xD39109C3
+DockSpace           ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,34 Size=1920,974 Split=X
+  DockNode          ID=0x00000001 Parent=0x8B93E3BD SizeRef=550,720 Split=X Selected=0x529688BB
+    DockNode        ID=0x00000003 Parent=0x00000001 SizeRef=883,974 CentralNode=1 Selected=0x529688BB
+    DockNode        ID=0x00000004 Parent=0x00000001 SizeRef=305,974 Split=Y Selected=0xEAEE9E08
+      DockNode      ID=0x00000007 Parent=0x00000004 SizeRef=303,561 Split=Y Selected=0xEAEE9E08
+        DockNode    ID=0x00000006 Parent=0x00000007 SizeRef=305,227 Split=Y Selected=0x67284010
+          DockNode  ID=0x00000009 Parent=0x00000006 SizeRef=305,131 Selected=0x67284010
+          DockNode  ID=0x0000000B Parent=0x00000006 SizeRef=305,94 Selected=0xEAEE9E08
+        DockNode    ID=0x0000000A Parent=0x00000007 SizeRef=305,185 Split=Y Selected=0x8F1A5834
+          DockNode  ID=0x0000000C Parent=0x0000000A SizeRef=305,102 Selected=0x8F1A5834
+          DockNode  ID=0x0000000D Parent=0x0000000A SizeRef=305,81 Selected=0xCF60CDE8
+      DockNode      ID=0x00000008 Parent=0x00000004 SizeRef=303,411 Selected=0xDA025FA3
+  DockNode          ID=0x00000002 Parent=0x8B93E3BD SizeRef=728,720 Selected=0xD39109C3
+
+
 )";
 
     std::ofstream file;
