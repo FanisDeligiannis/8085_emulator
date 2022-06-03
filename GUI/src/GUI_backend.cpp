@@ -14,10 +14,14 @@
 
 #include "ConfigIni.h"
 
+//Include the .cpp files containing the info for our fonts.
 #include "fonts/MonoLisa.cpp"
+#include "fonts/SevenSegment.cpp"
 
 ImFont* _Font;
 int FontSize = 15;
+
+ImFont* _SevenSegmentFont;
 
 ImFont* LoadFont(int size)
 {
@@ -217,6 +221,7 @@ int InitImGui()
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     
     _Font = LoadFont(15);
+    _SevenSegmentFont = io.Fonts->AddFontFromMemoryCompressedTTF(SevenSegment_compressed_data, SevenSegment_compressed_size, 50);
 
     // Main loop
     while (!glfwWindowShouldClose(window))

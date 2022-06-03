@@ -19,7 +19,7 @@ namespace Simulation {
 
 	void Assemble(std::string text);
 
-	void Run();
+	void Run(bool stepping = false);
 	void Stop();
 	void Pause();
 	void Step();

@@ -5,6 +5,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+//Loads a texture using stb_image
+//Stores it as an OpenGL texture id for use in ImGui.
+
 Texture::Texture(std::string filename)
 {
     bool ret = LoadTextureFromFile(filename.c_str(), &_TextureID, &_Width, &_Height);

@@ -17,7 +17,8 @@ int main(int argc, char* argv[])
 		std::string fileToOpen = argv[1];
 		Application::DefaultFile = fileToOpen;
 	}
-
+	//Initialise ImGui from Backend. 
+	//it initialises the application and calls Render.
 	InitImGui();
 
 	return 0;

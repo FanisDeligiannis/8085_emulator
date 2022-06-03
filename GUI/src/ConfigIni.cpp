@@ -1,5 +1,7 @@
 #include "ConfigIni.h"
 
+//Pretty straight forward, using the mINI header lib.
+
 namespace ConfigIni
 {
 	mINI::INIFile file("config.ini");

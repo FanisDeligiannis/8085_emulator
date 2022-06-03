@@ -704,7 +704,8 @@ void TextEditor::HandleKeyboardInputs()
 
 	if (ImGui::IsWindowFocused())
 	{
-		if (ImGui::IsWindowHovered())
+		float cursorx = ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x;
+		if (ImGui::IsWindowHovered() && cursorx > 30)
 			ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
 		//ImGui::CaptureKeyboardFromApp(true);
 
@@ -739,8 +740,18 @@ void TextEditor::HandleKeyboardInputs()
 			MoveEnd(shift);
 		else if (!IsReadOnly() && !ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
 			Delete();
+		else if (!IsReadOnly() && ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Delete)))
+		{
+			MoveRight(1, true, ctrl);
+			Delete();
+		}
 		else if (!IsReadOnly() && !ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Backspace)))
 			Backspace();
+		else if (!IsReadOnly() && ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Backspace)))
+		{
+			MoveLeft(1, true, ctrl);
+			Backspace();
+		}
 		else if (!ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Insert)))
 			mOverwrite ^= true;
 		else if (ctrl && !shift && !alt && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Insert)))
@@ -938,6 +949,7 @@ void TextEditor::Render()
 				drawList->AddRectFilled(start, end, mPalette[(int)PaletteIndex::Breakpoint]);
 			}
 
+			//Custom current line of execution drawing.
 			if (lineNo == CurrentLine)
 			{
 				auto end = ImVec2(lineStartScreenPos.x + contentSize.x + 2.0f * scrollX, lineStartScreenPos.y + mCharAdvance.y);
@@ -967,6 +979,42 @@ void TextEditor::Render()
 
 			// Draw line number (right aligned)
 			snprintf(buf, 16, "%d  ", lineNo + 1);
+
+
+			//Breakpoint button on line number + circle
+			ImVec2 size = ImVec2(30, 12);
+
+			ImGui::SetCursorScreenPos(lineStartScreenPos);
+
+			if (ImGui::InvisibleButton(buf, size))
+			{
+				bool found = false;
+				for (int i = 0; i < _Breakpoints.size(); i++)
+				{
+					if (_Breakpoints.at(i) == lineNo + 1)
+					{
+						_Breakpoints.erase(_Breakpoints.begin() + i);
+						found = true;
+					}
+				}
+
+				if (!found)
+				{
+					_Breakpoints.push_back(lineNo + 1);
+				}
+			}
+
+			ImVec2 breakpoint_location = ImVec2(lineStartScreenPos.x + 13, lineStartScreenPos.y + 7);
+
+			for (int i = 0; i < _Breakpoints.size(); i++)
+			{
+				if (_Breakpoints.at(i) == lineNo + 1)
+				{
+					drawList->AddCircleFilled(breakpoint_location, 7, IM_COL32(255, 0, 0, 155), 0);
+				}
+			}
+
+
 
 			auto lineNoWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf, nullptr, nullptr).x;
 			drawList->AddText(ImVec2(lineStartScreenPos.x + mTextStart - lineNoWidth, lineStartScreenPos.y), mPalette[(int)PaletteIndex::LineNumber], buf);
@@ -3014,31 +3062,48 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 			"RNC", "JNC", "OUT", "CNC", "SUI", "RC", "JC", "IN", "CC", "SBI", "RPO", "JPO", "XTHL", "CPO", "ANI", "RPE", 
 			"PCHL", "JPE", "XCHG", "CPE", "XRI", "RP", "JP", "DI", "CP", "ORI", "RM", "SPHL", "JM", "EI", "CM", "CPI",
 
-			"EQU", "MACRO", "DB", "DW", "ORG", "CODE", 
+			"EQU", "MACRO", "DB", "DW", "ORG", 
 		};
 
 		for (auto& k : keywords)
 			langDef.mKeywords.insert(k);
 
-		static const char* const identifiers[] = {
-			"A","B","C","D","E","H","L","M"
+		static const char* const Registers[] = {
+			"A","B","C","D","E","H","L","M", "PSW", 
+			"CODE", "STDM", "DCD", "STDC"
 		};
-		for (auto& k : identifiers)
+
+		static const char* const Predefines[] = {
+			"CODE", "RST0", "STDM", "DCD", "STDC",
+			"RST1", "RST2", "RST3", "RST4", "RST5", "RST6", "RST7", "RST45", "RST55", "RST65", "RST75"
+		};
+
+		for (auto& k : Registers)
 		{
 			Identifier id;
-			id.mDeclaration = "Registers";
+			id.mDeclaration = "Register";
 			langDef.mIdentifiers.insert(std::make_pair(std::string(k), id));
 		}
 
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("L?\\\"(\\\\.|[^\\\"])*\\\"", PaletteIndex::String));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("\\\'[^\\\']*\\\'", PaletteIndex::String));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9])+($| )", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-1]+)[bB]($| )", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9]|[a-fA-F])+[hH]($| )", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("(.+):($| )", PaletteIndex::CharLiteral));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z_][a-zA-Z0-9_]*", PaletteIndex::Identifier));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[\\[\\]\\{\\}\\!\\%\\^\\&\\*\\(\\)\\-\\+\\=\\~\\|\\<\\>\\?\\/\\;\\,\\.]", PaletteIndex::Punctuation));
+		for (auto& k : Predefines)
+		{
+			Identifier id;
+			id.mDeclaration = "Predefined Memory Location";
+			langDef.mIdentifiers.insert(std::make_pair(std::string(k), id));
+		}
 
+		Identifier id;
+		id.mDeclaration = "INTR interrupt calls here.";
+		langDef.mIdentifiers.insert(std::make_pair(std::string("INTR_ROUTINE"), id));
+
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("L?\\\"(\\\\.|[^\\\"])*\\\"", PaletteIndex::String));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("\\\'[^\\\']\\\'", PaletteIndex::String));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9])+($| |\t|;)", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-1]+)[bB]($| |\t|;)", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9]|[a-fA-F])+[hH]($| |\t|;)", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("(.+):($| |\t|;)", PaletteIndex::CharLiteral));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z_][a-zA-Z0-9_]*", PaletteIndex::Identifier));
+		
 		langDef.mCommentStart = "/dasfafd*";
 		langDef.mCommentEnd = "*asdfafsd/";
 		langDef.mSingleLineComment = ";";

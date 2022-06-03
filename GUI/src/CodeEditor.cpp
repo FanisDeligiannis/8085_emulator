@@ -20,6 +20,9 @@ namespace CodeEditor {
 	int FontSize;
 	int InitialFontSize;
 
+	int _PrevLineCount = 0;
+	TextEditor::Coordinates _PrevCpos;
+
 	TextEditor editor;
 	std::string FilePath = "";
 
@@ -138,6 +141,49 @@ namespace CodeEditor {
 
 	void Render()
 	{
+		auto cpos = editor.GetCursorPosition();
+		
+		if (editor.IsTextChanged())
+		{	
+			if (editor.GetTotalLines() > _PrevLineCount)
+			{
+				_PrevLineCount = editor.GetTotalLines();
+
+				for (int i = 0; i < Simulation::Errors.size(); i++)
+				{
+					if (cpos.mLine + 1 <= Simulation::Errors.at(i).first)
+					{
+						Simulation::Errors.at(i).first++;
+					}
+					else if (cpos.mLine + 1 == Simulation::Errors.at(i).first + 1 && _PrevCpos.mColumn == 0)
+					{
+						Simulation::Errors.at(i).first++;
+					}
+				}
+			}
+			else if (editor.GetTotalLines() < _PrevLineCount)
+			{
+				_PrevLineCount = editor.GetTotalLines();
+
+				for (int i = 0; i < Simulation::Errors.size(); i++)
+				{
+					if (cpos.mLine + 1 < Simulation::Errors.at(i).first)
+					{
+						Simulation::Errors.at(i).first--;
+					}
+				}
+			}
+			else
+			{
+				for (int i = 0; i < Simulation::Errors.size(); i++)
+				{
+					if (cpos.mLine + 1 == Simulation::Errors.at(i).first)
+						Simulation::Errors.erase(Simulation::Errors.begin() + i);
+				}
+			}
+		}
+		_PrevCpos = cpos;
+
 		TextEditor::ErrorMarkers markers;
 		for (int i = 0; i < Simulation::Errors.size(); i++)
 		{
@@ -287,7 +333,7 @@ namespace CodeEditor {
 
 			ImGui::EndMenuBar();
 		}
-		auto cpos = editor.GetCursorPosition();
+
 		std::string base_filename = FilePath.substr(FilePath.find_last_of("/\\") + 1);
 		ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
 			editor.IsOverwrite() ? "Ovr" : "Ins",

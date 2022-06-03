@@ -4,6 +4,13 @@
 
 namespace Leds
 {
+	uint8_t* ledValues = nullptr;
+
+	void SimulationStart()
+	{
+		ledValues = Simulation::cpu->GetIO()->GetDataAtAddrPointer(0x30);
+		*ledValues = 0;
+	}
 
 	void Render()
 	{
@@ -15,7 +22,7 @@ namespace Leds
 			{
 				if (ImGui::BeginMenu("Info"))
 				{
-					if (ImGui::MenuItem("Is connected to memory location 3000H.", 0, false, false))
+					if (ImGui::MenuItem("Is connected to IO chip, addr 30H. (OUT 30H)", 0, false, false))
 					{
 
 					}
@@ -29,14 +36,13 @@ namespace Leds
 
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 			ImU32 col = ImColor(ImVec4(1,0,0,1));
-
-			if (Simulation::GetRunning())
+			
+			//Draw green / red circles.
+			if (ledValues != nullptr)
 			{
-				uint8_t ledValues = Simulation::cpu->GetMemory()->GetDataAtAddr(0x3000);
-
 				for (int i = 0; i < 8; i++)
 				{
-					if ((ledValues & (1 << i)) > 0)
+					if ((*ledValues & (1 << i)) > 0)
 					{
 						draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(0, 255, 0, 255), 0);
 					}
@@ -45,13 +51,12 @@ namespace Leds
 						draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(255, 0, 0, 255), 0);
 					}
 				}
-
 			}
 			else
 			{
 				for (int i = 0; i < 8; i++)
 				{
-					draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * i), p.y + 20.0f), radius, IM_COL32(255, 0, 0, 255), 0);
+					draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(255, 0, 0, 255), 0);
 				}
 			}
 		}

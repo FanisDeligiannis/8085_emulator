@@ -15,6 +15,7 @@
 #include "RegistersWindow.h"
 #include "Peripherals/Leds.h"
 #include "Peripherals/Switches.h"
+#include "Peripherals/7SegmentDisplay.h"
 
 
 namespace Application
@@ -41,6 +42,8 @@ namespace Application
 		ImGui::DockSpaceOverViewport();
 
 		Switches::Render();
+		
+		SegmentDisplay::Render();
 
 		Leds::Render();
 
@@ -52,8 +55,18 @@ namespace Application
 
 		ImGui::Begin("Hex");
 		if (Simulation::memory_data != nullptr)
+		{
+			//mem_edit_1.DrawContents(Simulation::memory_data, 0xffff + 1, 0);
 			mem_edit_1.DrawContents(Simulation::memory_data + 0x0800 , 0xffff+1 - 0x0800, 0x0800);
+		}	
 		ImGui::End();
+	}
+
+	void SimulationStart()
+	{
+		Leds::SimulationStart();
+		Switches::SimulationStart();
+		SegmentDisplay::SimulationStart();
 	}
 
 	void Destroy()

@@ -8,5 +8,8 @@ namespace Application
 
 	void Init();
 	void ImGuiRender();
+	
+	void SimulationStart();
+
 	void Destroy();
 }

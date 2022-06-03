@@ -3,6 +3,7 @@
 #include <cstdint>
 
 
+//CPUInstruction has OPCODE, OPERAND, bytes, and an ACTION.
 struct CPUInstruction
 {
     uint8_t OPCODE;
@@ -10,6 +11,8 @@ struct CPUInstruction
     uint8_t bytes;
     int(*ACTION)(int bytes);
 };
+
+//All 246 instructions.
 
 int ACIData(int bytes);
 int ADCA(int bytes);
@@ -258,4 +261,5 @@ int XRAM(int bytes);
 int XRIData(int bytes);
 int XTHL(int bytes);
 
+//List of instructions declared in .cpp file.
 extern CPUInstruction CPUInstructions[256];

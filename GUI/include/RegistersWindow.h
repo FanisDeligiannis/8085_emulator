@@ -6,6 +6,7 @@
 
 namespace RegistersWindow
 {
+	//Stupid IntToHex function.
 	inline std::string IntToHex(int num, const std::string prefix = "", int size = -1)
 	{
 		std::string result;

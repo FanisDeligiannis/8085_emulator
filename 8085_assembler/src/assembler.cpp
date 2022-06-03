@@ -5,6 +5,7 @@
 
 #include "assembler.h"
 #include "instructions.h"
+#include "Bootloader.h"
 
 //TODO: MACRO
 
@@ -35,19 +36,20 @@ std::vector<std::pair<uint16_t, int>> Assembler::GetSymbols()
 
 void Error(std::string err, SourceFile* source)
 {
+	//Print and add each error to a list
 	printf("Error: Line %d, Character %d\n%s\n", source->GetLine(), source->GetCharCount(), err.c_str());
 	Errors.push_back({ source->GetLine(), err });
 }
 
 uint8_t StringToUInt8(std::string str, SourceFile* source)
 {
-	if (str[str.length() - 1] == 'H')
+	if (str[str.length() - 1] == 'H') // if it ends with H, treat it as HEX
 	{
 		std::string numStr = str.substr(0, str.length() - 1);
 
 		unsigned int num;
 
-		try
+		try // So that we don't crash.
 		{
 			num = std::stoul(numStr, nullptr, 16);
 		}
@@ -57,11 +59,11 @@ uint8_t StringToUInt8(std::string str, SourceFile* source)
 			return 0;
 		}
 
-		uint8_t result = *(uint8_t*) &num;
+		uint8_t result = *(uint8_t*) &num; // Convert last 8 bits to uint8_t using pointer casting
 	
 		return result;
 	}
-	else if (str[str.length() - 1] == 'B')
+	else if (str[str.length() - 1] == 'B') // If it ends with B, treat it as binary
 	{
 		std::string numStr = str.substr(0, str.length() - 1);
 		unsigned int num;
@@ -81,6 +83,8 @@ uint8_t StringToUInt8(std::string str, SourceFile* source)
 		return result;
 	}
 	
+	//Otherwise, treat it as dec number
+
 	unsigned int num;
 
 	try
@@ -94,12 +98,13 @@ uint8_t StringToUInt8(std::string str, SourceFile* source)
 	}
 
 	uint8_t result = *(uint8_t*)&num;
-
+	
 	return result;
 
 }
 
-uint16_t StringToUInt16(std::string str, SourceFile* source)
+//Same exact thing, but with uint16_t number.
+uint16_t StringToUInt16(std::string str, SourceFile* source, bool noerrors, bool *NaN) 
 {
 	if (str[str.length() - 1] == 'H')
 	{
@@ -112,9 +117,15 @@ uint16_t StringToUInt16(std::string str, SourceFile* source)
 		}
 		catch (...)
 		{
-			Error("Expected hex number, got: " + str, source);
+			if (!noerrors)
+				Error("Expected hex number, got: " + str, source);
+			else if (NaN != nullptr)
+				*NaN = true;
 			return 0;
 		}
+
+		if (NaN != nullptr)
+			*NaN = false;
 
 		uint16_t result = *(uint16_t*)&num;
 
@@ -132,9 +143,15 @@ uint16_t StringToUInt16(std::string str, SourceFile* source)
 		}
 		catch (...)
 		{
-			Error("Expected binary number, got: " + str, source);
+			if(!noerrors)
+				Error("Expected binary number, got: " + str, source);
+			else if (NaN != nullptr)
+				*NaN = true;
 			return 0;
 		}
+
+		if (NaN != nullptr)
+			*NaN = false;
 
 		uint16_t result = *(uint16_t*)&num;
 
@@ -149,25 +166,24 @@ uint16_t StringToUInt16(std::string str, SourceFile* source)
 	}
 	catch (...)
 	{
-		Error("Expected dec number, got: " + str, source);
+		if(!noerrors)
+			Error("Expected dec number, got: " + str, source);
+		else if (NaN != nullptr)
+			*NaN = true;
 		return 0;
 	}
+
+	if (NaN != nullptr)
+		*NaN = false;
 
 	uint16_t result = *(uint16_t*)&num;
 
 	return result;
 }
 
-std::string IntToHex(int num, int c)
-{
-	//if (c==2)
-	//	return std::format("{:#04X}", num);
-	//else if(c==4)
-	//	return std::format("{:#06X}", num);
-	//return std::format("{:#06X}", num);
-	return "";
-}
-
+//Parse the file first, looking for labels and calculating their location in memory.
+//We do this so we can use a label before we declare it.
+//Otherwise, we wouldn't be able to use a label that's BELOW the code we're currently writing in a file.
 void ScanForLabels(SourceFile* source)
 {
 	bool ended = false;
@@ -184,7 +200,15 @@ void ScanForLabels(SourceFile* source)
 
 			currentAddr = addr;
 		}
-		else if (word == "EQU") {}
+		else if (source->NextNoCursor() == "EQU") //If the NEXT word is "EQU", but don't increment the cursor on SourceFile.
+		{
+
+			std::string label = word; //Label of EQU is our current word.
+			source->Next(); // We ignore next word, we know it's "EQU"
+			std::string val = source->Next(); //Value of EQU is the 3rd word.
+
+			source->_Equ.push_back({ label, val });
+		}
 		else if (word == "END")
 		{
 			ended = true;
@@ -230,28 +254,34 @@ void ScanForLabels(SourceFile* source)
 	}
 }
 
+//Actually parse the file.
 uint8_t* parse(SourceFile* source)
 {
-	_Memory = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
+	_Memory = (uint8_t*)calloc(0xffff + 1, sizeof(uint8_t));
 
-	source->_Equ.push_back({"CODE", "0800H"});
-
-	labels.clear();
-	Errors.clear();
-	Symbols.clear();
-
-
+	//If we failed to allocate memory.
+	//Probably should throw error instead of crashing...
+	//TODO
 	if (_Memory == nullptr)
 	{
 		perror("Unable to allocate memory");
 		exit(1);
 	}
 
+	//Clear them all.
+	labels.clear();
+	Errors.clear();
+	Symbols.clear();
+
 	currentAddr = startingAddr;
 
+	//Scan for labels
 	ScanForLabels(source);
 	source->ResetFile();
+	source->ResetBootloader();
+	
 
+	//Reset currentAddr after "ScanForLabels" is called.
 	currentAddr = startingAddr;
 
 	bool ended = false;
@@ -260,40 +290,35 @@ uint8_t* parse(SourceFile* source)
 	{
 		std::string word = source->Next(true);
 		if (word == "") {}
-		else if (word == "ORG")
+		else if (word == "ORG") //Could have it as a 0 byte "instruction" instead
 		{
+			//Read address
 			std::string addrStr = source->Next();
 
+			//Convert to uint16_t
 			uint16_t addr = StringToUInt16(addrStr, source);
 
+			//Make it the currentAddr
 			currentAddr = addr;
 		}
-		else if (source->NextNoCursor() == "EQU")
-		{
-
-			std::string label = word;
-			source->Next();
-			std::string val = source->Next();
-
-			source->_Equ.push_back({ label, val });
-		}
-		else if (word[word.length() - 1] == ':') {}
-		else if (word == "END")
+		else if (source->NextNoCursor() == "EQU") { source->Next(); source->Next(); }
+		else if (word[word.length() - 1] == ':') {} // Ignore labels, we have already scanned and added them.
+		else if (word == "END") // Not needed, but want to be fully compatible with microlab.
 		{
 			ended = true;
 		}
-		else if (word == "DB")
+		else if (word == "DB") //DB saves one or more bytes in current memory address and forward
 		{
-			std::string nextWord = source->Next();
+			std::string nextWord = source->Next(); //Read next word
 
-			if (nextWord[0] == '\'')
+			if (nextWord[0] == '\'') //If it starts with '  , it is a character.
 			{
 				if (nextWord.length() != 3)
 				{
 					Error("Expected ONE character and closing apostrophe", source);
 				}
 
-				if (nextWord[nextWord.length() - 1] != '\'')
+				if (nextWord[nextWord.length() - 1] != '\'') //And it also ends with '
 				{
 					Error("Expected closing apostrophe", source);
 				}
@@ -302,11 +327,11 @@ uint8_t* parse(SourceFile* source)
 
 				_Memory[currentAddr++] = numStr[0];
 			}
-			else if (nextWord[0] == '\"')
+			else if (nextWord[0] == '\"') // If it starts with ", it is a string and has to also end with "
 			{
-				if (nextWord.length() < 2)
+				if (nextWord.length() < 2) //Length could be anything
 				{
-					Error("Expected closing double apostrophe", source);
+					Error("Expected at least one character and closing double apostrophe", source);
 				}
 
 				if (nextWord[nextWord.length() - 1] != '\"')
@@ -314,19 +339,19 @@ uint8_t* parse(SourceFile* source)
 					Error("Expected closing double apostrophe", source);
 				}
 
-				std::string numStr = nextWord.substr(1, nextWord.length() - 2);
+				std::string numStr = nextWord.substr(1, nextWord.length() - 2); //Whatever the DB contained, without the "
 
-				for (int i = 0; i < numStr.length(); i++)
+				for (int i = 0; i < numStr.length(); i++) //Add it all to memory.
 				{
 					_Memory[currentAddr++] = numStr[i];
 				}
 			}
-			else
+			else //Otherwise, we expect an 8bit number.
 			{
 				_Memory[currentAddr++] = StringToUInt8(nextWord, source);
 			}
 		}
-		else if (word == "DW")
+		else if (word == "DW") //DW get's a 16 bit number.
 		{
 			uint16_t addr = GetImmediate16(source);
 
@@ -340,6 +365,7 @@ uint8_t* parse(SourceFile* source)
 		}
 		else
 		{
+			//Otherwise, if none of the above, it's probably an instruction.
 			bool found = false;
 			int i = 0;
 			while (i < 0xff && !found)
@@ -347,8 +373,9 @@ uint8_t* parse(SourceFile* source)
 				if (Instructions[i].OPERAND == word)
 				{
 					found = true;
-					Symbols.push_back({currentAddr, source->GetLine()});
-					bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, _Memory + currentAddr);
+					if(source->IsBootloaderDone())
+						Symbols.push_back({currentAddr, source->GetLine()}); //So we know which instruction corresponds to which line
+					bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, _Memory + currentAddr); // Not really using ret. . .
 					currentAddr += Instructions[i].bytes;
 				}
 
@@ -361,25 +388,10 @@ uint8_t* parse(SourceFile* source)
 		}
 	}
 
-	//int i = startingAddr;
-	//int j = 0;
-
-	//while (_Memory[i] != 0x76 && j < 20)
-	//{
-	//	printf("%s: %s\n", IntToHex(i).c_str(), IntToHex(_Memory[i], 2).c_str());
-	//	i++;
-	//	j++;
-	//}
-
-	//for (int i = 0; i < labels.size(); i++)
-	//{
-	//	std::cout << labels.at(i).first << ": 0x" << std::hex << labels.at(i).second << std::endl;
-	//}
-
 	return _Memory;
 }
 
-SourceFile* Assembler::ReadSourceFile(std::string fileName)
+SourceFile* Assembler::ReadSourceFile(std::string fileName) // Helper function to convert FileName to SourceFile*
 {
 	std::string file;
 	std::string line;
@@ -398,24 +410,24 @@ SourceFile* Assembler::ReadSourceFile(std::string fileName)
 
 	inFile.close();
 
-	SourceFile* source = new SourceFile(file);
+	SourceFile* source = new SourceFile(Bootloader, file);
 
 	return source;
 }
 
-uint8_t* Assembler::GetAssembledMemory(SourceFile* source)
+uint8_t* Assembler::GetAssembledMemory(SourceFile* source) //Helper function to convert SourceFile* to assembled memory
 {
 	return parse(source);
 }
 
-uint8_t* Assembler::GetAssembledMemory(std::string code)
+uint8_t* Assembler::GetAssembledMemory(std::string code) //Helper function to convert the code to assembled memory
 {
-	SourceFile* source = new SourceFile(code);
+	SourceFile* source = new SourceFile(Bootloader, code);
 
 	return parse(source);
 }
 
-uint8_t* Assembler::GetAssembledMemory(char* file)
+uint8_t* Assembler::GetAssembledMemory(char* file) //Helper function to convert FileName to assembled memory
 {
 	SourceFile* source = ReadSourceFile(file);
 	uint8_t* ret = parse(source);
@@ -424,6 +436,10 @@ uint8_t* Assembler::GetAssembledMemory(char* file)
 	
 	return ret;
 }
+
+//Same helper functions but they save it as a .bin file.
+//Not really useful, may get some use out of it in the future or will remove it.
+//Was used when testing in the very very early stages, probably should be removed.
 
 void Assembler::SaveAssembledMemory(uint8_t* memory, std::string outFileName)
 {

@@ -2,6 +2,8 @@
 
 #include "GUI_backend.h"
 
+//Basic Registers Window with buffers, using ImGui tables.
+
 uint8_t A = 0;
 uint8_t B = 0;
 uint8_t C = 0;
@@ -23,9 +25,12 @@ bool updating = false;
 
 void RegistersWindow::UpdateBuffers(bool force)
 {
-	if (!force && updating)
+	if (!force && updating) // For thread safety reasons
 		return;
 
+	//If one thread is already updating buffers, just give up.
+
+	//But if force=true, don't give up, wait for it to be done updating.
 	while (force && updating);
 
 	updating = true;

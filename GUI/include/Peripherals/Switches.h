@@ -4,6 +4,8 @@
 
 namespace Switches
 {
+	//Toggle button.
+	//Modified from creator of ImGui to switch it to vertical.
 	void ToggleButton(const char* str_id, bool* v)
 	{
 		ImVec2 p = ImGui::GetCursorScreenPos();
@@ -25,6 +27,8 @@ namespace Switches
 		draw_list->AddCircleFilled(ImVec2(p.x + radius, *v ? (p.y + radius) : (p.y + height - radius)), radius - 1.5f, IM_COL32(255, 255, 255, 255));
 	}
 
+	//Switches buffer.
+
 	bool switch7;
 	bool switch6;
 	bool switch5;
@@ -34,8 +38,20 @@ namespace Switches
 	bool switch1;
 	bool switch0;
 
+	uint8_t* switches;
+
+	void SimulationStart()
+	{
+		switches = Simulation::cpu->GetIO()->GetDataAtAddrPointer(0x20);
+	}
+
 	void Render()
 	{
+		if (Simulation::GetRunning())
+		{
+			switches = Simulation::cpu->GetIO()->GetDataAtAddrPointer(0x20);
+		}
+
 		float radius = 15.5;
 
 		ImGui::Begin("Switches", 0, ImGuiWindowFlags_MenuBar);
@@ -44,7 +60,7 @@ namespace Switches
 			{
 				if (ImGui::BeginMenu("Info"))
 				{
-					if (ImGui::MenuItem("Is connected to memory location 2000H.", 0, false, false))
+					if (ImGui::MenuItem("Is connected to IO chip, addr 20H. (IN 20H)", 0, false, false))
 					{
 
 					}
@@ -72,11 +88,10 @@ namespace Switches
 		}
 		ImGui::End();
 
-		if (Simulation::GetRunning())
+		if (switches != nullptr)
 		{
-			auto Memory = Simulation::cpu->GetMemory();
 			uint8_t val = (switch7 << 7) | (switch6 << 6) | (switch5 << 5) | (switch4 << 4) | (switch3 << 3) | (switch2 << 2) | (switch1 << 1) | (switch0 << 0);
-			Memory->SetDataAtAddr(0x2000, val);
+			*switches = val;
 		}
 	}
 }

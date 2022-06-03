@@ -10,6 +10,9 @@
 
 namespace Controls
 {
+	//Pretty straight forward.
+	//Assemble, Step, INTR, Run, Stop, Pause buttons.
+
 	ImFont* _Font;
 
 	void Init()
@@ -40,11 +43,11 @@ namespace Controls
 	{
 		ImGui::Begin("Controls");
 		{
-			float width = ImGui::GetWindowWidth() / 3 - (3.5 * 2);
+			float width = ImGui::GetWindowWidth() / 3 - (3.5 * 3);
 
 			if (Button("Assemble", 
 				!Simulation::GetRunning(), 
-				ImVec2(width * 2, 40)))
+				ImVec2(width, 40)))
 			{
 				Simulation::Assemble(CodeEditor::editor.GetText());
 			}
@@ -53,20 +56,28 @@ namespace Controls
 
 			if (Button("Run",
 				!Simulation::GetRunning() || Simulation::GetPaused() || Simulation::cpu->GetHalted() || Simulation::_Stepping,
-				ImVec2(width - 3, 40)))
+				ImVec2(width, 40)))
 			{
 				Simulation::Run();
 			}
 
-			ImGui::Separator();
+			ImGui::SameLine();
 
-			width = ImGui::GetWindowWidth() / 3 - (3.5 * 3);
 
 			if (Button("Step", 
 				!Simulation::GetRunning() || Simulation::GetPaused() || Simulation::cpu->GetHalted() || Simulation::_Stepping,
 				ImVec2(width, 40)))
 			{
 				Simulation::Step();
+			}
+
+			ImGui::Separator();
+			
+			if (Button("INTR",
+				Simulation::GetRunning(),
+				ImVec2(width, 40)))
+			{
+				Simulation::cpu->_IPINTR = true;
 			}
 
 			ImGui::SameLine();
@@ -99,7 +110,9 @@ namespace Controls
 
 			if (Simulation::cpu != nullptr)
 			{
-				if (Simulation::GetPaused())
+				if (Simulation::_Stepping)
+					text = "Stepping";
+				else if (Simulation::GetPaused())
 					text = "Paused";
 				else if (Simulation::cpu->GetHalted())
 					text = "Halted";

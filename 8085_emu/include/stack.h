@@ -4,6 +4,9 @@
 #include <cmath>
 #include <cstdint>
 
+//Simple stack.
+//uint8_t* _Data SHOULD point to the _Data of memory.
+
 class Stack 
 {
 private:
@@ -35,7 +38,7 @@ public:
 
 	uint8_t Pop()
 	{
-		(* _SP)--;
+		(* _SP)++;
 		uint8_t ret = _Data[*_SP];
 		_Data[*_SP] = 0;
 

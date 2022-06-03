@@ -156,7 +156,8 @@ project "GUI"
 	{
 		"%{prj.name}/include/**.h",
 		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
+		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/src/fonts/**.cpp"
 	}
 
 	includedirs

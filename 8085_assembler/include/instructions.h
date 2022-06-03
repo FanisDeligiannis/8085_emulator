@@ -7,6 +7,8 @@
 #include "source_file.h"
 #include "assembler.h"
 
+//The entire instruction set, used in assembling the binary from text.
+
 struct Instruction
 {
     uint8_t OPCODE;
@@ -18,9 +20,12 @@ struct Instruction
 
 uint16_t FindLabel(std::string label, SourceFile* source)
 {
+    //Loop all labels to find the address associated with it.
+    //If not found, show an error.
+
     auto labels = GetLabels();
 
-    for (int i = 0; i < labels.size(); i++)
+    for (int i = 0; i < labels.size(); i++) 
     {
         if (labels.at(i).first == label)
         {
@@ -35,6 +40,13 @@ uint16_t FindLabel(std::string label, SourceFile* source)
 
 uint8_t GetNextRegister(SourceFile* source, bool a = true, bool m = true)
 {
+    //Read the next word in the source code.
+    //Return a number 0-7 depending on the register (B=0, . . . , A=7)
+    
+    //If it's not a valid register
+    //OR if a register not allowed is used (A/M in some cases)
+    //Show an error.
+
     std::string str = source->Next();
     if (str.length() != 1)
     {
@@ -49,7 +61,7 @@ uint8_t GetNextRegister(SourceFile* source, bool a = true, bool m = true)
         if (a)
             return 7;
         else
-            Error("Can't use register A for this operationr", source);
+            Error("Can't use register A for this operation", source);
         break;
     case 'B':
         return 0;
@@ -77,6 +89,13 @@ uint8_t GetNextRegister(SourceFile* source, bool a = true, bool m = true)
 
 uint8_t GetNextDoubleRegister(SourceFile* source, bool h = true, bool sp = false, bool psw = false)
 {
+    //Read the next word in the source code.
+    //Return a number corresponding to double register 
+
+    //If it's not a valid register
+    //OR if a register not allowed is used (H/SP/PSW in some cases)
+    //Show an error.
+
     std::string str = source->Next();
     
     if (sp && str == "SP")
@@ -113,10 +132,12 @@ uint8_t GetNextDoubleRegister(SourceFile* source, bool h = true, bool sp = false
     }
 }
 
-//TODO: ERRORS!
-
 uint8_t GetImmediate8(SourceFile* source)
 {
+    //Get the next word in the source file. 
+    //If it doesn't exist, error.
+    //StringToUInt8 checks if it's a valid number and shows error if not
+
     std::string nextWord = source->Next();
 
     if (nextWord.length() == 0)
@@ -129,6 +150,10 @@ uint8_t GetImmediate8(SourceFile* source)
 
 uint16_t GetImmediate16(SourceFile* source)
 {
+    //Get the next word in the source file. 
+    //If it doesn't exist, error.
+    //StringToUInt16 checks if it's a valid number and shows error if not
+
     std::string nextWord = source->Next();
 
     if (nextWord.length() == 0)
@@ -139,8 +164,10 @@ uint16_t GetImmediate16(SourceFile* source)
     return StringToUInt16(nextWord, source);
 }
 
-//TODO: LOTS OF ERROR CHECKING
+//_Memory[0] ALWAYS points to CURRENT MEMORY ADDRESS.
 
+//So _Memory[0] should ALWAYS be the OPCODE
+//And subsequent addresses should be the data needed by the operand
 
 bool ACI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
@@ -152,6 +179,12 @@ bool ACI(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool ADC(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    //Opcodes have an offset of 1.
+    //For example:
+    //ADC B = 0x88
+    //ADC C = 0x89
+    //....
+
     uint8_t opcode = 0x88 + GetNextRegister(source);
     _Memory[0] = opcode;
 
@@ -191,12 +224,16 @@ bool CALL(int bytes, SourceFile* source, uint8_t* _Memory)
 {
     _Memory[0] = (uint8_t)0xcd;
 
+    //Next word should be our label
     std::string label = source->Next();
     
+    //Find label will do the error checking for us.
     uint16_t addr = FindLabel(label, source);
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
+
+    //FIRST LOW, THEN HIGH!
 
     _Memory[1] = LOW;
     _Memory[2] = HIGH;
@@ -369,12 +406,16 @@ bool DAA(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool DAD(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    //Offset for double registers is always 0x10, so it returns a value based on that.
     _Memory[0] = 0x09 + GetNextDoubleRegister(source);
     return true;
 }
 
 bool DCR(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    //Offset between registers here is 0x08.
+    //GetNextRegister return a number assuming an offset of 1
+    //So we multiply by 0x08.
     _Memory[0] = 0x05 + (GetNextRegister(source) * 0x08);
 
     return true;
@@ -469,7 +510,14 @@ bool JMP(int bytes, SourceFile* source, uint8_t* _Memory)
 
     std::string label = source->Next();
 
-    uint16_t addr = FindLabel(label, source);
+    //Ability to JMP to an address hacked in.
+    bool NaN;
+
+    uint16_t addr = StringToUInt16(label, source, true, &NaN);
+    if (NaN)
+        addr = FindLabel(label, source);
+    else
+        addr = addr - 1;
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;
@@ -637,6 +685,9 @@ bool LXI(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool MOV(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    //It has weird offsets, and the operand is vastly different depending on First Register and Second Register
+    //Does not allow M,M.
+
     uint8_t firstR = GetNextRegister(source);
     uint8_t secondR = GetNextRegister(source);
     if (firstR == 6)
@@ -689,7 +740,7 @@ bool ORI(int bytes, SourceFile* source, uint8_t* _Memory)
 bool OUT(int bytes, SourceFile* source, uint8_t* _Memory)
 {
     _Memory[0] = 0xd3;
-    _Memory[0] = GetImmediate8(source);
+    _Memory[1] = GetImmediate8(source);
 
     return true;
 }
@@ -808,10 +859,12 @@ bool RRC(int bytes, SourceFile* source, uint8_t* _Memory)
 
 bool RST(int bytes, SourceFile* source, uint8_t* _Memory)
 {
+    //Just check next number.
+
     std::string str = source->Next();
     if (str.length() != 1)
     {
-        Error("Expected Register: " + str, source);
+        Error("Expected number between 0-7: " + str, source);
         return false;
     }
     char R = str[0];
@@ -972,11 +1025,7 @@ bool XTHL(int bytes, SourceFile* source, uint8_t* _Memory)
     return true;
 }
 
-//SP = Stack pointer
-//PC = Program Counter 
-//P = Port Address
-//Ad = Address
-//La = Label
+//Made using a python script and a list of all instructions
 
 Instruction Instructions[] = {
     {0x0, "NOP", 1, NOP, ""},

@@ -2,9 +2,12 @@
 
 #include <stdio.h>
 #include <bit>
+#include <vector>
 
 #include "cpu.h"
 
+//Set sign, zero and parity flag, depending on a certain number.
+//Not enough info to know aux_c and carry.
 void SetFlagsBasedOn(int8_t n)
 {
     CPU::cpu->SetFlags(
@@ -16,6 +19,7 @@ void SetFlagsBasedOn(int8_t n)
     );
 }
 
+//Get double register BC unsigned uint16_t
 uint16_t GetBCUnsigned()
 {
     CPU* cpu = CPU::cpu;
@@ -28,6 +32,7 @@ uint16_t GetBCUnsigned()
     return BC;
 }
 
+//Get double regsiter DE unsigned uint16_t
 uint16_t GetDEUnsigned()
 {
     CPU* cpu = CPU::cpu;
@@ -40,6 +45,7 @@ uint16_t GetDEUnsigned()
     return DE;
 }
 
+//Get double regsiter HL unsigned uint16_t
 uint16_t GetHLUnsigned()
 {
     CPU* cpu = CPU::cpu;
@@ -52,6 +58,7 @@ uint16_t GetHLUnsigned()
     return HL;
 }
 
+//Get double regsiter BC signed int16_t
 int16_t GetBCSigned()
 {
     CPU* cpu = CPU::cpu;
@@ -64,6 +71,7 @@ int16_t GetBCSigned()
     return *(int16_t*)&BC;
 }
 
+//Get double regsiter DE signed int16_t
 int16_t GetDESigned()
 {
     CPU* cpu = CPU::cpu;
@@ -76,6 +84,7 @@ int16_t GetDESigned()
     return *(int16_t*)&DE;
 }
 
+//Get double regsiter HL signed int16_t
 int16_t GetHLSigned()
 {
     CPU* cpu = CPU::cpu;
@@ -89,6 +98,7 @@ int16_t GetHLSigned()
 }
 
 
+//Get the next 2 bytes in memory, using PC
 uint16_t GetNextPC16()
 {
     CPU* cpu = CPU::cpu;
@@ -101,6 +111,7 @@ uint16_t GetNextPC16()
     return hl;
 }
 
+//Compare Register A with another number. Set the flags accordingly.
 void Compare(int8_t other)
 {
     CPU* cpu = CPU::cpu;
@@ -123,6 +134,7 @@ void Compare(int8_t other)
     }
 }
 
+//Add signed number to Register A
 void AddSigned(int8_t data)
 {
     CPU* cpu = CPU::cpu;
@@ -144,6 +156,7 @@ void AddSigned(int8_t data)
     cpu->A->SetSigned(result);
 }
 
+//Add signed number to Register A with carry
 void AddSignedWithCarry(int8_t data)
 {
     CPU* cpu = CPU::cpu;
@@ -166,6 +179,7 @@ void AddSignedWithCarry(int8_t data)
     cpu->A->SetSigned(result);
 }
 
+//Add unsigned number to Register A with carry
 void AddUnignedWithCarry(uint8_t data)
 {
     CPU* cpu = CPU::cpu;
@@ -189,6 +203,7 @@ void AddUnignedWithCarry(uint8_t data)
     cpu->A->SetUnsigned(result);
 }
 
+//Bitwise And Register A with another number.
 void And(uint8_t data)
 {
     CPU* cpu = CPU::cpu;
@@ -207,6 +222,11 @@ void And(uint8_t data)
 
     cpu->A->SetSigned(result);
 }
+
+//-------------------Instructions--------------------
+//It's all pretty straight-forward.
+//Only comments on "weird" stuff.
+//Questions, pointing out mistakes/bugs etc. is all welcome.
 
 int ACIData(int bytes)
 {
@@ -407,12 +427,16 @@ int CALLLabel(int bytes)
 
     CPU* cpu = CPU::cpu;
 
-    Register* PC = cpu->PC;
+    uint16_t PC = cpu->PC->Get();
+    PC += (1);
 
-    cpu->_Stack->Push(PC->GetHigh());
-    cpu->_Stack->Push(PC->GetLow());
+    uint8_t HIGH = (PC >> 8);
+    uint8_t LOW = (PC & 0xff);
 
-    PC->Set(addr);
+    cpu->_Stack->Push(HIGH);
+    cpu->_Stack->Push(LOW);
+
+    CPU::cpu->PC->Set(addr);
 
     return 18;
 }
@@ -430,13 +454,16 @@ int CCLabel(int bytes)
 
     uint16_t addr = GetNextPC16();
 
+    uint16_t PC = cpu->PC->Get();
+    PC += (1);
 
-    Register* PC = cpu->PC;
+    uint8_t HIGH = (PC >> 8);
+    uint8_t LOW = (PC & 0xff);
 
-    cpu->_Stack->Push(PC->GetHigh());
-    cpu->_Stack->Push(PC->GetLow());
+    cpu->_Stack->Push(HIGH);
+    cpu->_Stack->Push(LOW);
 
-    PC->Set(addr);
+    CPU::cpu->PC->Set(addr);
 
     return 18;
 }
@@ -454,12 +481,16 @@ int CMLabel(int bytes)
 
     uint16_t addr = GetNextPC16();
 
-    Register* PC = cpu->PC;
+    uint16_t PC = cpu->PC->Get();
+    PC += (1);
 
-    cpu->_Stack->Push(PC->GetHigh());
-    cpu->_Stack->Push(PC->GetLow());
+    uint8_t HIGH = (PC >> 8);
+    uint8_t LOW = (PC & 0xff);
 
-    PC->Set(addr);
+    cpu->_Stack->Push(HIGH);
+    cpu->_Stack->Push(LOW);
+
+    CPU::cpu->PC->Set(addr);
 
     return 18;
 }
@@ -573,12 +604,16 @@ int CNCLabel(int bytes)
 
     uint16_t addr = GetNextPC16();
 
-    Register* PC = cpu->PC;
+    uint16_t PC = cpu->PC->Get();
+    PC += (1);
 
-    cpu->_Stack->Push(PC->GetHigh());
-    cpu->_Stack->Push(PC->GetLow());
+    uint8_t HIGH = (PC >> 8);
+    uint8_t LOW = (PC & 0xff);
 
-    PC->Set(addr);
+    cpu->_Stack->Push(HIGH);
+    cpu->_Stack->Push(LOW);
+
+    CPU::cpu->PC->Set(addr);
 
     return 18;
 }
@@ -596,12 +631,16 @@ int CNZLabel(int bytes)
 
     uint16_t addr = GetNextPC16();
 
-    Register* PC = cpu->PC;
+    uint16_t PC = cpu->PC->Get();
+    PC += (1);
 
-    cpu->_Stack->Push(PC->GetHigh());
-    cpu->_Stack->Push(PC->GetLow());
+    uint8_t HIGH = (PC >> 8);
+    uint8_t LOW = (PC & 0xff);
 
-    PC->Set(addr);
+    cpu->_Stack->Push(HIGH);
+    cpu->_Stack->Push(LOW);
+
+    CPU::cpu->PC->Set(addr);
 
     return 18;
 }
@@ -619,12 +658,16 @@ int CPLabel(int bytes)
 
     uint16_t addr = GetNextPC16();
 
-    Register* PC = cpu->PC;
+    uint16_t PC = cpu->PC->Get();
+    PC += (1);
 
-    cpu->_Stack->Push(PC->GetHigh());
-    cpu->_Stack->Push(PC->GetLow());
+    uint8_t HIGH = (PC >> 8);
+    uint8_t LOW = (PC & 0xff);
 
-    PC->Set(addr);
+    cpu->_Stack->Push(HIGH);
+    cpu->_Stack->Push(LOW);
+
+    CPU::cpu->PC->Set(addr);
 
     return 18;
 }
@@ -642,12 +685,16 @@ int CPELabel(int bytes)
 
     uint16_t addr = GetNextPC16();
 
-    Register* PC = cpu->PC;
+    uint16_t PC = cpu->PC->Get();
+    PC += (1);
 
-    cpu->_Stack->Push(PC->GetHigh());
-    cpu->_Stack->Push(PC->GetLow());
+    uint8_t HIGH = (PC >> 8);
+    uint8_t LOW = (PC & 0xff);
 
-    PC->Set(addr);
+    cpu->_Stack->Push(HIGH);
+    cpu->_Stack->Push(LOW);
+
+    CPU::cpu->PC->Set(addr);
 
     return 18;
 }
@@ -675,12 +722,16 @@ int CPOLabel(int bytes)
 
     uint16_t addr = GetNextPC16();
 
-    Register* PC = cpu->PC;
+    uint16_t PC = cpu->PC->Get();
+    PC += (1);
 
-    cpu->_Stack->Push(PC->GetHigh());
-    cpu->_Stack->Push(PC->GetLow());
+    uint8_t HIGH = (PC >> 8);
+    uint8_t LOW = (PC & 0xff);
 
-    PC->Set(addr);
+    cpu->_Stack->Push(HIGH);
+    cpu->_Stack->Push(LOW);
+
+    CPU::cpu->PC->Set(addr);
 
     return 18;
 }
@@ -698,12 +749,16 @@ int CZLabel(int bytes)
 
     uint16_t addr = GetNextPC16();
 
-    Register* PC = cpu->PC;
+    uint16_t PC = cpu->PC->Get();
+    PC += (1);
 
-    cpu->_Stack->Push(PC->GetHigh());
-    cpu->_Stack->Push(PC->GetLow());
+    uint8_t HIGH = (PC >> 8);
+    uint8_t LOW = (PC & 0xff);
 
-    PC->Set(addr);
+    cpu->_Stack->Push(HIGH);
+    cpu->_Stack->Push(LOW);
+
+    CPU::cpu->PC->Set(addr);
 
     return 18;
 }
@@ -966,14 +1021,16 @@ int DCXSP(int bytes)
 
 int DI(int bytes) // INTERRUPTS
 {
+    CPU::cpu->_InterruptsEnabled = false;
 
-    return 0;
+    return 4;
 }
 
 int EI(int bytes)
 {
+    CPU::cpu->_InterruptsEnabled = true;
 
-    return 0;
+    return 4;
 }
 
 int HLT(int bytes)
@@ -986,8 +1043,11 @@ int HLT(int bytes)
 
 int INPortAddress(int bytes) // PORTS
 {
+    uint8_t addr = CPU::cpu->NextPC();
+    uint8_t val = CPU::cpu->_IOchip->GetDataAtAddr(addr);
+    CPU::cpu->A->SetUnsigned(val);
 
-    return 0;
+    return 10;
 }
 
 int INRA(int bytes)
@@ -1911,15 +1971,17 @@ int ORIData(int bytes)
 
 int OUTPortAddress(int bytes) // PORT
 {
+    uint8_t addr = CPU::cpu->NextPC();
+    CPU::cpu->_IOchip->SetDataAtAddr(addr, CPU::cpu->A->GetUnsigned());
 
-    return 0;
+    return 10;
 }
 
 int PCHL(int bytes)
 {
     uint16_t addr = GetHLUnsigned();
 
-    CPU::cpu->PC->Set(addr);
+    CPU::cpu->PC->Set(addr - 1);
 
     return 6;
 }
@@ -2036,7 +2098,7 @@ int RC(int bytes)
 
     uint16_t addr = (HIGH << 8) | LOW;
 
-    CPU::cpu->PC->Set(addr);
+    CPU::cpu->PC->Set(addr - 1);
 
     return 12;
 }
@@ -2048,7 +2110,7 @@ int RET(int bytes)
 
     uint16_t addr = (HIGH << 8) | LOW;
 
-    CPU::cpu->PC->Set(addr);
+    CPU::cpu->PC->Set(addr - 1);
 
     return 12;
 }
@@ -2056,7 +2118,24 @@ int RET(int bytes)
 int RIM(int bytes) // INTERRUPT
 {
 
-    return 0;
+    bool M55 = CPU::cpu->_M55; 
+    bool M65 = CPU::cpu->_M65; 
+    bool M75 = CPU::cpu->_M75; 
+    bool IE = CPU::cpu->_InterruptsEnabled; 
+    bool IP55 = CPU::cpu->_IP55;
+    bool IP65 = CPU::cpu->_IP65;
+    bool IP75 = CPU::cpu->_IP75;
+
+    CPU::cpu->A->SetBit(0, M55);
+    CPU::cpu->A->SetBit(1, M65);
+    CPU::cpu->A->SetBit(2, M75);
+    CPU::cpu->A->SetBit(3, IE);
+    CPU::cpu->A->SetBit(4, IP55);
+    CPU::cpu->A->SetBit(5, IP65);
+    CPU::cpu->A->SetBit(6, IP75);
+    CPU::cpu->A->SetBit(7, 0);
+
+    return 4;
 }
 
 int RLC(int bytes)
@@ -2089,7 +2168,7 @@ int RM(int bytes)
 
     uint16_t addr = (HIGH << 8) | LOW;
 
-    CPU::cpu->PC->Set(addr);
+    CPU::cpu->PC->Set(addr - 1);
 
     return 12;
 }
@@ -2106,7 +2185,7 @@ int RNC(int bytes)
 
     uint16_t addr = (HIGH << 8) | LOW;
 
-    CPU::cpu->PC->Set(addr);
+    CPU::cpu->PC->Set(addr - 1);
 
     return 12;
 }
@@ -2123,7 +2202,7 @@ int RNZ(int bytes)
 
     uint16_t addr = (HIGH << 8) | LOW;
 
-    CPU::cpu->PC->Set(addr);
+    CPU::cpu->PC->Set(addr - 1);
 
     return 12;
 }
@@ -2141,7 +2220,7 @@ int RP(int bytes)
 
     uint16_t addr = (HIGH << 8) | LOW;
 
-    CPU::cpu->PC->Set(addr);
+    CPU::cpu->PC->Set(addr - 1);
 
     return 12;
 }
@@ -2158,7 +2237,7 @@ int RPE(int bytes)
 
     uint16_t addr = (HIGH << 8) | LOW;
 
-    CPU::cpu->PC->Set(addr);
+    CPU::cpu->PC->Set(addr - 1);
 
     return 12;
 }
@@ -2175,7 +2254,7 @@ int RPO(int bytes)
 
     uint16_t addr = (HIGH << 8) | LOW;
 
-    CPU::cpu->PC->Set(addr);
+    CPU::cpu->PC->Set(addr - 1);
 
     return 12;
 }
@@ -2203,7 +2282,7 @@ int RST0(int bytes)
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
 
-    CPU::cpu->PC->Set(0x0000);
+    CPU::cpu->PC->Set(0x0000 - 1); //Intentional overflow.
 
     return 12;
 }
@@ -2213,7 +2292,7 @@ int RST1(int bytes)
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
 
-    CPU::cpu->PC->Set(0x0008);
+    CPU::cpu->PC->Set(0x0008 - 1);
 
     return 12;
 }
@@ -2223,7 +2302,7 @@ int RST2(int bytes)
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
 
-    CPU::cpu->PC->Set(0x0010);
+    CPU::cpu->PC->Set(0x0010 - 1);
 
     return 12;
 }
@@ -2233,7 +2312,7 @@ int RST3(int bytes)
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
 
-    CPU::cpu->PC->Set(0x0018);
+    CPU::cpu->PC->Set(0x0018 - 1);
 
     return 12;
 }
@@ -2243,7 +2322,7 @@ int RST4(int bytes)
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
 
-    CPU::cpu->PC->Set(0x0020);
+    CPU::cpu->PC->Set(0x0020 - 1);
 
     return 12;
 }
@@ -2253,7 +2332,7 @@ int RST5(int bytes)
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
 
-    CPU::cpu->PC->Set(0x0028);
+    CPU::cpu->PC->Set(0x0028 - 1);
 
     return 12;
 }
@@ -2263,7 +2342,7 @@ int RST6(int bytes)
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
 
-    CPU::cpu->PC->Set(0x0030);
+    CPU::cpu->PC->Set(0x0030 - 1);
 
     return 12;
 }
@@ -2273,7 +2352,7 @@ int RST7(int bytes)
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
     CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
 
-    CPU::cpu->PC->Set(0x0038);
+    CPU::cpu->PC->Set(0x0038 - 1);
 
     return 12;
 }
@@ -2290,7 +2369,7 @@ int RZ(int bytes)
 
     uint16_t addr = (HIGH << 8) | LOW;
 
-    CPU::cpu->PC->Set(addr);
+    CPU::cpu->PC->Set(addr - 1);
 
     return 12;
 }
@@ -2505,8 +2584,25 @@ int SHLDAddress(int bytes)
 
 int SIM(int bytes) // interrupt
 {
+    bool M55 = CPU::cpu->A->GetBit(0);
+    bool M65 = CPU::cpu->A->GetBit(1);
+    bool M75 = CPU::cpu->A->GetBit(2);
+    bool MSE = CPU::cpu->A->GetBit(3);
+    bool R75 = CPU::cpu->A->GetBit(4);
 
-    return 0;
+    if (MSE)
+    {
+        CPU::cpu->_M55 = M55;
+        CPU::cpu->_M65 = M65;
+        CPU::cpu->_M75 = M75;
+    }
+
+    if (R75)
+    {
+        CPU::cpu->_IP75 = false;
+    }
+
+    return 4;
 }
 
 int SPHL(int bytes)
@@ -2847,7 +2943,8 @@ int XTHL(int bytes)
     return 16;
 }
 
-
+//--------------------Declaring instructions--------------------
+//Again, using python script.
 CPUInstruction CPUInstructions[] = {
     {0x0, "NOP", 1, NOP},
     {0x1, "LXI", 3, LXIB},

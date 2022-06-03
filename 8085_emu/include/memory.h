@@ -4,6 +4,10 @@
 #include <cmath>
 #include <cstring>
 
+//Simple memory class
+//Size should be 0xffff
+//Data size is 8 bits
+
 class Memory
 {
 private:
