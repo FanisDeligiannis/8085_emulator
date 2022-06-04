@@ -108,7 +108,6 @@ namespace CodeEditor {
 		}
 		else if (result == NFD_CANCEL)
 		{
-			puts("User pressed cancel.");
 		}
 		else
 		{
@@ -125,7 +124,16 @@ namespace CodeEditor {
 	{
 		if (editor.SaveFileAs || FilePath == "")
 		{
+			std::string temp = FilePath;
 			FilePath = GetSavePath();
+			if (FilePath == "")
+			{
+				editor.SaveFile = false;
+				editor.SaveFileAs = false;
+
+				FilePath = temp;
+				return;
+			}
 		}
 
 
@@ -133,6 +141,7 @@ namespace CodeEditor {
 		editor.SaveFileAs = false;
 
 		std::string text = editor.GetText();
+		text = text.substr(0, text.length() - 1);
 		std::ofstream file;
 		file.open(FilePath, std::ios_base::out);
 		file << text;
@@ -141,6 +150,15 @@ namespace CodeEditor {
 
 	void Render()
 	{
+		if (Simulation::GetRunning())
+		{
+			editor.SetReadOnly(true);
+		}
+		else
+		{
+			editor.SetReadOnly(false);
+		}
+
 		auto cpos = editor.GetCursorPosition();
 		
 		if (editor.IsTextChanged())
@@ -243,10 +261,10 @@ namespace CodeEditor {
 
 					TextEditorSaveFile();
 				}
-				if (ImGui::MenuItem("SaveAs"))
+				if (ImGui::MenuItem("Save As"))
 				{
 					editor.SaveFile = false;
-					editor.SaveFileAs = false;
+					editor.SaveFileAs = true;
 
 					TextEditorSaveFile();
 				}
@@ -335,9 +353,7 @@ namespace CodeEditor {
 		}
 
 		std::string base_filename = FilePath.substr(FilePath.find_last_of("/\\") + 1);
-		ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
-			editor.IsOverwrite() ? "Ovr" : "Ins",
-			editor.CanUndo() ? "*" : " ",
+		ImGui::Text("%6d/%-6d %6d lines  | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
 			editor.GetLanguageDefinition().mName.c_str(), base_filename.c_str());
 
 		editor.Render("TextEditor");

@@ -705,7 +705,7 @@ void TextEditor::HandleKeyboardInputs()
 	if (ImGui::IsWindowFocused())
 	{
 		float cursorx = ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x;
-		if (ImGui::IsWindowHovered() && cursorx > 30)
+		if (ImGui::IsWindowHovered() && cursorx > startOfText)
 			ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
 		//ImGui::CaptureKeyboardFromApp(true);
 
@@ -982,11 +982,12 @@ void TextEditor::Render()
 
 
 			//Breakpoint button on line number + circle
-			ImVec2 size = ImVec2(30, 12);
+			ImVec2 size = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf, nullptr, nullptr);
+			size.x += mLeftMargin;
 
 			ImGui::SetCursorScreenPos(lineStartScreenPos);
 
-			if (ImGui::InvisibleButton(buf, size))
+			if (ImGui::InvisibleButton(buf, size, ImGuiButtonFlags_MouseButtonMask_))
 			{
 				bool found = false;
 				for (int i = 0; i < _Breakpoints.size(); i++)
@@ -1004,17 +1005,17 @@ void TextEditor::Render()
 				}
 			}
 
-			ImVec2 breakpoint_location = ImVec2(lineStartScreenPos.x + 13, lineStartScreenPos.y + 7);
+			ImVec2 finalRect = ImVec2(lineStartScreenPos.x + size.x, lineStartScreenPos.y + size.y);
 
 			for (int i = 0; i < _Breakpoints.size(); i++)
 			{
 				if (_Breakpoints.at(i) == lineNo + 1)
 				{
-					drawList->AddCircleFilled(breakpoint_location, 7, IM_COL32(255, 0, 0, 155), 0);
+					drawList->AddRectFilled(lineStartScreenPos, finalRect, IM_COL32(255, 0, 0, 155), 0);
 				}
 			}
 
-
+			startOfText = finalRect.x;
 
 			auto lineNoWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.0f, buf, nullptr, nullptr).x;
 			drawList->AddText(ImVec2(lineStartScreenPos.x + mTextStart - lineNoWidth, lineStartScreenPos.y), mPalette[(int)PaletteIndex::LineNumber], buf);

@@ -17,6 +17,8 @@ public:
 	bool SaveFileAs = false;
 	int CurrentLine = -1;
 
+	float startOfText = 0;
+
 	std::vector<int> _Breakpoints;
 
 	enum class PaletteIndex

@@ -162,8 +162,11 @@ namespace Simulation {
 			{
 				try
 				{
-					cpu->Clock();
-					_ScheduledStep = false;
+					while (cpu->PC->Get() < 0x0800 || _ScheduledStep)
+					{
+						cpu->Clock();
+						_ScheduledStep = false;
+					}
 				}
 				catch (...)
 				{

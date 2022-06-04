@@ -247,7 +247,7 @@ Using [Dear ImGui](https://github.com/ocornut/imgui).
  
  TODO:
  - Step-by-step code execution - Done
- - Add breakpoints - Done
+ - Add breakpoints - Done. To use breakpoints, click the line count number.
  - Add peripherals
  	- LEDs - Done 
  	- Switches - Done 

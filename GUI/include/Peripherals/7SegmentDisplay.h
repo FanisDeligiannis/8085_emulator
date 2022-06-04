@@ -58,7 +58,7 @@ namespace SegmentDisplay
 				{
 					if (chars != nullptr)
 					{
-						if (ImGui::MenuItem("Close this menu to stop", 0, false, false)) {}
+						if (ImGui::MenuItem(" ", 0, false, false)) {}
 						chars[6] = 2;
 					}
 					else

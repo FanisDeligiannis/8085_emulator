@@ -18,7 +18,7 @@ START:
 IN SWITCHES ; Get value of switches
 
 MVI BIT_COUNTER,00H ; We start at 0
-MVI BITS_LEFT,08H ; We have 8 bits left
+MVI BITS_LEFT,08H ; We are starting with 8 bits left
 
 LOOP:
 	MOV TEMP,A ; Save A
@@ -38,7 +38,7 @@ CONTINUE:
 	DCR BITS_LEFT ; Decrease BITS_LEFT because we just calculated one.
 	JNZ LOOP ; If BITS_LEFT is NOT 0, we go to our LOOP again.
 	
-
+	
 MOV A,BIT_COUNTER ; Get BIT_COUNTER to A
 STA 0905H ; Arbitary memory location
 
@@ -46,13 +46,8 @@ LXI D,0900H ; So we can tell STDM where we saved it
 ; We go to 0900H instead of 0905H so that the result is the last number.
 
 CALL STDM ; Moves memory location 0900H - 0905H to where 7 Segment Display can see it
-; The addresses are according to double register DE
+; (The starting address of 0900H is according to double register DE)
 
 CALL DCD ; Show it in the 7 segment display
 	
 JMP START ; Go to START and keep going forever
-
-
-
-
-
