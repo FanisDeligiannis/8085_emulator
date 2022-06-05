@@ -99,7 +99,7 @@ _STDM3: ; SMALLER THAN 0AH
 	ADI 30H
 	RET
 
-STDC: ; Store Display character
+STDC: ; Store Display characters
 	PUSH PSW
 	XCHG
 	MOV A,M
@@ -121,6 +121,247 @@ STDC: ; Store Display character
 	OUT 50H
 	XCHG
 	POP PSW
+	RET
+
+CLEARDISPLAY:
+	MVI A,00H
+	OUT 50H
+	OUT 51H
+	OUT 52H
+	OUT 53H
+	OUT 54H
+	OUT 55H
+
+	RET
+
+BEEP:
+	PUSH PSW
+
+	MVI A,B8H
+	OUT 62H
+	MVI A,01H
+	OUT 63H
+
+	MVI A,e8H
+	OUT 60H
+	MVI A,03H
+	OUT 61H
+
+	JMP _WAIT_BEEP
+
+BEEPFD:
+	PUSH PSW
+
+	MOV A,C
+	OUT 62H
+	MOV A,B
+	OUT 63H
+
+	MOV A,E
+	OUT 60H
+	MOV A,D
+	OUT 61H
+
+_WAIT_BEEP:
+	CALL DELA
+	IN 60H
+	CPI 00H
+	JNZ _WAIT_BEEP
+	
+	CALL DELA
+	IN 61H
+	CPI 00H
+	JNZ _WAIT_BEEP
+
+	POP PSW
+
+	RET
+
+
+; NOT VERY ACCURATE DUE TO THE WAY THE SIMULATOR WORKS
+; Could fix this by changing how the clock cycles are handled in C++
+
+DELA:
+	PUSH PSW ; 12 t-states
+	PUSH B ; 24 t-states
+	PUSH H ; 36 t-states
+	
+	LXI B,30 ; 46 t-states 
+	; 46 Total t-states so far.
+	
+_DELA1: ; 64 total t-states per loop.
+ 	CALL DCD ; 16 t-states
+	DCX B ; 22 t-states
+	
+	MOV A,C ; 26 t-states
+	CPI 00H ; 33 t-states
+	JNZ _DELA1 ; 43 t-states
+	
+	MOV A,B ; 47 t-states
+	CPI 00H ; 54 t-states
+	JNZ _DELA1 ; 64 t-states
+	
+_DONEDELA: ; 40 t-states total
+	POP H ; 10 t-states
+	POP B ; 20 t-states
+	POP PSW ; 30 t-states
+	
+	RET ; 40 t-states
+	
+	
+DELB:
+	PUSH PSW
+	PUSH B
+	
+_DELB1:
+	CALL DELA
+	
+	DCX B
+	
+	MOV A,C 
+	CPI 00H 
+	JNZ _DELB1
+	
+	MOV A,B 
+	CPI 00H
+	JNZ _DELB1
+	
+_DONEDELB:
+	POP B
+	POP PSW
+	
+	RET
+
+KIND:
+	PUSH B
+	PUSH PSW
+	
+_KIND0:
+	MVI A,11111110B
+	OUT 28H
+	CALL DCD
+	IN 18H
+	
+	CPI FFH
+	JZ _KIND1
+	
+	MVI B,0H
+	
+	CPI 11111110B
+	JZ _KINDDONE
+
+	INR B
+
+	CPI 11111101B
+	JZ _KINDDONE
+	
+	INR B
+	
+	CPI 11111011B
+	JZ _KINDDONE
+	
+	INR B
+	
+	CPI 11110111B
+	JZ _KINDDONE
+
+
+_KIND1:
+
+	MVI A,11111101B
+	OUT 28H
+	CALL DCD
+	IN 18H
+	
+	CPI FFH
+	JZ _KIND2
+
+	MVI B,4H
+	
+	CPI 11111110B
+	JZ _KINDDONE
+
+	INR B
+
+	CPI 11111101B
+	JZ _KINDDONE
+	
+	INR B
+	
+	CPI 11111011B
+	JZ _KINDDONE
+	
+	INR B
+	
+	CPI 11110111B
+	JZ _KINDDONE
+
+
+
+_KIND2:
+	MVI A,11111011B
+	OUT 28H
+	CALL DCD
+	IN 18H
+	
+	CPI FFH
+	JZ _KIND3
+
+	MVI B,8H
+	
+	CPI 11111110B
+	JZ _KINDDONE
+
+	INR B
+
+	CPI 11111101B
+	JZ _KINDDONE
+	
+	INR B
+	
+	CPI 11111011B
+	JZ _KINDDONE
+	
+	INR B
+	
+	CPI 11110111B
+	JZ _KINDDONE
+
+
+
+_KIND3:
+	MVI A,11110111B
+	OUT 28H
+	CALL DCD
+	IN 18H
+	
+	CPI FFH
+	JZ _KIND0
+	
+	MVI B,CH
+	
+	CPI 11111110B
+	JZ _KINDDONE
+
+	INR B
+
+	CPI 11111101B
+	JZ _KINDDONE
+	
+	INR B
+	
+	CPI 11111011B
+	JZ _KINDDONE
+	
+	INR B
+	
+_KINDDONE:
+	POP PSW
+	
+	MOV A,B
+	
+	POP B
+	
 	RET
 
 ORG CODE

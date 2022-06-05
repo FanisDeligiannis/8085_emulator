@@ -1,0 +1,12 @@
+LXI B,1000 ; By loading 1000 to BC, we will delay for 1000ms=1s
+
+MVI A,00H
+
+START:
+	CALL DELB
+	INR A
+	OUT 30H
+	
+	JMP START
+
+HLT

@@ -13,10 +13,12 @@
 #include "CodeEditor.h"
 #include "Controls.h"
 #include "RegistersWindow.h"
+
 #include "Peripherals/Leds.h"
 #include "Peripherals/Switches.h"
 #include "Peripherals/7SegmentDisplay.h"
-
+#include "Peripherals/Beep.h"
+#include "Peripherals/Keyboard.h"
 
 namespace Application
 {
@@ -51,6 +53,10 @@ namespace Application
 
 		RegistersWindow::Render();
 
+		Beep8085::Render();
+
+		Keyboard::Render();
+
 		CodeEditor::Render();
 
 		ImGui::Begin("Hex");
@@ -67,6 +73,8 @@ namespace Application
 		Leds::SimulationStart();
 		Switches::SimulationStart();
 		SegmentDisplay::SimulationStart();
+		Beep8085::SimulationStart();
+		Keyboard::SimulationStart();
 	}
 
 	void Destroy()

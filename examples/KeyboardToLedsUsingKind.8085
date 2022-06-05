@@ -1,0 +1,9 @@
+; This program simply reads which button is pressed on the keyboard,
+; and shows the appropriate number in the LEDs
+
+LOOP:
+	CALL KIND ; Hangs until a button is pressed
+	
+	OUT 30H ; Output it to LEDS
+	
+	JMP LOOP ; Loop forever

@@ -1,0 +1,13 @@
+FREQUENCY EQU B ; When calling BEEPFD, B will be our FREQUENCY
+DURATION EQU D ; When calling BEEPFD, D will be our DURATION in ms
+
+CALL BEEP ; BEEP instruction automatically BEEPs at 440hz for 1 second
+
+; Load 1500hz for 2000ms
+
+LXI FREQUENCY,1500
+LXI DURATION,2000
+
+CALL BEEPFD
+
+HLT

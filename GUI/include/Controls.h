@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include <imgui_internal.h>
 #include "imgui.h"
 

@@ -1,0 +1,57 @@
+; This program reads from the keyboard, and shows
+; the button you pressed on the 7 Segment Display.
+
+; Note that KIND calls DCD while waiting, 
+; so the 7 Segment Display will always stay open
+
+LXI H,0905H ; Last digit of 7 segment display
+LXI D,0900H
+
+CALL STDM ; Show all 0s
+
+START:
+	CALL KIND ; Read from keyboard
+	
+	CALL SHIFT_LEFT ; Shift all current text on 7 segment display left
+	
+	MOV M,A ; Write the key we pressed to the last digit of 7 segment display
+	
+	LXI D,0900H ; Load the numbers to the 7 segment display
+	CALL STDM
+	
+	JMP START ; Loop forever
+	
+	
+SHIFT_LEFT:
+	PUSH PSW
+	PUSH H
+	PUSH B
+	
+	LXI H,0905H ; Start from last digit
+	MOV B,M ; Save it on B
+	MVI M,0 ; Make last digit 0
+	DCX H ; Go to the 2nd last digit
+	MOV C,M ; Save it on C
+	MOV M,B ; Save B in the 2nd last digit (our first digit is moved to the 2nd)
+	; Keep doing the same, alternating B and C
+	; That way, our last digit is moved to our 2nd last digit,
+	; our 2nd last digit is moved to our 3rd last digit, ...
+	; ...our 2nd digit is moved to our first digit
+	; and our first digit is lost.
+	DCX H
+	MOV B,M
+	MOV M,C
+	DCX H
+	MOV C,M
+	MOV M,B
+	DCX H
+	MOV B,M
+	MOV M,C
+	DCX H
+	MOV M,B
+	
+	POP B
+	POP H
+	POP PSW
+	
+	RET

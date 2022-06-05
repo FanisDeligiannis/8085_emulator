@@ -10,6 +10,7 @@
 #include "Application.h"
 #include "GUI_backend.h"
 
+
 int main(int argc, char* argv[])
 {
 	if (argc == 2)
@@ -17,6 +18,7 @@ int main(int argc, char* argv[])
 		std::string fileToOpen = argv[1];
 		Application::DefaultFile = fileToOpen;
 	}
+
 	//Initialise ImGui from Backend. 
 	//it initialises the application and calls Render.
 	InitImGui();

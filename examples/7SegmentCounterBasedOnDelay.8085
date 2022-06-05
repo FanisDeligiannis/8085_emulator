@@ -1,0 +1,138 @@
+; Counts up every milisecond, up to 32767
+
+LXI H,00H
+
+START:
+
+	CALL DELA
+	
+	INX H
+	
+	MOV A,H ; To see if HL is positive
+	ANI FFH
+	
+	JP CONTINUE ; We want HL to be a positive number
+	
+	LXI H,00H
+	
+CONTINUE:
+	CALL SHOWHL
+		
+	JMP START
+
+HLT
+
+SHOWHL:
+	PUSH PSW
+	PUSH B
+	PUSH D
+	PUSH H
+	
+	MVI B,0
+
+	LXI D,-10000
+10000S:	 
+	INR B ; We count how many times we've subtracted
+
+	DAD D ; We add -10000, so we basically subtract 10000
+	
+	MOV A,H ; DAD doesn't affect SIGN flag, so this is how we look if HL 
+	ANI FFH ; is positive
+	; We care about H's SIGN, so we MOV it to A. 
+	; We just do ANI FFH so the flags are updated
+	
+	JP 10000S ; If it's positive, continue subtracting.
+	
+	DCR B ; When it gets to negative, we've subtracted one too many times
+	; So we decrease B once
+	LXI D,10000 ; And add 10000 back to HL
+	
+	DAD D
+
+	MOV A,B ; We know our 10000s number is B, so we save it.
+	STA 0901H
+
+	MVI B,0
+
+	LXI D,-1000 ; The same for -1000, etc.
+1000S:
+	INR B
+
+	DAD D
+	
+	MOV A,H
+	ANI FFH
+	
+	JP 1000S
+	
+	DCR B
+	
+	LXI D,1000
+	
+	DAD D
+	
+	MOV A,B
+	STA 0902H
+	
+	MVI B,0
+	
+	LXI D,-100
+100S:
+	INR B
+
+	DAD D
+	
+	MOV A,H
+	ANI FFH
+	
+	JP 100S
+	
+	DCR B
+	
+	LXI D,100
+	
+	DAD D
+	
+	MOV A,B
+	STA 0903H
+	
+	MVI B,0
+	
+	LXI D,-10
+10S:
+	INR B
+
+	DAD D
+	
+	MOV A,H
+	ANI FFH	
+	
+	JP 10S
+	
+	DCR B
+	
+	LXI D,10
+	
+	DAD D
+	
+	MOV A,B
+	STA 0904H
+	
+1S: ; Whatever we are left with on register L, is our last digit. 
+	; We don't need to do any more calculations
+	MOV A,L
+	
+	STA 0905H
+	
+	
+	LXI D,0900H ; Get it to our display
+	CALL STDM
+	
+	; We let the rest of the program handle DCD
+	
+	POP H
+	POP D
+	POP B
+	POP PSW
+	
+	RET

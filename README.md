@@ -5,7 +5,7 @@
 
 # Examples
 
-There are examples in the "examples/" folder.
+There are lots of examples in the "examples/" folder.
 
 ---
 
@@ -138,7 +138,7 @@ It ***probably*** works on MacOS, but I have no way to test so I didn't include 
 	- Set the interrupt mask appropriately (**SIM**)
 	- For INTR, just define "***INTR_ROUTINE***" label and it'll be called upon INTR. Examples in "examples/"
 	- For all other interrupts, follow example bellow.
-	- By default, all interrupts, except RST0, just RET. Use JMP instead.
+	- By default, all interrupts, except RST0, are a single RET instruction. Overwrite it to JMP to your code instead.
 	- By default RST0 jumps to 0800H.
 
 ```asm
@@ -151,73 +151,7 @@ LABEL_NAME:
 	; instructions
 	RET 
 ```
-  
 
-<details>
-
-<summary>Example: Code to copy the string "Hello, world!" from memory addresses 0x0700... to memory addresses 0x0900...</summary>
-
-  
-
-```asm
-
-ORG 0700H ; All data from below will start at address 0x0700
-
-  
-
-DB "Hello, world!"
-
-  
-
-ORG CODE ; Code execution begins at 0x0800
-
-  
-
-MVI A, 0
-
-  
-
-MVI H, 09H ; HL = 0x0900
-
-MVI L, 0
-
-  
-
-MVI D, 07 ; DE = 0x0700
-
-MVI E, 0
-
-  
-
-loop1:
-
-XCHG ; Get the 0x0700... to HL
-
-  
-
-MOV A,M ; Get the letter into A
-
-XCHG ; Get HL back to 0x0900... space
-
-MOV M,A ; Save A there
-
-INX H ; Increase to 0x0901...
-
-INX D ; Increase to 0x0701...
-
-CPI 00h ; if A = 0, means we hit '\0' and we're done.
-
-JNZ loop1
-
-  
-
-HLT
-
-```
-
-</details>
-
-  
   
 
 ## TODO
@@ -228,19 +162,19 @@ HLT
 
 - More verbose and better errors
 
-  
+
 
 ## Issues
 
 Instruction set is complete. Mistakes are expected though.
 
-  
-  
+
+
 
 ---
 
-  
-  
+
+
 
 # GUI
 Using [Dear ImGui](https://github.com/ocornut/imgui). 
@@ -250,10 +184,12 @@ Using [Dear ImGui](https://github.com/ocornut/imgui).
  - Add breakpoints - Done. To use breakpoints, click the line count number.
  - Add peripherals
  	- LEDs - Done 
- 	- Switches - Done 
+ 	- Switches - Done
+	- Beep - Done 
  	- 7 Segment Display - Done
  	- LCD screen (?)
- 	- Keyboard
+ 	- Keyboard - Done
  	- More
+- Greek characters support (?)
  - Probably more coming.
  

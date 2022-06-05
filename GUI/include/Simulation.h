@@ -13,6 +13,8 @@ namespace Simulation {
 
 	extern bool Paused;
 	extern bool _Stepping;
+
+	extern IOchip* _IOchip;
 	
 	extern std::vector<std::pair<int, std::string>> Errors;
 

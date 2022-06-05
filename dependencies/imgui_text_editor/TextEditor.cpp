@@ -705,7 +705,7 @@ void TextEditor::HandleKeyboardInputs()
 	if (ImGui::IsWindowFocused())
 	{
 		float cursorx = ImGui::GetMousePos().x - ImGui::GetCursorScreenPos().x;
-		if (ImGui::IsWindowHovered() && cursorx > startOfText)
+		if (ImGui::IsWindowHovered() && cursorx > startOfText - ImGui::GetCursorScreenPos().x)
 			ImGui::SetMouseCursor(ImGuiMouseCursor_TextInput);
 		//ImGui::CaptureKeyboardFromApp(true);
 
@@ -952,6 +952,9 @@ void TextEditor::Render()
 			//Custom current line of execution drawing.
 			if (lineNo == CurrentLine)
 			{
+				Coordinates coord = TextEditor::Coordinates(lineNo, 0);
+				SetCursorPosition(coord);
+
 				auto end = ImVec2(lineStartScreenPos.x + contentSize.x + 2.0f * scrollX, lineStartScreenPos.y + mCharAdvance.y);
 				drawList->AddRectFilled(start, end, 0xff707000);
 			}
@@ -989,19 +992,26 @@ void TextEditor::Render()
 
 			if (ImGui::InvisibleButton(buf, size, ImGuiButtonFlags_MouseButtonMask_))
 			{
-				bool found = false;
-				for (int i = 0; i < _Breakpoints.size(); i++)
+				if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space)))
 				{
-					if (_Breakpoints.at(i) == lineNo + 1)
-					{
-						_Breakpoints.erase(_Breakpoints.begin() + i);
-						found = true;
-					}
-				}
 
-				if (!found)
+				}
+				else
 				{
-					_Breakpoints.push_back(lineNo + 1);
+					bool found = false;
+					for (int i = 0; i < _Breakpoints.size(); i++)
+					{
+						if (_Breakpoints.at(i) == lineNo + 1)
+						{
+							_Breakpoints.erase(_Breakpoints.begin() + i);
+							found = true;
+						}
+					}
+
+					if (!found)
+					{
+						_Breakpoints.push_back(lineNo + 1);
+					}
 				}
 			}
 
@@ -3075,7 +3085,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 		};
 
 		static const char* const Predefines[] = {
-			"CODE", "RST0", "STDM", "DCD", "STDC",
+			"CODE", "RST0", "STDM", "DCD", "STDC", "BEEP", "BEEPFD", "CLEARDISPLAY", "KIND",
 			"RST1", "RST2", "RST3", "RST4", "RST5", "RST6", "RST7", "RST45", "RST55", "RST65", "RST75"
 		};
 

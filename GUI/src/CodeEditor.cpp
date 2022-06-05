@@ -249,9 +249,16 @@ namespace CodeEditor {
 		{
 			if (ImGui::BeginMenu("File"))
 			{
+				if (ImGui::MenuItem("New"))
+				{
+					editor.SetText("");
+					FilePath = "";
+					Simulation::Errors.clear();
+				}
 				if (ImGui::MenuItem("Load"))
 				{
 					TextEditorLoadFile();
+					Simulation::Errors.clear();
 				}
 
 				if (ImGui::MenuItem("Save"))

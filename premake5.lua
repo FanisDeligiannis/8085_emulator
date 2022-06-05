@@ -170,6 +170,7 @@ project "GUI"
 		"dependencies/imgui_*",
 		"dependencies/stb",
 		"dependencies/NativeFileDialog/src/include",
+		"dependencies/toot/"
 	}
 
 	filter "system:windows"
@@ -182,6 +183,8 @@ project "GUI"
 			"ImGui",
 			"ImGui_TextEditor",
 			"NativeFileDialog",
+			"toot",
+			"Kernel32.lib",
 			
 			"GLFW",
 			"opengl32.lib"
@@ -203,6 +206,7 @@ project "GUI"
 			"ImGui",
 			"ImGui_TextEditor",
 			"NativeFileDialog",
+			"toot",
 			
 			"GLFW",
 			"GL",
@@ -240,4 +244,5 @@ group "Dependencies"
 	include "dependencies/imgui_text_editor"
 	include "dependencies/GLFW"
 	include "dependencies/nativefiledialog"
+	include "dependencies/toot"
 group ""

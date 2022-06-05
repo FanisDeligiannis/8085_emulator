@@ -1044,6 +1044,7 @@ int HLT(int bytes)
 int INPortAddress(int bytes) // PORTS
 {
     uint8_t addr = CPU::cpu->NextPC();
+    CPU::cpu->_IOchip->WaitResponse(addr);
     uint8_t val = CPU::cpu->_IOchip->GetDataAtAddr(addr);
     CPU::cpu->A->SetUnsigned(val);
 
@@ -1973,6 +1974,7 @@ int OUTPortAddress(int bytes) // PORT
 {
     uint8_t addr = CPU::cpu->NextPC();
     CPU::cpu->_IOchip->SetDataAtAddr(addr, CPU::cpu->A->GetUnsigned());
+    CPU::cpu->_IOchip->WaitResponse(addr);
 
     return 10;
 }

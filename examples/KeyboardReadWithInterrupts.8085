@@ -1,0 +1,32 @@
+; This program reads THE FIRST line of the keyboard only when a button is pressed
+; Using interrupt RST5.5.
+
+; When a button is pressed, RST5.5 is triggered.
+; By enabling that interrupt, you can read the keyboard only when
+; needed, without affecting the flow of your program otherwise
+
+; There is an example using KIND, but this is the simplest form of
+; using interrupts
+
+ORG RST55
+	JMP RST55_ROUTINE
+	
+	
+ORG CODE
+
+EI
+
+MVI A,00001110B
+
+SIM
+
+LOOP:
+	JMP LOOP
+
+RST55_ROUTINE:
+	MVI A,11111110B
+	OUT 28H
+	IN 18H
+	OUT 30H
+	
+	RET

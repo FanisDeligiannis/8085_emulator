@@ -70,7 +70,9 @@ namespace Simulation {
 		{
 			cpu->SetRunning(false);
 			cpu->SetHalted(false);
+			_IOchip->StopWaiting();
 			Paused = false;
+			_Stepping = false;
 		}
 
 		if (t.joinable())
@@ -162,7 +164,7 @@ namespace Simulation {
 			{
 				try
 				{
-					while (cpu->PC->Get() < 0x0800 || _ScheduledStep)
+					while (GetRunning() && cpu->PC->Get() < 0x0800 || _ScheduledStep)
 					{
 						cpu->Clock();
 						_ScheduledStep = false;

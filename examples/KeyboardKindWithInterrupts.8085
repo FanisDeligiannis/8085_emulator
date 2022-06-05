@@ -1,0 +1,36 @@
+; This program reads from the keyboard ONLY when a button is pressed
+; Using interrupt RST5.5.
+
+; When a button is pressed, RST5.5 is triggered.
+; By enabling that interrupt, you can read the keyboard only when
+; needed, without affecting the flow of your program otherwise
+
+ORG RST55 ; This is where the program counter goes when RST55 happens
+	JMP RST55_ROUTINE ; We just JMP to our routine
+	
+	
+ORG CODE
+
+EI ; Enable interrupts
+
+MVI A,00001110B ; Enable interrupt RST5.5 by unmasking it
+
+SIM
+
+MVI A, 00H
+
+LOOP:
+	INR A ; Just to confirm we're not hanging
+	
+	JMP LOOP ; continue forever
+
+RST55_ROUTINE:
+	PUSH PSW ; We don't want to change register A
+	
+	CALL KIND ; Read what was pressed
+	
+	OUT 30H ; Show it on LEDs
+	
+	POP PSW ; Get back our PSW
+	
+	RET ; Always return after an interrupt
