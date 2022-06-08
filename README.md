@@ -68,7 +68,7 @@ The binaries (precompiled and built ones) will be in
 
 - chmod +x GUI
 
-- ./GUI
+- ./GUI [filename]
 
 Loading / Saving prompt is currently not guaranteed to work on linux. In that case, you can open the program using: ***./GUI filename***, and you'll still be able to save your changes to the same file.
   
