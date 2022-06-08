@@ -52,8 +52,9 @@ The binaries (precompiled and built ones) will be in
 ## Linux
 
   ### Requirements
-  - Get required packages: sudo apt install libxi-dev libgl-dev
-  - You also need a modern enough g++ compiler that supports C++20.
+  - Get required packages: 
+	- sudo apt install libxi-dev libgl-dev libxcusror-dev libxrandr-dev libxinerama-dev
+  - You also need a modern enough g++ compiler that supports C++11. (Used to need C++20, but using some workarounds I changed that)
 
 ### Steps
 
@@ -63,6 +64,13 @@ The binaries (precompiled and built ones) will be in
 
 - make config=release
 
+- cd bin/Release-linux-x86_64/GUI/
+
+- chmod +x GUI
+
+- ./GUI
+
+Loading / Saving prompt is currently not guaranteed to work on linux. In that case, you can open the program using: ***./GUI filename***, and you'll still be able to save your changes to the same file.
   
 
 ## MacOS
@@ -158,7 +166,7 @@ LABEL_NAME:
 
   
 
-- Add MACROs
+- Add MACROs - Done. Have a look in examples.
 
 - More verbose and better errors
 

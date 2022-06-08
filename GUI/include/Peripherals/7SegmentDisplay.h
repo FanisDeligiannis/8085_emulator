@@ -3,9 +3,32 @@
 #include "imgui.h"
 
 #include "GUI_backend.h"
+#include "ConfigIni.h"
 
 namespace SegmentDisplay
 {
+	bool _Open = true;
+
+	void Init()
+	{
+		_Open = ConfigIni::GetInt("7SegmentDisplay", "Open", 1);
+	}
+
+	void Open()
+	{
+		_Open = true;
+		ConfigIni::SetInt("7SegmentDisplay", "Open", 1);
+	}
+
+	void Close()
+	{
+		if (!_Open)
+			return;
+
+		_Open = false;
+		ConfigIni::SetInt("7SegmentDisplay", "Open", 0);
+	}
+
 	bool IsValidCharacter(uint8_t val)
 	{
 		if ((val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z') || (val >= '0' && val <= '9'))
@@ -33,9 +56,13 @@ namespace SegmentDisplay
 
 	void Render()
 	{
-		float radius = 15.5;
-
-		ImGui::Begin("7 Segment Display", 0, ImGuiWindowFlags_MenuBar);
+		if (!_Open)
+		{
+			Close();
+			return;
+		}
+		
+		ImGui::Begin("7 Segment Display", &_Open, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{

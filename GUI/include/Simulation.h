@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+#include <utility>
 #include <cstdint>
 #include <thread>
 #include <vector>

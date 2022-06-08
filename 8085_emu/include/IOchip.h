@@ -51,9 +51,15 @@ public:
 
 	volatile void WaitResponse(uint8_t addr)
 	{
+		auto _StartOfFrame = std::chrono::system_clock::now();
+
 		if (_WaitResponse[addr])
 		{
-			while (!_DoneResponse[addr]);
+			while (!_DoneResponse[addr])
+			{
+				_StartOfFrame += std::chrono::microseconds(1);
+				std::this_thread::sleep_until(_StartOfFrame);
+			}
 			_DoneResponse[addr] = false;
 		}
 	}

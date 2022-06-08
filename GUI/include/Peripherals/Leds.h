@@ -2,9 +2,33 @@
 
 #include "imgui.h"
 
+#include "ConfigIni.h"
+
 namespace Leds
 {
 	uint8_t* ledValues = nullptr;
+
+	bool _Open = true;
+
+	void Init()
+	{
+		_Open = ConfigIni::GetInt("Leds", "Open", 1);
+	}
+
+	void Open()
+	{
+		_Open = true;
+		ConfigIni::SetInt("Leds", "Open", 1);
+	}
+
+	void Close()
+	{
+		if (!_Open)
+			return;
+
+		_Open = false;
+		ConfigIni::SetInt("Leds", "Open", 0);
+	}
 
 	void SimulationStart()
 	{
@@ -14,9 +38,15 @@ namespace Leds
 
 	void Render()
 	{
+		if (!_Open)
+		{
+			Close();
+			return;
+		}
+
 		float radius = 15.5;
 		
-		ImGui::Begin("LEDs", 0, ImGuiWindowFlags_MenuBar);
+		ImGui::Begin("LEDs", &_Open, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{

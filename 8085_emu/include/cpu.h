@@ -21,8 +21,8 @@
 //We divide that in 60 steps
 //More explanation in .cpp file.
 
-#define CLOCK_SPEED 3200000
-#define CLOCK_ACCURACY 60
+#define CLOCK_SPEED 3200000 // Clock speed of 8085 is 3.2mhz
+#define CLOCK_ACCURACY 60 // The higher, the better the accuracy of the timing.
 
 class CPU
 {
@@ -36,7 +36,7 @@ private:
 	bool _Halted;
 
 public:
-	static inline CPU* cpu;
+	static CPU* cpu;
 
 	std::vector<int> &_Breakpoints;
 	std::vector<std::pair<uint16_t, int>> _Symbols;
@@ -86,6 +86,8 @@ public:
 	void Loop();
 
 	void Clock();
+
+	void Step();
 
 	void SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, uint8_t carry);
 

@@ -3073,7 +3073,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 			"RNC", "JNC", "OUT", "CNC", "SUI", "RC", "JC", "IN", "CC", "SBI", "RPO", "JPO", "XTHL", "CPO", "ANI", "RPE", 
 			"PCHL", "JPE", "XCHG", "CPE", "XRI", "RP", "JP", "DI", "CP", "ORI", "RM", "SPHL", "JM", "EI", "CM", "CPI",
 
-			"EQU", "MACRO", "DB", "DW", "ORG", 
+			"EQU", "MACRO", "ENDM", "DB", "DW", "ORG", 
 		};
 
 		for (auto& k : keywords)
@@ -3109,10 +3109,10 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("L?\\\"(\\\\.|[^\\\"])*\\\"", PaletteIndex::String));
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("\\\'[^\\\']\\\'", PaletteIndex::String));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9])+($| |\t|;)", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-1]+)[bB]($| |\t|;)", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9]|[a-fA-F])+[hH]($| |\t|;)", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("(.+):($| |\t|;)", PaletteIndex::CharLiteral));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9])+($| |\t|;|,)", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-1]+)[bB]($| |\t|;|,)", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9]|[a-fA-F])+[hH]($| |\t|;|,)", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z0-9_]+:($| |\t|;)", PaletteIndex::CharLiteral));
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z_][a-zA-Z0-9_]*", PaletteIndex::Identifier));
 		
 		langDef.mCommentStart = "/dasfafd*";

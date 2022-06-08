@@ -1,4 +1,4 @@
-#include "CodeEditor.h"
+﻿#include "CodeEditor.h"
 #include <fstream>
 
 #include "GUI_backend.h"
@@ -25,6 +25,8 @@ namespace CodeEditor {
 
 	TextEditor editor;
 	std::string FilePath = "";
+
+	bool StuffToSave = false;
 
 	void Init()
 	{
@@ -64,6 +66,7 @@ namespace CodeEditor {
 				std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 				editor.SetText(str);
 				FilePath = outPath;
+				StuffToSave = false;
 			}
 			free(outPath);
 		}
@@ -88,6 +91,7 @@ namespace CodeEditor {
 			std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 			editor.SetText(str);
 			FilePath = path;
+			StuffToSave = false;
 		}
 		else
 		{
@@ -140,6 +144,8 @@ namespace CodeEditor {
 		editor.SaveFile = false;
 		editor.SaveFileAs = false;
 
+		StuffToSave = false;
+
 		std::string text = editor.GetText();
 		text = text.substr(0, text.length() - 1);
 		std::ofstream file;
@@ -150,6 +156,11 @@ namespace CodeEditor {
 
 	void Render()
 	{
+		if (editor.IsTextChanged())
+		{
+			StuffToSave = true;
+		}
+
 		if (Simulation::GetRunning())
 		{
 			editor.SetReadOnly(true);
@@ -261,14 +272,14 @@ namespace CodeEditor {
 					Simulation::Errors.clear();
 				}
 
-				if (ImGui::MenuItem("Save"))
+				if (ImGui::MenuItem("Save", "CTRL+S"))
 				{
 					editor.SaveFile = false;
 					editor.SaveFileAs = false;
 
 					TextEditorSaveFile();
 				}
-				if (ImGui::MenuItem("Save As"))
+				if (ImGui::MenuItem("Save As", "CTRL+SHIFT+S"))
 				{
 					editor.SaveFile = false;
 					editor.SaveFileAs = true;
@@ -336,32 +347,12 @@ namespace CodeEditor {
 				ImGui::EndMenu();
 			}
 
-			if (ImGui::BeginMenu("Project"))
-			{
-				if (ImGui::MenuItem("Assemble"))
-				{
-					Simulation::Assemble(editor.GetText());
-				}
-
-				if (ImGui::MenuItem("Run"))
-				{
-					if (Simulation::GetRunning())
-					{
-						Simulation::Stop();
-					}
-
-					Simulation::Run();
-				
-				}
-				ImGui::EndMenu();
-			}
-
 			ImGui::EndMenuBar();
 		}
 
 		std::string base_filename = FilePath.substr(FilePath.find_last_of("/\\") + 1);
-		ImGui::Text("%6d/%-6d %6d lines  | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
-			editor.GetLanguageDefinition().mName.c_str(), base_filename.c_str());
+		ImGui::Text("%6d/%-6d %6d lines  | %s | %s%s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
+			editor.GetLanguageDefinition().mName.c_str(), base_filename.c_str(), StuffToSave ? "*" : "");
 
 		editor.Render("TextEditor");
 		

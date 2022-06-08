@@ -1,20 +1,27 @@
 #include "CPUinstructions.h"
 
 #include <stdio.h>
-#include <bit>
 #include <vector>
+#include <bitset>
 
 #include "cpu.h"
 
 //Set sign, zero and parity flag, depending on a certain number.
 //Not enough info to know aux_c and carry.
+
+int bits_in(std::uint64_t u)
+{
+    auto bs = std::bitset<64>(u);
+    return bs.count();
+}
+
 void SetFlagsBasedOn(int8_t n)
 {
     CPU::cpu->SetFlags(
         n < 0,
         n == 0,
         -1,
-        !(std::popcount(*(uint8_t*)&n) % 2),
+        !(bits_in(*(uint8_t*)&n) % 2),
         -1
     );
 }
@@ -149,7 +156,7 @@ void AddSigned(int8_t data)
         result < 0,
         result != 0,
         (result4 & 0xf0) > 0,
-        !(std::popcount(*(uint8_t*)&result) % 2),
+        !(bits_in(*(uint8_t*)&result) % 2),
         (result16 & 0b100000000) > 0
     );
 
@@ -172,7 +179,7 @@ void AddSignedWithCarry(int8_t data)
         result < 0,
         result != 0,
         (result4 & 0xf0) > 0,
-        !(std::popcount(*(uint8_t*)&result) % 2),
+        !(bits_in(*(uint8_t*)&result) % 2),
         (result16 & 0b100000000) > 0
     );
 
@@ -196,7 +203,7 @@ void AddUnignedWithCarry(uint8_t data)
         0,
         result != 0,
         (result4 & 0xf0) > 0,
-        !(std::popcount(result) % 2),
+        !(bits_in(result) % 2),
         (result16 & 0b100000000) > 0
     );
 
@@ -216,7 +223,7 @@ void And(uint8_t data)
         (result & 0b10000000) > 0,
         result != 0,
         0,
-        !(std::popcount(*(uint8_t*)&result) % 2),
+        !(bits_in(*(uint8_t*)&result) % 2),
         0
     );
 
@@ -780,7 +787,7 @@ int DAA(int bytes)
         (result & 0b10000000) > 0,
         result == 0,
         0,
-        !(std::popcount(result) % 2),
+        !(bits_in(result) % 2),
         0 // TODO: CARRY SHOULD BE CALCULATED!
     );
 
@@ -2847,8 +2854,6 @@ int XCHG(int bytes)
 
 int XRAA(int bytes)
 {
-    uint8_t A = CPU::cpu->A->GetUnsigned();
-
     CPU::cpu->A->SetUnsigned(0);
 
     return 4;

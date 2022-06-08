@@ -30,7 +30,11 @@ public:
 
 public:
 	SourceFile(std::string bootloader, std::string source)
-		: _Bootloader(bootloader), _Source(source), _LastWord("") {}
+		: _Bootloader(bootloader), _Source(source), _LastWord("") 
+	{
+		if (_Bootloader == "")
+			_BootloaderDone = true;
+	}
 
 	inline bool HasMore()
 	{
@@ -40,6 +44,12 @@ public:
 	inline int GetLine()
 	{
 		return _PrevLineCount;
+	}
+
+	inline void SetLine(int line)
+	{
+		_LineCount = line+1;
+		_PrevLineCount = line;
 	}
 
 	inline int GetCharCount()
@@ -110,6 +120,20 @@ public:
 		}
 	}
 
+	inline std::string ReadRawUntil(std::string until)
+	{
+		std::string ret = "";
+
+		while (NextInternal(_Source, true, true) != until && _HasMore)
+		{
+			ret += NextInternal(_Source, true, false, true);
+		}
+
+		NextInternal(_Source, true);
+
+		return ret;
+	}
+
 	inline std::string GetLastWord()
 	{
 		return _LastWord;
@@ -117,7 +141,7 @@ public:
 
 private:
 
-	inline std::string NextInternal(std::string str, bool ignore_newline_at_start, bool no_cursor = false)
+	inline std::string NextInternal(std::string str, bool ignore_newline_at_start, bool no_cursor = false, bool raw = false)
 	{
 		std::string word = "";
 
@@ -182,6 +206,11 @@ private:
 					{
 						done = true;
 					}
+
+					if (raw)
+					{
+						word += '\n';
+					}
 				}
 				else
 				{
@@ -199,6 +228,11 @@ private:
 					_PrevCharCount = _CharCount;
 
 					_CharCount++;
+
+					if (raw)
+					{
+						word += str[i];
+					}
 
 					done = true;
 				}
@@ -232,7 +266,7 @@ private:
 
 		std::transform(word.begin(), word.end(), word.begin(), ::toupper); //Convert all letters to upper
 
-		for (int i = 0; i < _Equ.size(); i++) //If word is found in defines, replace it.
+		for (int i = _Equ.size()-1; i >= 0; i--) //If word is found in defines, replace it.
 		{
 			if (_Equ.at(i).first == word)
 			{

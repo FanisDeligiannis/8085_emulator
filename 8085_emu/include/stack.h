@@ -32,12 +32,18 @@ public:
 	{
 		_Data[*_SP] = data;
 		(* _SP)--;
-
-		//TODO error checking
 	}
 
 	uint8_t Pop()
 	{
+		if (*_SP == 0xffff)
+		{
+			printf("Trying to POP from stack when stack is empty!\n");
+			//TODO: Error pop up or something
+
+			return 0;
+		}
+
 		(* _SP)++;
 		uint8_t ret = _Data[*_SP];
 		_Data[*_SP] = 0;

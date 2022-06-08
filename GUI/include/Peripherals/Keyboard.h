@@ -1,11 +1,38 @@
 ﻿#pragma once
 
+#include "imgui.h"
+
+#include "ConfigIni.h"
+
 namespace Keyboard
 {
 	uint8_t* Scan;
 	uint8_t* Out;
 
 	int8_t lastButton = -1;
+
+	bool _Open = true;
+
+	void Init()
+	{
+		_Open = ConfigIni::GetInt("Keyboard", "Open", 1);
+	}
+
+	void Open()
+	{
+		_Open = true;
+		ConfigIni::SetInt("Keyboard", "Open", 1);
+	}
+
+	void Close()
+	{
+		if (!_Open)
+			return;
+
+		_Open = false;
+		ConfigIni::SetInt("Keyboard", "Open", 0);
+	}
+
 
 	void SimulationStart()
 	{
@@ -20,12 +47,114 @@ namespace Keyboard
 		Simulation::_IOchip->DoneResponse(0x18, false);
 	}
 
+	void HandleRequest()
+	{
+		if (Scan != nullptr)
+		{
+			if (*Scan != 0x7f)
+			{
+				*Out = 0xff;
+
+				if (!(*Scan & 0b00000001))
+				{
+					if (lastButton == 0)
+					{
+						*Out = 0b11111110;
+					}
+					else if (lastButton == 1)
+					{
+						*Out = 0b11111101;
+					}
+					else if (lastButton == 2)
+					{
+						*Out = 0b11111011;
+					}
+					else if (lastButton == 3)
+					{
+						*Out = 0b11110111;
+					}
+				}
+				else if (!(*Scan & 0b00000010))
+				{
+					if (lastButton == 4)
+					{
+						*Out = 0b11111110;
+					}
+					else if (lastButton == 5)
+					{
+						*Out = 0b11111101;
+					}
+					else if (lastButton == 6)
+					{
+						*Out = 0b11111011;
+					}
+					else if (lastButton == 7)
+					{
+						*Out = 0b11110111;
+					}
+				}
+				else if (!(*Scan & 0b00000100))
+				{
+					if (lastButton == 8)
+					{
+						*Out = 0b11111110;
+					}
+					else if (lastButton == 9)
+					{
+						*Out = 0b11111101;
+					}
+					else if (lastButton == 10)
+					{
+						*Out = 0b11111011;
+					}
+					else if (lastButton == 11)
+					{
+						*Out = 0b11110111;
+					}
+				}
+
+				else if (!(*Scan & 0b00001000))
+				{
+					if (lastButton == 12)
+					{
+						*Out = 0b11111110;
+					}
+					else if (lastButton == 13)
+					{
+						*Out = 0b11111101;
+					}
+					else if (lastButton == 14)
+					{
+						*Out = 0b11111011;
+					}
+					else if (lastButton == 15)
+					{
+						*Out = 0b11110111;
+					}
+				}
+
+				if (*Out != 0xff)
+					lastButton = -1;
+				*Scan = 0x7f;
+
+				Simulation::_IOchip->DoneResponse(0x18);
+			}
+		}
+	}
+
 
 	void Render()
 	{
-		ImGui::Begin("Keyboard", 0, ImGuiWindowFlags_MenuBar);
-		{
+		HandleRequest();
 
+		if (!_Open)
+		{
+			Close();
+			return;
+		}
+
+		ImGui::Begin("Keyboard", &_Open, ImGuiWindowFlags_MenuBar);
+		{
 			if (ImGui::BeginMenuBar())
 			{
 				if (ImGui::BeginMenu("Info"))
@@ -46,7 +175,7 @@ namespace Keyboard
 					if (ImGui::MenuItem("hang until input is given. KIND also calls DCD while hanging.", 0, false, false)) {}
 					if (ImGui::MenuItem("KIND will only affect the Accumulator, which will be equal ", 0, false, false)) {}
 					if (ImGui::MenuItem("to the button pressed.", 0, false, false)) {}
-					if (ImGui::MenuItem("If 1 was pressed, A=1. If B was pressed, A=12 etc.", 0, false, false)) {}
+					if (ImGui::MenuItem("If 1 was pressed, A=01H. If B was pressed, A=0BH etc.", 0, false, false)) {}
 
 					ImGui::EndMenu();
 				}
@@ -239,99 +368,6 @@ namespace Keyboard
 				if (Simulation::GetRunning())
 				{
 					Simulation::cpu->_IP55 = true;
-				}
-			}
-
-			
-			if (Scan != nullptr)
-			{
-				if (*Scan != 0x7f)
-				{
-					*Out = 0xff;
-
-					if (!(*Scan & 0b00000001))
-					{
-						if (lastButton == 0)
-						{
-							*Out = 0b11111110;
-						}
-						else if (lastButton == 1)
-						{
-							*Out = 0b11111101;
-						}
-						else if (lastButton == 2)
-						{
-							*Out = 0b11111011;
-						}
-						else if (lastButton == 3)
-						{
-							*Out = 0b11110111;
-						}
-					}
-					else if (!(*Scan & 0b00000010))
-					{
-						if (lastButton == 4)
-						{
-							*Out = 0b11111110;
-						}
-						else if (lastButton == 5)
-						{
-							*Out = 0b11111101;
-						}
-						else if (lastButton == 6)
-						{
-							*Out = 0b11111011;
-						}
-						else if (lastButton == 7)
-						{
-							*Out = 0b11110111;
-						}
-					}
-					else if (!(*Scan & 0b00000100))
-					{
-						if (lastButton == 8)
-						{
-							*Out = 0b11111110;
-						}
-						else if (lastButton == 9)
-						{
-							*Out = 0b11111101;
-						}
-						else if (lastButton == 10)
-						{
-							*Out = 0b11111011;
-						}
-						else if (lastButton == 11)
-						{
-							*Out = 0b11110111;
-						}
-					}
-
-					else if (!(*Scan & 0b00001000))
-					{
-						if (lastButton == 12)
-						{
-							*Out = 0b11111110;
-						}
-						else if (lastButton == 13)
-						{
-							*Out = 0b11111101;
-						}
-						else if (lastButton == 14)
-						{
-							*Out = 0b11111011;
-						}
-						else if (lastButton == 15)
-						{
-							*Out = 0b11110111;
-						}
-					}
-					
-					if(*Out != 0xff)
-						lastButton = -1;
-					*Scan = 0x7f;
-
-					Simulation::_IOchip->DoneResponse(0x18);
 				}
 			}
 		}

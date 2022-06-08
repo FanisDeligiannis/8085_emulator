@@ -11,7 +11,7 @@ namespace ConfigIni {
 	int GetInt(std::string section, std::string key, int defaultVal);
 	std::string GetString(std::string section, std::string key, std::string defaultVal);
 
-	void SetString(std::string section, std::string key, std::string value);
+	void SetString(std::string section, std::string key, std::string &value);
 	void SetInt(std::string section, std::string key, int value);
 
 	void Init();

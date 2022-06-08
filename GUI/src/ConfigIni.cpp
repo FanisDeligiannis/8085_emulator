@@ -10,7 +10,7 @@ namespace ConfigIni
 
 	void Init()
 	{
-		bool c = file.read(ini);
+		file.read(ini);
 	}
 
 	void Save()
@@ -22,11 +22,11 @@ namespace ConfigIni
 	{
 		if (ini.has(section) && ini[section].has(key))
 		{
-			std::string& configVal = ini[section][key];
 			
 			int ret; 
 			try
 			{
+				std::string& configVal = ini[section][key];
 				ret = std::stoi(configVal);
 			}
 			catch (...)
@@ -54,7 +54,7 @@ namespace ConfigIni
 		}
 	}
 	
-	void SetString(std::string section, std::string key, std::string value)
+	void SetString(std::string section, std::string key, std::string &value)
 	{
 		ini[section][key] = value;
 		Save();

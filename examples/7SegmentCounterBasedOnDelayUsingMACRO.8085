@@ -1,0 +1,126 @@
+; Counts up every milisecond, up to 32767
+
+DIVIDE MACRO n ; Devides double register HL with number n
+; Stores the result in B
+; And the remainder in HL
+
+	PUSH PSW
+	PUSH D
+	
+	PUSH H ; Because we will need to calculate n's two's complement, 
+	; our 16bit calculations will be done on HL
+	; And we don't want to lose the number
+	
+	MVI B, 00H
+	
+	; find TWOs complement of n
+	LXI H,n
+	MOV A,H
+	CMA ; CMA high
+	MOV H,A
+	MOV A,L
+	CMA ; CMA low
+	MOV L,A
+	
+	LXI D,01H ; ADD one to it
+	DAD D
+	
+	XCHG ; D now has n's two's complement.
+	
+	POP H
+	
+	LOOP:
+		INR B ; Increase our counter
+		DAD D ; Decrease our number
+		MOV A,H ; Is H < 0?
+		ANI FFH ; This simply updates the flags
+		JP LOOP ; If positive, keep looping
+
+
+	; We exit our loop when we go into negative numbers
+	; That means we looped one too many times
+	DCR B ; So we decrease B once
+	
+	LXI D,n ; And add n one more time to go back into positive
+	DAD D
+	
+	POP D
+	POP PSW
+ENDM
+
+
+LXI H,00H
+
+START:
+
+	CALL DELA
+	
+	INX H
+	
+	MOV A,H ; To see if HL is positive
+	ANI FFH
+	
+	JP CONTINUE ; We want HL to be a positive number
+	
+	LXI H,00H
+	
+CONTINUE:
+	CALL SHOWHL
+		
+	JMP START
+
+HLT
+
+
+SHOWHL: ; We need to convert our 16 HEX number
+		; To a 5 digit DEC number.
+		; We do that by dividing that number by 10000. The result is our 10000's position
+		; Then, divide by 1000. That's our 1000's position.
+		; until we get to single digits.
+		
+	PUSH PSW
+	PUSH B
+	PUSH D
+	PUSH H
+	
+	DIVIDE 10000 ; Result in B, remainder in HL.
+
+	MOV A,B ; We know our 10000s number is B, so we save it.
+	STA 0901H
+
+	DIVIDE 1000 ; Since remainder is already in HL, we just divide by 1000 this time.
+	
+	MOV A,B
+	STA 0902H
+	
+	
+	DIVIDE 100 ;
+
+	MOV A,B
+	STA 0903H
+	
+	
+	DIVIDE 10 ;
+	
+	MOV A,B
+	STA 0904H
+	
+	
+	; Whatever we are left with on register L, is our last digit. 
+	; We don't need to do any more calculations
+	
+	MOV A,L
+	STA 0905H
+	
+	
+	LXI D,0900H ; Get it to our display
+	CALL STDM
+	
+	; We let the rest of the program handle DCD
+	
+	POP H
+	POP D
+	POP B
+	POP PSW
+	
+	RET

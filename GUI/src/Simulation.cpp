@@ -1,12 +1,11 @@
 #include "Simulation.h"
 
-#include "assembler.h"
-
-#include "RegistersWindow.h"
+#include <iostream>
 
 #include "Application.h"
-
 #include "CodeEditor.h"
+#include "assembler.h"
+#include "RegistersWindow.h"
 
 namespace Simulation {
 	CPU* cpu;
@@ -129,7 +128,7 @@ namespace Simulation {
 
 		//----- Set the INTR_ADDR to the address of the label "INTR_ROUTINE"
 		//maybe find a better way?
-		auto labels = GetLabels();
+		auto labels = Assembler::GetLabels();
 
 		for (int i = 0; i < labels.size(); i++)
 		{
@@ -160,14 +159,18 @@ namespace Simulation {
 				}
 			}
 			
-			if (cpu->GetRunning() && _Stepping && _ScheduledStep) // If a step is scheduled, only do ONE clock.
+			if (GetRunning() && _Stepping && _ScheduledStep) // If a step is scheduled, run a clock cycle.
 			{
 				try
 				{
-					while (GetRunning() && cpu->PC->Get() < 0x0800 || _ScheduledStep)
+					while ((_Stepping && GetRunning() && cpu->PC->Get() < 0x0800) || _ScheduledStep) // But if we're at PC < 0x0800, we're at a predefined routine.
+						// So we keep clocking until we're out of there.
 					{
-						cpu->Clock();
+						cpu->Step();
 						_ScheduledStep = false;
+
+						_StartOfFrame += std::chrono::microseconds(1000000 / CLOCK_ACCURACY);
+						std::this_thread::sleep_until(_StartOfFrame);
 					}
 				}
 				catch (...)

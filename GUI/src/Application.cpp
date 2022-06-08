@@ -30,6 +30,10 @@ namespace Application
 		Simulation::Init();
 		Controls::Init();
 		CodeEditor::Init();
+		SegmentDisplay::Init();
+		Keyboard::Init();
+		Leds::Init();
+		Switches::Init();
 
 		if (!DefaultFile.empty())
 		{
@@ -42,6 +46,36 @@ namespace Application
 	void ImGuiRender()
 	{
 		ImGui::DockSpaceOverViewport();
+
+		if (ImGui::BeginMainMenuBar())
+		{
+			if (ImGui::BeginMenu("Windows"))
+			{
+				if (ImGui::MenuItem("7 Segment Display"))
+				{
+					SegmentDisplay::Open();
+				}
+
+				if (ImGui::MenuItem("Keyboard"))
+				{
+					Keyboard::Open();
+				}
+
+				if (ImGui::MenuItem("Leds"))
+				{
+					Leds::Open();
+				}
+
+				if (ImGui::MenuItem("Switches"))
+				{
+					Switches::Open();
+				}
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMainMenuBar();
+		}
 
 		Switches::Render();
 		

@@ -7,8 +7,6 @@
 
 void Error(std::string err, SourceFile* source); // Add error to error list. 
 
-std::vector<std::pair<std::string, uint16_t>> GetLabels(); // Returns all labels
-
 uint8_t StringToUInt8(std::string str, SourceFile* source); // Converts string to uint8. Could be hex(ending in 'h'), binary(ending in 'b') or dec. 
 uint16_t StringToUInt16(std::string str, SourceFile* source, bool noerrors = false, bool *NaN = nullptr); // Same but for uint16_t
 
@@ -20,6 +18,8 @@ namespace Assembler
 {
 	SourceFile* ReadSourceFile(std::string fileName); // Take in file name, return SourceFile* of it.
 
+	std::vector<std::pair<std::string, uint16_t>> GetLabels(); // Returns all labels
+	void SetLabels(std::vector<std::pair<std::string, uint16_t>> newLabels); // Set new labels
 	std::vector<std::pair<int, std::string>> GetErrors(); // Get all errors
 	std::vector<std::pair<uint16_t, int>> GetSymbols(); // Get Symbols. Symbols match an address to a line of code.
 

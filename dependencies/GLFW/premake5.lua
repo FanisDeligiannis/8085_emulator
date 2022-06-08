@@ -51,6 +51,10 @@ project "GLFW"
 			"_GLFW_X11"
 		}
 
+		links
+		{
+			"pthread"
+		}
 	filter "system:windows"
 		systemversion "latest"
 		buildoptions "/MT"

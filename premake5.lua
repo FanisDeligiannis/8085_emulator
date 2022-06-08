@@ -18,7 +18,7 @@ project "8085_assembler"
 	location "8085_assembler"
 	kind "StaticLib"
 	language "C++"	
-	cppdialect "C++20"
+	cppdialect "C++11"
 	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -82,7 +82,7 @@ project "8085_emu"
     location "8085_emu"
     kind "StaticLib"
     language "C++"
-    cppdialect "C++20"
+    cppdialect "C++11"
     staticruntime "on"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -146,7 +146,7 @@ project "GUI"
 	location "GUI"
 	kind "ConsoleApp"
 	language "C++"
-	cppdialect "C++20"
+	cppdialect "C++11"
 	staticruntime "on"
 
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
@@ -208,6 +208,8 @@ project "GUI"
 			"NativeFileDialog",
 			"toot",
 			
+			"pthread",
+			"dl",
 			"GLFW",
 			"GL",
 		}

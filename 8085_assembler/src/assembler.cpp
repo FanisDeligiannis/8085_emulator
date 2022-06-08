@@ -6,6 +6,7 @@
 #include "assembler.h"
 #include "instructions.h"
 #include "Bootloader.h"
+#include "macro.h"
 
 //TODO: MACRO
 
@@ -17,10 +18,16 @@ uint16_t currentAddr = 0x0800;
 std::vector < std::pair<std::string, uint16_t> > labels;
 std::vector<std::pair<int, std::string>> Errors;
 std::vector<std::pair<uint16_t, int>> Symbols;
+std::vector<Macro*> Macros;
 
-std::vector<std::pair<std::string, uint16_t>> GetLabels()
+std::vector<std::pair<std::string, uint16_t>> Assembler::GetLabels()
 {
 	return labels;
+}
+
+void Assembler::SetLabels(std::vector<std::pair<std::string, uint16_t>> newLabels)
+{
+	labels = newLabels;
 }
 
 
@@ -82,7 +89,11 @@ uint8_t StringToUInt8(std::string str, SourceFile* source)
 
 		return result;
 	}
-	
+	else if (str[0] == '\'' && str[str.length() - 1] == '\'' && str.length() == 3) // If it starts and ends with ', and its length is 3, treat it as char
+	{
+		return str[1];
+	}
+
 	//Otherwise, treat it as dec number
 
 	unsigned int num;
@@ -191,7 +202,27 @@ void ScanForLabels(SourceFile* source)
 	while (source->HasMore() && !ended)
 	{
 		std::string word = source->Next(true);
-		if (word == "") {}
+		
+		if (word == "") { continue; }
+
+
+		bool found = false;
+		int i = 0;
+
+		while (i < 0xff && !found)
+		{
+			if (Instructions[i].OPERAND == word)
+			{
+				found = true;
+				currentAddr += Instructions[i].bytes;
+			}
+			i++;
+		}
+
+		if (found)
+		{
+
+		}
 		else if (word == "ORG")
 		{
 			std::string addrStr = source->Next();
@@ -208,6 +239,11 @@ void ScanForLabels(SourceFile* source)
 			std::string val = source->Next(); //Value of EQU is the 3rd word.
 
 			source->_Equ.push_back({ label, val });
+		}
+		else if (source->NextNoCursor() == "MACRO")
+		{
+			Macro* macro = new Macro(word, source);
+			Macros.push_back(macro);
 		}
 		else if (word == "END")
 		{
@@ -238,17 +274,15 @@ void ScanForLabels(SourceFile* source)
 		}
 		else
 		{
-			bool found = false;
-			int i = 0;
-			
-			while (i < 0xff && !found)
+			found = false;
+
+			for (int i = 0; i < Macros.size(); i++)
 			{
-				if (Instructions[i].OPERAND == word)
+				if (Macros.at(i)->Name == word)
 				{
 					found = true;
-					currentAddr += Instructions[i].bytes;
+					currentAddr = Macros.at(i)->CalculateNewAddr(source, currentAddr);
 				}
-				i++;
 			}
 		}
 	}
@@ -289,7 +323,27 @@ uint8_t* parse(SourceFile* source)
 	while (source->HasMore() && !ended)
 	{
 		std::string word = source->Next(true);
-		if (word == "") {}
+
+		if (word == "") { continue; }
+
+
+		bool found = false;
+		int i = 0;
+		while (i < 0xff && !found)
+		{
+			if (Instructions[i].OPERAND == word)
+			{
+				found = true;
+				if (source->IsBootloaderDone())
+					Symbols.push_back({ currentAddr, source->GetLine() }); //So we know which instruction corresponds to which line
+				bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, _Memory + currentAddr); // Not really using ret. . .
+				currentAddr += Instructions[i].bytes;
+			}
+
+			i++;
+		}
+
+		if (found) {}
 		else if (word == "ORG") //Could have it as a 0 byte "instruction" instead
 		{
 			//Read address
@@ -302,6 +356,7 @@ uint8_t* parse(SourceFile* source)
 			currentAddr = addr;
 		}
 		else if (source->NextNoCursor() == "EQU") { source->Next(); source->Next(); }
+		else if (source->NextNoCursor() == "MACRO") { source->ReadRawUntil("ENDM"); }
 		else if (word[word.length() - 1] == ':') {} // Ignore labels, we have already scanned and added them.
 		else if (word == "END") // Not needed, but want to be fully compatible with microlab.
 		{
@@ -365,27 +420,36 @@ uint8_t* parse(SourceFile* source)
 		}
 		else
 		{
-			//Otherwise, if none of the above, it's probably an instruction.
-			bool found = false;
-			int i = 0;
-			while (i < 0xff && !found)
+			found = false;
+
+			for (int i = 0; i < Macros.size(); i++)
 			{
-				if (Instructions[i].OPERAND == word)
+				if (Macros.at(i)->Name == word)
 				{
 					found = true;
-					if(source->IsBootloaderDone())
-						Symbols.push_back({currentAddr, source->GetLine()}); //So we know which instruction corresponds to which line
-					bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, _Memory + currentAddr); // Not really using ret. . .
-					currentAddr += Instructions[i].bytes;
-				}
+					currentAddr = Macros.at(i)->Parse(source, _Memory, currentAddr);
 
-				i++;
+					if (source->IsBootloaderDone())
+					{
+						for (int j = 0; j < Macros.at(i)->GetSymbols().size(); j++)
+						{
+							Symbols.push_back(Macros.at(i)->GetSymbols().at(j)); // Get the Symbols from inside the MACRO.
+						}
+					}
+				}
 			}
+
 			if (!found)
 			{
-				Error("Instruction " + word + " not found!", source);
+				Error("Unexpected " + word, source);
 			}
 		}
+	}
+
+	while(Macros.size() > 0)
+	{
+		delete Macros.at(0);
+		Macros.erase(Macros.begin());
 	}
 
 	return _Memory;

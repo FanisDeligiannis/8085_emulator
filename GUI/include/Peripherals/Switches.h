@@ -2,8 +2,32 @@
 
 #include "imgui.h"
 
+#include "ConfigIni.h"
+
 namespace Switches
 {
+	bool _Open = true;
+
+	void Init()
+	{
+		_Open = ConfigIni::GetInt("Switches", "Open", 1);
+	}
+
+	void Open()
+	{
+		_Open = true;
+		ConfigIni::SetInt("Switches", "Open", 1);
+	}
+
+	void Close()
+	{
+		if (!_Open)
+			return;
+		
+		_Open = false;
+		ConfigIni::SetInt("Switches", "Open", 0);
+	}
+	
 	//Toggle button.
 	//Modified from creator of ImGui to switch it to vertical.
 	void ToggleButton(const char* str_id, bool* v)
@@ -47,14 +71,19 @@ namespace Switches
 
 	void Render()
 	{
-		if (Simulation::GetRunning())
+		if (switches != nullptr)
 		{
-			switches = Simulation::cpu->GetIO()->GetDataAtAddrPointer(0x20);
+			uint8_t val = (switch7 << 7) | (switch6 << 6) | (switch5 << 5) | (switch4 << 4) | (switch3 << 3) | (switch2 << 2) | (switch1 << 1) | (switch0 << 0);
+			*switches = val;
 		}
 
-		float radius = 15.5;
+		if(!_Open)
+		{
+			Close();
+			return;
+		}
 
-		ImGui::Begin("Switches", 0, ImGuiWindowFlags_MenuBar);
+		ImGui::Begin("Switches", &_Open, ImGuiWindowFlags_MenuBar);
 		{
 			if (ImGui::BeginMenuBar())
 			{
@@ -87,11 +116,5 @@ namespace Switches
 			ToggleButton("switch0", &switch0);
 		}
 		ImGui::End();
-
-		if (switches != nullptr)
-		{
-			uint8_t val = (switch7 << 7) | (switch6 << 6) | (switch5 << 5) | (switch4 << 4) | (switch3 << 3) | (switch2 << 2) | (switch1 << 1) | (switch0 << 0);
-			*switches = val;
-		}
 	}
 }

@@ -4,6 +4,9 @@
 
 #include "CPUinstructions.h"
 
+CPU* CPU::cpu;
+
+
 CPU::CPU(Memory* memory, IOchip* io, std::vector<int> &breakpoints, std::vector<std::pair<uint16_t, int>> &symbols)
 	: _Breakpoints(breakpoints), _Symbols(symbols)
 {
@@ -99,7 +102,7 @@ std::thread CPU::Run()
 
 bool CPU::Interrupts()
 {
-	//SHOULD INTERRUPTS BE DISABLED DURING OTHER INTERRUPT HANDLING?
+	//TODO: SHOULD INTERRUPTS BE DISABLED DURING OTHER INTERRUPT HANDLING?
 
 
 	//M = mask
@@ -249,6 +252,24 @@ void CPU::Clock()
 	
 	PC->Increment();
 }
+
+void CPU::Step()
+{	
+	_CurrentCycles = 0;
+
+	bool first = true;
+
+	while (((PC->Get() < 0x0800 && _CurrentCycles < _ClockCyclesPerLoop) || first) && GetRunning())
+	{
+		first = false;
+
+		Interrupts();
+		Clock();
+		
+		_CurrentCycles += _HangingCycles + 1;
+	}
+}
+
 
 //Set all flags accordingly. If it's -1, don't affect it.
 void CPU::SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, uint8_t carry)

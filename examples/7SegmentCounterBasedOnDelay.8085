@@ -22,7 +22,12 @@ CONTINUE:
 
 HLT
 
-SHOWHL:
+SHOWHL: ; We need to convert our 16 HEX number
+		; To a 5 digit DEC number.
+		; We do that by dividing that number by 10000. The result is our 10000's position
+		; Then, divide by 1000. That's our 1000's position.
+		; until we get to single digits.
+		
 	PUSH PSW
 	PUSH B
 	PUSH D

@@ -1,0 +1,262 @@
+; This is a very simple MACRO demo.
+; A MACRO can be defined like this:
+
+; (MACRO_NAME) MACRO (ARGUMENTS)
+;		CODE
+; ENDM
+
+
+; FOR EXAMPLE
+
+HELLO MACRO ADDR ; This is a compile-time MACRO.
+	ORG ADDR
+	
+	DB 'H'
+	DB 'E'
+	DB 'L'
+	DB 'L'
+	DB 'O'
+ENDM
+
+HELLO 0900H ; Look at the memory upon pressing "ASSEMBLE"
+
+
+
+
+ORG CODE
+
+
+HLT
+HLT
+
+
+
+ADD_3 MACRO Q ; A MACRO called ADD_3 that takes an argument Q
+	INR Q ; As the name suggests, it increments Q three times.
+	INR Q ; Q could be any register
+	INR Q
+ENDM
+
+MVI A,00H
+
+ADD_3 A
+
+HLT ; Note the Value of A before continuing
+HLT
+
+
+
+
+
+
+
+
+
+
+SWAP_DR MACRO DR, DQ ; A MACRO that swaps two double registers
+			; It takes in a double register DR 
+			; and a second double register DQ
+	PUSH DR
+	PUSH DQ
+	
+	POP DR ; We POP in the opposite order than we push to swap them
+	POP DQ
+ENDM
+
+LXI B,0000H
+LXI D,FFFFH
+
+HLT
+HLT
+
+SWAP_DR B,D
+
+HLT ; Note the values of BC and DE before continuing.
+HLT
+
+
+
+
+
+
+
+
+
+ADDN MACRO R,n ; MACRO to add a number n to ANY register (except A)
+				; and store the result in THAT register
+	; This MACRO does not affect flags
+	
+	PUSH PSW
+	
+	MOV A,R
+	ADI n
+	
+	MOV R,A
+	
+	POP PSW
+ENDM
+
+MVI H,00H
+
+HLT
+
+ADDN H,05H ; H = 05H
+
+HLT
+
+ADDN H,01H ; H = 06H
+
+HLT
+
+
+
+
+
+
+
+
+
+; Labels inside a MACRO do not exist outside that MACRO.
+; But a MACRO can CALL/JMP to a label outside of it.
+
+TEST MACRO 
+	MVI A,FFH
+	START:
+		DCR A
+		CALL DELA
+		JNZ START
+ENDM
+
+TEST
+
+HLT
+
+; JMP START
+; This will give an ERROR! START not found!
+; since START is inside the TEST macro.
+
+
+
+
+
+
+
+
+
+
+; In the next example, we'll use as our arguments:
+; R, which is any register
+; and "label" is the name of a label OUTSIDE our MACRO
+
+JMPIFZERO MACRO R,label
+	MOV A,R ; We move R into A
+	CPI 00H ; We compare it with 0
+	JZ label ; if it IS 0, we JMP to "label".
+ENDM
+
+MVI D,01H
+MVI E,00H
+
+HLT
+
+JMPIFZERO D,ZERO ; D = 1 so it will NOT jmp!
+HLT
+JMPIFZERO E,ZERO ; E = 0 so it WILL jmp!
+
+
+ZERO:
+	HLT
+	HLT
+
+
+
+
+
+; MACROS can also contain EQU inside of them
+; But these are not usable OUTSIDE of the macro.
+; But you can use EQU that are outside of the macro inside
+; You can also redefine an EQU inside.
+
+NUMBER EQU 01H
+
+M1 MACRO 
+	MVI A,NUMBER
+ENDM
+
+M1 ; NOTE A = 01H
+HLT
+HLT
+
+M2 MACRO
+	NUMBER EQU FFH
+	MVI A,NUMBER
+ENDM
+
+M2 ; NOTE A = FFH
+MVI B, NUMBER ; NOTE how B=01H. 
+; The EQU inside the MACRO does not affect the one outside of it.
+
+HLT
+HLT
+
+
+M3 MACRO
+	OTHER_NUMBER EQU 12H
+	MVI A,OTHER_NUMBER
+ENDM
+
+M3 ; Or you can define a completely new one 
+; MVI B,OTHER_NUMBER ; Error
+
+HLT
+HLT
+
+
+
+
+WRITE MACRO LETTER,ADDR
+	PUSH PSW
+	
+	MVI A,LETTER
+	
+	STA ADDR
+	
+	POP PSW
+ENDM
+
+WRITE 'H',0910H
+WRITE 'E',0911H
+WRITE 'L',0912H
+WRITE 'L',0913H
+WRITE 'O',0914H
+
+
+HLT ; Note memory locations 0910H - 0914H
+HLT 
+
+
+
+; You can even do some weird stuff using MACROs. Not very recommended, but you can.
+
+; In this MACRO
+
+DO MACRO INSTR ; Our argument, instead of being a register or a value
+			; It's an instruction
+			; In that case, our MACRO takes an instruction and just
+			; runs it with A,B
+			; "INSTR A,B" must be valid.
+			; For example, if INSTR=MVI, there will be an error
+			; If INSTR=MOV, it'll work.
+	INSTR A,B
+ENDM
+
+MVI A,00H
+MVI B,60H
+
+HLT
+
+DO MOV
+;DO MVI ; ERROR
+
+HLT
+HLT
