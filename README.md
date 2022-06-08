@@ -76,9 +76,8 @@ Loading / Saving prompt is currently not guaranteed to work on linux. In that ca
 ## MacOS
 
   
-
-It ***probably*** works on MacOS, but I have no way to test so I didn't include it. You can download [premake5 for MacOS](https://premake.github.io/download/)
-
+MacOS currently not supported.
+It should ***probably*** work on MacOS without problems, but premake.lua needs to be configured for MacOS. You can download [premake5 for MacOS](https://premake.github.io/download/) and configure premake.lua yourself. I don't plan on doing that until much later in development.
   
 
 ---  
@@ -187,7 +186,7 @@ Instruction set is complete. Mistakes are expected though.
 # GUI
 Using [Dear ImGui](https://github.com/ocornut/imgui). 
  
- TODO:
+## TODO:
  - Step-by-step code execution - Done
  - Add breakpoints - Done. To use breakpoints, click the line count number.
  - Add peripherals
@@ -198,6 +197,9 @@ Using [Dear ImGui](https://github.com/ocornut/imgui).
  	- LCD screen (?)
  	- Keyboard - Done
  	- More
-- Greek characters support (?)
+ - Greek characters support (?)
  - Probably more coming.
  
+## Feedback
+
+Feel free to report bugs, ask questions or request a feature in the Issues tab.
