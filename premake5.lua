@@ -169,7 +169,7 @@ project "GUI"
 		"dependencies/imgui/",
 		"dependencies/imgui_*",
 		"dependencies/stb",
-		"dependencies/NativeFileDialog/src/include",
+		"dependencies/nativefiledialog/src/include",
 		"dependencies/toot/"
 	}
 
