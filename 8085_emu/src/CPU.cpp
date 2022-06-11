@@ -1,6 +1,6 @@
 #include "cpu.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "CPUinstructions.h"
 
@@ -253,20 +253,34 @@ void CPU::Clock()
 	PC->Increment();
 }
 
-void CPU::Step()
+
+
+void CPU::Step(std::vector<std::pair<uint16_t, int>> Symbols)
 {	
 	_CurrentCycles = 0;
 
 	bool first = true;
+	bool hasSymbol = false;
 
-	while (((PC->Get() < 0x0800 && _CurrentCycles < _ClockCyclesPerLoop) || first) && GetRunning())
+	while (((!hasSymbol && _CurrentCycles < _ClockCyclesPerLoop) || first) && GetRunning())
 	{
 		first = false;
+		hasSymbol = false;
 
 		Interrupts();
 		Clock();
 		
 		_CurrentCycles += _HangingCycles + 1;
+	
+		for (int i = 0; i < Symbols.size(); i++)
+		{
+			if (Symbols.at(i).first == PC->Get())
+			{
+				hasSymbol = true;
+				break;
+			}
+		}
+
 	}
 }
 
@@ -281,4 +295,10 @@ void CPU::SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, ui
 		((parity != -1) ? (parity & 1) << 2 : Flags->GetBit(PARITY_FLAG)) |
 		((carry != -1) ? (carry & 1) << 0 : Flags->GetBit(CARRY_FLAG))
 	);
+}
+
+int CPU::GetInstructionBytes()
+{
+	CPUInstruction inst = CPUInstructions[ReadPC()];
+	return inst.bytes;
 }

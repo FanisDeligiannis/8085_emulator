@@ -3,9 +3,9 @@
 #include <iostream>
 
 #include "Application.h"
-#include "CodeEditor.h"
 #include "assembler.h"
-#include "RegistersWindow.h"
+#include "Windows/CodeEditor.h"
+#include "Windows/RegistersWindow.h"
 
 namespace Simulation {
 	CPU* cpu;
@@ -163,10 +163,14 @@ namespace Simulation {
 			{
 				try
 				{
-					while ((_Stepping && GetRunning() && cpu->PC->Get() < 0x0800) || _ScheduledStep) // But if we're at PC < 0x0800, we're at a predefined routine.
-						// So we keep clocking until we're out of there.
+					// But if we're at PC < 0x0800, we're at a predefined routine.
+					// So we keep clocking until we're out of there.
+					// Probably should add an option to enable/disable that. TODO
+
+					// BUT. If we have symbols on that address, it means it's user code, added using "ORG". So we don't skip it. 
+					while (_ScheduledStep || (_Stepping && GetRunning() && !Assembler::HasSymbols(cpu->PC->Get())))
 					{
-						cpu->Step();
+						cpu->Step(Assembler::GetSymbols());
 						_ScheduledStep = false;
 
 						_StartOfFrame += std::chrono::microseconds(1000000 / CLOCK_ACCURACY);

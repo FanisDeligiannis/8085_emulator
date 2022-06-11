@@ -1,3 +1,14 @@
+ newoption {
+    trigger = "backend",
+    value = "API",
+    description = "Choose a backend file dialog (Linux only)",
+    allowed = {
+        { "gtk3", "GTK 3 - link to gtk3 directly" },      
+        { "zenity", "Zenity - generate dialogs on the end users machine with zenity" }
+    },
+    default = "zenity"
+}
+
 project "NativeFileDialog"
 kind "StaticLib"
 language "C"
@@ -46,13 +57,12 @@ filter "system:windows"
 
     }
 
-filter {"system:linux", "options:linux_backend=gtk3"}
-
+filter {"system:linux", "options:backend=gtk3"}
     language "C"
     files {"src/nfd_gtk.c"}
     buildoptions {"`pkg-config --cflags gtk+-3.0`"}
 
-filter {"system:linux", "options:linux_backend=zenity"}
+filter {"system:linux", "options:backend=zenity"}
     language "C"
     files {"src/nfd_zenity.c"}
 

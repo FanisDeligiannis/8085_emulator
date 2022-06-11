@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 
 //Very simple.

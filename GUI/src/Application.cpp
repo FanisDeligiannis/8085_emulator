@@ -4,25 +4,24 @@
 
 #include "imgui_internal.h"
 #include "imgui.h"
-#include "imgui_memory_editor/imgui_memory_editor.h"
 
 #include "ConfigIni.h"
 #include "Texture.h"
 #include "Simulation.h"
 
-#include "CodeEditor.h"
-#include "Controls.h"
-#include "RegistersWindow.h"
+#include "Windows/CodeEditor.h"
+#include "Windows/Controls.h"
+#include "Windows/RegistersWindow.h"
+#include "Windows/HexEditor.h"
 
-#include "Peripherals/Leds.h"
-#include "Peripherals/Switches.h"
-#include "Peripherals/7SegmentDisplay.h"
-#include "Peripherals/Beep.h"
-#include "Peripherals/Keyboard.h"
+#include "Windows/Peripherals/Leds.h"
+#include "Windows/Peripherals/Switches.h"
+#include "Windows/Peripherals/7SegmentDisplay.h"
+#include "Windows/Peripherals/Beep.h"
+#include "Windows/Peripherals/Keyboard.h"
 
 namespace Application
 {
-	MemoryEditor mem_edit_1;
 	std::string DefaultFile = "";
 
 	void Init()
@@ -30,6 +29,8 @@ namespace Application
 		Simulation::Init();
 		Controls::Init();
 		CodeEditor::Init();
+		HexEditor::Init();
+
 		SegmentDisplay::Init();
 		Keyboard::Init();
 		Leds::Init();
@@ -41,7 +42,6 @@ namespace Application
 			CodeEditor::TextEditorLoadFile(DefaultFile);
 		}
 	}
-
 
 	void ImGuiRender()
 	{
@@ -93,12 +93,8 @@ namespace Application
 
 		CodeEditor::Render();
 
-		ImGui::Begin("Hex");
-		if (Simulation::memory_data != nullptr)
-		{
-			//mem_edit_1.DrawContents(Simulation::memory_data, 0xffff + 1, 0);
-			mem_edit_1.DrawContents(Simulation::memory_data + 0x0800 , 0xffff+1 - 0x0800, 0x0800);
-		}	
+		HexEditor::Render();
+		
 		ImGui::End();
 	}
 

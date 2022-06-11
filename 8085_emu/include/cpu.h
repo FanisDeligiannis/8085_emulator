@@ -87,9 +87,11 @@ public:
 
 	void Clock();
 
-	void Step();
+	void Step(std::vector<std::pair<uint16_t, int>> Symbols);
 
 	void SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, uint8_t carry);
+
+	int GetInstructionBytes();
 
 	inline void SetRunning(bool running)
 	{

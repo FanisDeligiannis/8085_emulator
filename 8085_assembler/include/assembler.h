@@ -23,6 +23,8 @@ namespace Assembler
 	std::vector<std::pair<int, std::string>> GetErrors(); // Get all errors
 	std::vector<std::pair<uint16_t, int>> GetSymbols(); // Get Symbols. Symbols match an address to a line of code.
 
+	bool HasSymbols(uint16_t addr);
+
 	uint8_t* GetAssembledMemory(SourceFile* source); // Assembled memory from SourceFile*
 	uint8_t* GetAssembledMemory(std::string code); // Assembled memory from std::string
 	uint8_t* GetAssembledMemory(char* file); // Assembled memory from filename

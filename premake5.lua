@@ -216,13 +216,10 @@ project "GUI"
 		
 		pic "On"
 		systemversion "latest"
+		defines {
+			"NFD"
+		}
 
-	filter {"system:linux", "options:linux_backend=gtk3"}
-		defines "NFD"
-
-	filter {"system:linux", "options:linux_backend=zenity"}
-		defines "NFD"
-		
 	filter "configurations:Debug"
 		defines "_DEBUG"
 		runtime "Debug"

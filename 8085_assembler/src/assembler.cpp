@@ -41,6 +41,19 @@ std::vector<std::pair<uint16_t, int>> Assembler::GetSymbols()
 	return Symbols;
 }
 
+bool Assembler::HasSymbols(uint16_t addr)
+{
+	for (int i = 0; i < Symbols.size(); i++)
+	{
+		if (Symbols.at(i).first == addr)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void Error(std::string err, SourceFile* source)
 {
 	//Print and add each error to a list

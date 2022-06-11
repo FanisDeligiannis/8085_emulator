@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include "Application.h"
-#include "GUI_backend.h"
+#include "Backend/GUI_backend.h"
 
 
 int main(int argc, char* argv[])

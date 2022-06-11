@@ -1,5 +1,3 @@
-#pragma once
-
 #include "instructions.h"
 
 #include <stdio.h>
