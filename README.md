@@ -3,6 +3,9 @@
 - Linux: (ProjectPath)/bin/Release-linux-x86_64/GUI/GUI
 - Windows: (ProjectPath)/bin/Release-windows-x86_64/GUI/GUI.exe
 
+
+If you've downloaded an older version before, I recommend deleting "imgui.ini" and "config.ini" in order to reset the UI to the default options.
+
 # Examples
 
 There are lots of examples in the "examples/" folder.
@@ -59,7 +62,7 @@ The binaries (precompiled and built ones) will be in
 The following is only needed for the file dialog, the program can work without it.
 	
   - sudo apt install zenity 
-  - You also need a modern enough c++ compiler that supports C++11. (Used to need C++20, but using some workarounds I changed that)
+  - You also need a modern enough c++ compiler that supports C++11. (Such as g++)
 
 ### Steps
 
