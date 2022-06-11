@@ -55,8 +55,10 @@ The binaries (precompiled and built ones) will be in
   - Get required packages: 
 	- sudo apt update
 	- sudo apt install libxi-dev libgl-dev libxcusror-dev libxrandr-dev libxinerama-dev
+
 The following is only needed for the file dialog, the program can work without it.
-	- sudo apt install zenity 
+	
+  - sudo apt install zenity 
   - You also need a modern enough c++ compiler that supports C++11. (Used to need C++20, but using some workarounds I changed that)
 
 ### Steps
