@@ -276,13 +276,13 @@ namespace CodeEditor {
 		{
 			if (ImGui::BeginMenu("File"))
 			{
-				if (ImGui::MenuItem("New"))
+				if (ImGui::MenuItem("New", 0, false, !editor.IsReadOnly()))
 				{
 					editor.SetText("");
 					FilePath = "";
 					Simulation::Errors.clear();
 				}
-				if (ImGui::MenuItem("Load"))
+				if (ImGui::MenuItem("Load", 0, false, !editor.IsReadOnly()))
 				{
 					TextEditorLoadFile();
 					Simulation::Errors.clear();
@@ -307,9 +307,6 @@ namespace CodeEditor {
 			if (ImGui::BeginMenu("Edit"))
 			{
 				bool ro = editor.IsReadOnly();
-				if (ImGui::MenuItem("Read-only mode", nullptr, &ro))
-					editor.SetReadOnly(ro);
-				ImGui::Separator();
 
 				if (ImGui::MenuItem("Undo", "ALT-Backspace", nullptr, !ro && editor.CanUndo()))
 					editor.Undo();

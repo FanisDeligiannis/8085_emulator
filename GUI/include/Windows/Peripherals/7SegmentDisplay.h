@@ -9,10 +9,12 @@
 namespace SegmentDisplay
 {
 	bool _Open = true;
+	bool _Saved = true;
 
 	void Init()
 	{
 		_Open = ConfigIni::GetInt("7SegmentDisplay", "Open", 1);
+		_Saved = _Open;
 	}
 
 	void Open()
@@ -23,10 +25,11 @@ namespace SegmentDisplay
 
 	void Close()
 	{
-		if (!_Open)
+		if (!_Open && _Open == _Saved)
 			return;
 
 		_Open = false;
+		_Saved = false;
 		ConfigIni::SetInt("7SegmentDisplay", "Open", 0);
 	}
 

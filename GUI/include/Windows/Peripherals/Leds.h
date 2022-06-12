@@ -9,10 +9,12 @@ namespace Leds
 	uint8_t* ledValues = nullptr;
 
 	bool _Open = true;
+	bool _Saved = true;
 
 	void Init()
 	{
 		_Open = ConfigIni::GetInt("Leds", "Open", 1);
+		_Saved = _Open;
 	}
 
 	void Open()
@@ -23,17 +25,18 @@ namespace Leds
 
 	void Close()
 	{
-		if (!_Open)
+		if (!_Open && _Open == _Saved)
 			return;
 
 		_Open = false;
+		_Saved = false;
 		ConfigIni::SetInt("Leds", "Open", 0);
 	}
 
 	void SimulationStart()
 	{
 		ledValues = Simulation::cpu->GetIO()->GetDataAtAddrPointer(0x30);
-		*ledValues = 0;
+		*ledValues = 0xff;
 	}
 
 	void Render()
@@ -72,7 +75,7 @@ namespace Leds
 			{
 				for (int i = 0; i < 8; i++)
 				{
-					if ((*ledValues & (1 << i)) > 0)
+					if ((*ledValues & (1 << i)) == 0)
 					{
 						draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(0, 255, 0, 255), 0);
 					}

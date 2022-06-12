@@ -233,22 +233,7 @@ void CPU::Clock()
 
 	CPUInstruction instr = CPUInstructions[op]; //CPUInstructions is sorted with OPCODE, so we just get it using [op]
 
-	////TEMPORARY.
-	////0 SHOULDN'T BE AN ERROR, IT SHOULD JUST BE 'NOP'
-	////It's easier to find bugs this way. Just don't use 'NOP' yet.
-	////Should be removed soon.
-	//if (instr.OPCODE != 0)
-	//{
-		_HangingCycles = instr.ACTION(instr.bytes);
-	//}
-	//else
-	//{
-	//	printf("Corrupted data OR bug in the code. . .\n");
-	//	_Running = false;
-	//	_Halted = true;
-	//	return;
-	//}
-
+	_HangingCycles = instr.ACTION(instr.bytes);
 	
 	PC->Increment();
 }

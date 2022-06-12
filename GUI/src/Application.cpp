@@ -51,22 +51,27 @@ namespace Application
 		{
 			if (ImGui::BeginMenu("Windows"))
 			{
-				if (ImGui::MenuItem("7 Segment Display"))
+				if (ImGui::MenuItem("Hex Editor", 0, HexEditor::_Open))
+				{
+					HexEditor::Open();
+				}
+
+				if (ImGui::MenuItem("7 Segment Display", 0, SegmentDisplay::_Open))
 				{
 					SegmentDisplay::Open();
 				}
 
-				if (ImGui::MenuItem("Keyboard"))
+				if (ImGui::MenuItem("Keyboard", 0, Keyboard::_Open))
 				{
 					Keyboard::Open();
 				}
 
-				if (ImGui::MenuItem("Leds"))
+				if (ImGui::MenuItem("Leds", 0, Leds::_Open))
 				{
 					Leds::Open();
 				}
 
-				if (ImGui::MenuItem("Switches"))
+				if (ImGui::MenuItem("Switches", 0, Switches::_Open))
 				{
 					Switches::Open();
 				}
@@ -93,9 +98,7 @@ namespace Application
 
 		CodeEditor::Render();
 
-		HexEditor::Render();
-		
-		ImGui::End();
+		HexEditor::Render();	
 	}
 
 	void SimulationStart()

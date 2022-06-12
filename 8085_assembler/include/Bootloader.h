@@ -20,53 +20,52 @@ RST65 EQU 0034H
 RST75 EQU 003CH
 CODE EQU 0800H
 
-ORG 0000H
+ORG RST0
 	JMP CODE
-
-ORG 0008H
+ORG RST1
 	RET
-ORG 0010H
+ORG RST2
 	RET
-ORG 0018H
+ORG RST3
 	RET
-ORG 0020H
+ORG RST4
 	RET
-ORG 0028H
+ORG RST5
 	RET
-ORG 0030H
+ORG RST6
 	RET
-ORG 0038H
+ORG RST7
 	RET
-ORG 0024H
+ORG RST45
 	RET
-ORG 002CH
+ORG RST55
 	RET
-ORG 0034H
+ORG RST65
 	RET
-ORG 003CH
+ORG RST75
 	RET
 
 ORG 0100H
 
 DCD:
-	PUSH PSW
-	MVI A,02H
-	OUT 56H
+	PUSH PSW ; Don't want to change A
+	MVI A,02H 
+	OUT 56H ; The 7 segment display expects a 1 in the 2nd LSB in address 56H  
 	POP PSW
 	RET
 
 STDM:
-	PUSH PSW
-	XCHG
+	PUSH PSW ; Don't want to affect flags
+	XCHG ; Get DE to HL so we can use register M
 	
-	MOV A,M
-	CALL _STDM1
-	OUT 55H
- 	INX H
-	MOV A,M
-	CALL _STDM1
-	OUT 54H
-	INX H
+	MOV A,M ; Get data at address from HL
+	CALL _STDM1 ; Converts it to the proper format.
+	OUT 55H ; MSB of 7 segment display is at address 55H
+ 	INX H ; Next address
+	MOV A,M ; Get Data
+	CALL _STDM1 ; Convert to the proper
+	OUT 54H ; 2nd MSB at address 54H
+	INX H ; . . .
 	MOV A,M
 	CALL _STDM1
 	OUT 53H
@@ -82,28 +81,33 @@ STDM:
 	MOV A,M
 	CALL _STDM1
 	OUT 50H
-	XCHG
+	XCHG ; Get the value to DE, and get HL back.
 	POP PSW
 	RET
 	
 _STDM1: ;CONVERT TO PROPER FORMAT
-	ANI 0FH
-	CPI 0AH
-	JC _STDM3
+	ANI 0FH ; We only want the lower 4 bits.
+	CPI 0AH 
+	JC _STDM3 ; If it's LOWER than 0AH (10)
+	
+; If not, continue
 	
 _STDM2: ; BIGGER/EQUAL TO 0AH
-	ADI 37H
+	ADI 37H ; This converts it from a number to an ASCII character
+			; 47H is 'A'. So: 37H+0AH=47H='A'. etc.
 	RET
 	
-_STDM3: ; SMALLER THAN 0AH
-	ADI 30H
+_STDM3: ; LOWER THAN 0AH
+	ADI 30H ; This converts it from a number to an ASCII character.
+			; 30H is '0'. So 0+30H = '0', 1+30H = '1' etc.
 	RET
 
 STDC: ; Store Display characters
 	PUSH PSW
-	XCHG
+	XCHG ; Get DE to HL
+
 	MOV A,M
-	OUT 55H
+	OUT 55H ; Simply output it. It's already in the correct format.
  	INX H
 	MOV A,M
 	OUT 54H
@@ -119,18 +123,23 @@ STDC: ; Store Display characters
 	INX H
 	MOV A,M
 	OUT 50H
+
 	XCHG
 	POP PSW
 	RET
 
 CLEARDISPLAY:
-	MVI A,00H
+	PUSH PSW
+
+	MVI A,00H ; Just set all characters in the display to 00H.
 	OUT 50H
 	OUT 51H
 	OUT 52H
 	OUT 53H
 	OUT 54H
 	OUT 55H
+
+	POP PSW
 
 	RET
 
@@ -138,14 +147,14 @@ BEEP:
 	PUSH PSW
 
 	MVI A,B8H
-	OUT 62H
+	OUT 62H ; frequency LOW
 	MVI A,01H
-	OUT 63H
+	OUT 63H ; frequency HIGH
 
 	MVI A,e8H
-	OUT 60H
+	OUT 60H ; duration LOW
 	MVI A,03H
-	OUT 61H
+	OUT 61H ; duration HIGH
 
 	JMP _WAIT_BEEP
 
@@ -210,11 +219,11 @@ _DONEDELA: ; 40 t-states total
 	
 	
 DELB:
-	PUSH PSW
+	PUSH PSW ; Don't affect registers
 	PUSH B
 	
 _DELB1:
-	CALL DELA
+	CALL DELA ; Call DELA as many times as BC says. So BC * 1ms.
 	
 	DCX B
 	
@@ -233,50 +242,52 @@ _DONEDELB:
 	RET
 
 KIND:
-	PUSH B
+	PUSH B ; Don't affect registers
 	PUSH PSW
 	
-_KIND0:
-	MVI A,11111110B
-	OUT 28H
-	CALL DCD
+_KIND0: ; Scan line 0.
+	MVI A,11111110B ; Line 0 
+	OUT 28H ; Output it.
+	CALL DCD ; Call DCD as a delay between OUT and IN.
 	IN 18H
 	
-	CPI FFH
-	JZ _KIND1
+	CPI FFH ; if it's FFH, it means no input was given from line 0.
+	JZ _KIND1 ; So we check line 1.
 	
-	MVI B,0H
+	MVI B,00H ; if input was given, we check which button was pressed.
+	; B will be the value of our pressed button. 
+	; It starts at 0 because the first button is 0.
 	
-	CPI 11111110B
+	CPI 11111110B ; If first button was pressed, we're done
 	JZ _KINDDONE
 
-	INR B
+	INR B ; If not, we move to the 2nd button and increase B.
 
-	CPI 11111101B
+	CPI 11111101B ; Now B is 1. If 1 is pressed, we're done.
 	JZ _KINDDONE
 	
-	INR B
+	INR B ; If not, we increase B again.
 	
-	CPI 11111011B
+	CPI 11111011B ; Now B is 2. If 2 is pressed, we're done
 	JZ _KINDDONE
 	
-	INR B
+	INR B ; Increase B again
 	
-	CPI 11110111B
+	CPI 11110111B ; B is 3. Is 3 pressed?
 	JZ _KINDDONE
 
 
-_KIND1:
+_KIND1: ; Line 1.
 
-	MVI A,11111101B
+	MVI A,11111101B ; Scan line 1.
 	OUT 28H
-	CALL DCD
+	CALL DCD ; DCD as a delay between OUT and IN 
 	IN 18H
 	
-	CPI FFH
+	CPI FFH ; if it's FFH, move to line 2.
 	JZ _KIND2
 
-	MVI B,4H
+	MVI B,4H ; Same exact method, but start B at 4H.
 	
 	CPI 11111110B
 	JZ _KINDDONE
@@ -298,7 +309,7 @@ _KIND1:
 
 
 
-_KIND2:
+_KIND2: ; Line 2. Same method as above.
 	MVI A,11111011B
 	OUT 28H
 	CALL DCD
@@ -328,8 +339,7 @@ _KIND2:
 	JZ _KINDDONE
 
 
-
-_KIND3:
+_KIND3: ; Line 3. Same method as above.
 	MVI A,11110111B
 	OUT 28H
 	CALL DCD
@@ -356,11 +366,13 @@ _KIND3:
 	INR B
 	
 _KINDDONE:
-	POP PSW
+	POP PSW ; We pushed before.
 	
-	MOV A,B
+	MOV A,B ; After POP PSW, we get B (B = output) to A.
+			; That's because A should be our output
+			; That way, we affect A, but NOT flags.
 	
-	POP B
+	POP B ; B is not affected.
 	
 	RET
 

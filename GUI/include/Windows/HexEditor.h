@@ -11,15 +11,43 @@ namespace HexEditor
 	uint16_t start = 0x0800;
 	uint16_t end = 0xffff;
 
+	bool _Open = true;
+	bool _Saved = true;
+
 	void Init()
 	{
 		_HexEditor.HighlightColor = 0xff707000; // IM_COL32(255, 0, 0, 255);
 
+		_Open = ConfigIni::GetInt("HexEditor", "Open", 1);
+		_Saved = _Open;
 	}
+
+	void Open()
+	{
+		_Open = true;
+		ConfigIni::SetInt("HexEditor", "Open", 1);
+	}
+
+	void Close()
+	{
+		if (!_Open && _Open == _Saved)
+			return;
+
+		_Open = false;
+		_Saved = false;
+		ConfigIni::SetInt("HexEditor", "Open", 0);
+	}
+
 
 	void Render()
 	{
-		ImGui::Begin("Hex");
+		if (!_Open)
+		{
+			Close();
+			return;
+		}
+
+		ImGui::Begin("Hex", &_Open);
 		if (Simulation::memory_data != nullptr)
 		{
 			if (Simulation::GetRunning() && (Simulation::_Stepping || Simulation::GetPaused()))
@@ -44,5 +72,6 @@ namespace HexEditor
 
 			_HexEditor.DrawContents(Simulation::memory_data + start, end + 1 - start, start);
 		}
+		ImGui::End();
 	}
 }

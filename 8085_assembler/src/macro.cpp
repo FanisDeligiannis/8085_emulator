@@ -139,11 +139,9 @@ uint16_t Macro::CalculateNewAddr(SourceFile* source, uint16_t currentAddr)
 
 uint16_t Macro::ScanForLabels(SourceFile* source, uint16_t currentAddr, SourceFile* ogSource)
 {
-	bool ended = false;
-
 	source->SetLine(_StartLine);
 
-	while (source->HasMore() && !ended)
+	while (source->HasMore())
 	{
 		std::string word = source->Next(true);
 
@@ -342,11 +340,8 @@ uint16_t Macro::Assemble(SourceFile* source, uint8_t* _Memory, uint16_t currentA
 		}
 		else
 		{
-			if (!found)
-			{
-				Error("Unexpected " + word, source);
-				Error("Error in MACRO", ogSource);
-			}
+			Error("Unexpected " + word, source);
+			Error("Error in MACRO", ogSource);
 		}
 	}
 
