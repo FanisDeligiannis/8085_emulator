@@ -12,6 +12,10 @@ There are lots of examples in the "examples/" folder.
 
 ---
 
+# Wiki
+
+[Wiki](https://github.com/FunIsDangerous/8085_emulator/wiki) is the best place to get info about the emulator / simulator and programming in it. It is being constantly updated.
+
 # Usage
 
 ### Windows
