@@ -1,4 +1,5 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/98655332b8cf42158d32bdc87a52322d)](https://www.codacy.com/gh/FunIsDangerous/8085_emulator/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=FunIsDangerous/8085_emulator&amp;utm_campaign=Badge_Grade)
+![License](https://img.shields.io/github/license/FunIsDangerous/8085_emulator)
 ![Release Badge](https://img.shields.io/github/v/release/FunIsDangerous/8085_emulator?include_prereleases)
 
 # Wiki
