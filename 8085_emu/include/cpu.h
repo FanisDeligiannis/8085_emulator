@@ -18,19 +18,21 @@
 #define CARRY_FLAG 0
 
 //Clock speed it 3.2mhz
-//We divide that in 60 steps
+//We divide that in CLOCK_ACCURACY steps.
 //More explanation in .cpp file.
 
+// Probably should make them into variables and have options about them..
+
 #define CLOCK_SPEED 3200000 // Clock speed of 8085 is 3.2mhz
-#define CLOCK_ACCURACY 60 // The higher, the better the accuracy of the timing.
+#define CLOCK_ACCURACY 200 // The higher, the better the accuracy of the timing.
 
 class CPU
 {
 private:
 	//Each instruction takes multiple cycles in the real 8085.
 	//Here, we execute them all in one or in a few lines of code.
-	//So, for us it's only "one cycle". So we will do absolutely nothing for the next few cycles, 
-	//depending on the instruction.
+	//So, for us it's only "one cycle". So we will do absolutely nothing for the next few cycles.
+	//how many, depending on the instruction.
 	int _HangingCycles;
 	bool _Running;
 	bool _Halted;

@@ -98,7 +98,7 @@ namespace Application
 
 		CodeEditor::Render();
 
-		HexEditor::Render();	
+		HexEditor::Render();
 	}
 
 	void SimulationStart()

@@ -24,21 +24,29 @@ public:
 		_WaitResponse = (bool*)calloc(0xff + 1, sizeof(uint8_t));
 		_DoneResponse = (bool*) calloc(0xff+1, sizeof(uint8_t));
 
+		//TODO: Don't crash here!
+
 		if (_Data == nullptr)
 		{
+#ifdef _DEBUG
 			printf("Failed to initialise IO chip!\n");
+#endif
 			exit(1);
 		}
 
 		if (_WaitResponse == nullptr)
 		{
+#ifdef _DEBUG
 			printf("Failed to initialise IO chip!\n");
+#endif
 			exit(1);
 		}
 
 		if (_DoneResponse == nullptr)
 		{
+#ifdef _DEBUG
 			printf("Failed to initialise IO chip!\n");
+#endif
 			exit(1);
 		}
 	}

@@ -72,11 +72,15 @@ namespace CodeEditor {
 		}
 		else if (result == NFD_CANCEL)
 		{
+#ifdef _DEBUG
 			printf("User pressed cancel.\n");
+#endif
 		}
 		else
 		{
+#ifdef _DEBUG
 			printf("Error: %s\n", NFD_GetError());
+#endif
 		}
 #else
 		printf("Error opening file dialog\n");
@@ -95,7 +99,9 @@ namespace CodeEditor {
 		}
 		else
 		{
+#ifdef _DEBUG
 			printf("Error loading file %s \n", path.c_str());
+#endif
 		}
 	}
 
@@ -112,11 +118,15 @@ namespace CodeEditor {
 		}
 		else if (result == NFD_CANCEL)
 		{
+#ifdef _DEBUG
 			printf("User pressed cancel.\n");
+#endif
 		}
 		else
 		{
+#ifdef _DEBUG
 			printf("Error: %s\n", NFD_GetError());
+#endif
 		}
 #else
 		printf("Error opening file dialog\n");
@@ -141,10 +151,6 @@ namespace CodeEditor {
 		{
 			std::string temp = FilePath;
 			FilePath = GetSavePath();
-			if (!HasExtension(FilePath))
-			{
-				FilePath = FilePath + ".8085";
-			}
 
 			if (FilePath == "")
 			{
@@ -153,6 +159,11 @@ namespace CodeEditor {
 
 				FilePath = temp;
 				return;
+			}
+			
+			if (!HasExtension(FilePath))
+			{
+				FilePath = FilePath + ".8085";
 			}
 		}
 

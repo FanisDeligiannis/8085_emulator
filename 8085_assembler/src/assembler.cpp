@@ -16,14 +16,18 @@ Assembler::Assembly* currentAssembler;
 void Error(std::string err, SourceFile* source)
 {
 	//Print and add each error to a list
+#ifdef _DEBUG
 	printf("Error: Line %d, Character %d\n%s\n", source->GetLine(), source->GetCharCount(), err.c_str());
+#endif
 	currentAssembler->Errors.push_back({ source->GetLine(), err });
 }
 
 void Error(std::string err, int line)
 {
 	//Print and add each error to a list
+#ifdef _DEBUG
 	printf("Error: Line %d, Character %d\n%s\n", line, 0, err.c_str());
+#endif
 	currentAssembler->Errors.push_back({ line, err });
 }
 

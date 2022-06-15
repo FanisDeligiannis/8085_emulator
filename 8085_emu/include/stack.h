@@ -6,7 +6,7 @@
 #include <cstdint>
 
 //Simple stack.
-//uint8_t* _Data SHOULD point to the _Data of memory.
+//uint8_t* _Data SHOULD point to the _Data of Memory.
 
 class Stack 
 {
@@ -39,8 +39,10 @@ public:
 	{
 		if (*_SP == 0xffff)
 		{
+#ifdef _DEBUG
 			printf("Trying to POP from stack when stack is empty!\n");
-			//TODO: Error pop up or something
+#endif
+			//TODO: Error pop up or something??
 
 			return 0;
 		}

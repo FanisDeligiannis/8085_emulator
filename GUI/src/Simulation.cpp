@@ -161,7 +161,9 @@ namespace Simulation {
 				}
 				catch(...)
 				{
+#ifdef _DEBUG
 					printf("CPU simulation crashed!\n");
+#endif
 					cpu->SetRunning(false);
 					break;
 				}
@@ -187,7 +189,9 @@ namespace Simulation {
 				}
 				catch (...)
 				{
+#ifdef _DEBUG
 					printf("CPU simulation crashed!\n");
+#endif
 					cpu->SetRunning(false);
 					break;
 				}

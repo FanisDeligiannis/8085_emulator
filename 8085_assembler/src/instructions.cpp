@@ -663,7 +663,18 @@ bool LXI(int bytes, SourceFile* source, uint8_t* _Memory)
 {
     _Memory[0] = 0x01 + GetNextDoubleRegister(source, true, true);
 
-    uint16_t addr = GetImmediate16(source);
+    //uint16_t addr = GetImmediate16(source);
+    std::string val = source->NextNoCursor();
+    uint16_t addr;
+    if (!isNumber(val))
+    {
+        source->Next();
+        addr = FindLabel(val, source);
+    }
+    else
+    {
+        addr = GetImmediate16(source);
+    }
 
     uint8_t HIGH = (addr >> 8) & 0xff;
     uint8_t LOW = addr & 0xff;

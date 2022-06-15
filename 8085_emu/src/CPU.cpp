@@ -168,12 +168,12 @@ bool CPU::Interrupts()
 auto _ClockCyclesPerLoop = ((double)CLOCK_SPEED) / ((double)CLOCK_ACCURACY);
 long long _CurrentCycles = 0;
 
-//In my program, a Loop is something that happens as many times as "CLOCK_ACCURACY" describes. By default 60 times a seocond.
-//"CLOCK" is something that happens as many times as "CLOCK_SPEED" says. _HangingCycles are clock cycles that are skipped, though.
+//In my program, a Loop is something that happens as many times as "CLOCK_ACCURACY" describes per second.
+//"CLOCK" is something that happens as many times as "CLOCK_SPEED" says per second. _HangingCycles are clock cycles that are skipped.
 
 // Since we are dividing our clock cycles into loops, we will have CLOCK_SPEED/CLOCK_ACURACY clocks per loop. Thus, _ClockCyclesPerLoop
 
-//We leave the "Sleeping" to the simulator, probably should be done here though.
+//We leave the "Sleeping" to the simulator, probably should be done here though?
 
 void CPU::Loop()
 {
