@@ -1,0 +1,82 @@
+; IF,ELSE,ENDIF do NOT add any overhead or complexity
+; during runtime. They are ONLY Assembly-time directives.
+; Much like "#if" in C/C++ (not "if").
+
+; Meaning that in the compiled code, "IF" does not exist.
+; Doing "IF A EQ 10H"
+; is NOT a replacement for "CPI 10H".
+
+; IF/ELSE/ENDIF are decided upon pressing the "Assemble" button.
+; Once you do that, they do NOT exist.
+
+
+
+; This MACRO uses the IF directive in order to make an
+; instruction ADDN, which adds a number n to ANY
+; register, including the Accumulator, 
+; and it also sets the flags properly.
+
+; As we said, IF,ELSE,ENDIF are Assembly-time directives
+; In this example, that means that each time you use this MACRO
+; There might be completely different code being compiled.
+
+; Calling "ADDN A,10H", will simply be the same as "ADI 10H", a 2 byte instruction
+; But calling "ADDN B,10H", will be a lot more instructions
+; Also, calling "ADDN D,10H", will also be different instructions,
+; as _TEMP will be different.
+
+ADDN MACRO R,n
+
+	IF R EQ A ; If R = A, then simply use ADI.
+		ADI n
+	ELSE 
+	; If R = anything other than A,
+	; In order to modify the flags without modifying A
+	; We need another temporary register to hold A
+	; We cannot use PUSH/POP, that'd also not let flags
+	; Be modified
+	
+	; Our temporary register cannot be the register R, for obvious reasons
+	; But, if R=C, then our temp register can't be B either
+	; Because then we'd need to "PUSH B", 
+	; And that would affect register C.
+	; So...
+		IF R EQ B ; If our Register is B,
+			_TEMP EQU D ; Our temp will be D
+		ELSE 
+			IF R EQ C ; Else if our register is C
+				_TEMP EQU D ; Our temp will still be D
+			ELSE ; Else if it's not B or C
+				_TEMP EQU B ; Our temp register will be B
+			ENDIF ; We need 2 ENDIF 
+		ENDIF ; Because we have 2 IFs
+		
+		PUSH _TEMP ; We push our _TEMP registers
+		
+		MOV _TEMP,A ; Hold value of A in _TEMP
+		
+		MOV A,R ; MOV R into A to do the calculation
+		ADI n ; ADI
+		MOV R,A ; Get the result back into R
+
+		MOV A,_TEMP ; Get original value of A back into A
+		
+		POP _TEMP ; Get original value of _TEMP back.
+	ENDIF
+
+ENDM
+
+ADDN A,10H
+
+HLT
+HLT ; A = 10H, flags are set
+
+ADDN B,20H
+
+HLT
+HLT ; B = 20H. A is still 10H, and flags are updated.
+
+ADDN B,DFH
+
+HLT
+HLT ; B = FFH now. Check the flags!
