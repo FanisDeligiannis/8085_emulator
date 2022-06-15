@@ -14,7 +14,7 @@ uint16_t FindLabel(std::string label, SourceFile* source)
     //Loop all labels to find the address associated with it.
     //If not found, show an error.
 
-    auto labels = Assembler::GetLabels();
+    auto labels = currentAssembler->Labels;
 
     for (int i = 0; i < labels.size(); i++)
     {

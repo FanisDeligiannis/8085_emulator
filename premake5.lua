@@ -170,7 +170,8 @@ project "GUI"
 		"dependencies/imgui_*",
 		"dependencies/stb",
 		"dependencies/nativefiledialog/src/include",
-		"dependencies/toot/"
+		"dependencies/toot/",
+		"dependencies/boost_regex/include"
 	}
 
 	filter "system:windows"

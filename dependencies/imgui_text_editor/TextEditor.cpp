@@ -1,16 +1,12 @@
 #include <algorithm>
 #include <chrono>
 #include <string>
-#include <regex>
+//#include <regex>
 #include <cmath>
 
 #include "TextEditor.h"
 
-#define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui.h" // for imGui::GetCurrentWindow()
-
-// TODO
-// - multiline comments vs single-line: latter is blocking start of a ML
 
 template<class InputIt1, class InputIt2, class BinaryPredicate>
 bool equals(InputIt1 first1, InputIt1 last1,
@@ -64,7 +60,7 @@ void TextEditor::SetLanguageDefinition(const LanguageDefinition & aLanguageDef)
 	mRegexList.clear();
 
 	for (auto& r : mLanguageDefinition.mTokenRegexStrings)
-		mRegexList.push_back(std::make_pair(std::regex(r.first, std::regex_constants::optimize), r.second));
+		mRegexList.push_back(std::make_pair(boost::regex(r.first, boost::regex_constants::optimize), r.second));
 
 	Colorize();
 }
@@ -1685,7 +1681,8 @@ void TextEditor::MoveLeft(int aAmount, bool aSelect, bool aWordMode)
 	}
 	else
 		mInteractiveStart = mInteractiveEnd = mState.mCursorPosition;
-	SetSelection(mInteractiveStart, mInteractiveEnd, aSelect && aWordMode ? SelectionMode::Word : SelectionMode::Normal);
+	//SetSelection(mInteractiveStart, mInteractiveEnd, aSelect && aWordMode ? SelectionMode::Word : SelectionMode::Normal);
+	SetSelection(mInteractiveStart, mInteractiveEnd, aSelect && aWordMode ? SelectionMode::Normal : SelectionMode::Normal);
 
 	EnsureCursorVisible();
 }
@@ -1736,7 +1733,8 @@ void TextEditor::MoveRight(int aAmount, bool aSelect, bool aWordMode)
 	}
 	else
 		mInteractiveStart = mInteractiveEnd = mState.mCursorPosition;
-	SetSelection(mInteractiveStart, mInteractiveEnd, aSelect && aWordMode ? SelectionMode::Word : SelectionMode::Normal);
+	//SetSelection(mInteractiveStart, mInteractiveEnd, aSelect && aWordMode ? SelectionMode::Word : SelectionMode::Normal);
+	SetSelection(mInteractiveStart, mInteractiveEnd, aSelect && aWordMode ? SelectionMode::Normal : SelectionMode::Normal);
 
 	EnsureCursorVisible();
 }
@@ -2216,7 +2214,7 @@ void TextEditor::ColorizeRange(int aFromLine, int aToLine)
 		return;
 
 	std::string buffer;
-	std::cmatch results;
+	boost::cmatch results;
 	std::string id;
 
 	int endLine = std::max(0, std::min((int)mLines.size(), aToLine));
@@ -2240,57 +2238,38 @@ void TextEditor::ColorizeRange(int aFromLine, int aToLine)
 
 		auto last = bufferEnd;
 
-		for (auto first = bufferBegin; first != last; )
+		for (auto& p : mRegexList)
 		{
-			const char * token_begin = nullptr;
-			const char * token_end = nullptr;
+			const char* token_begin = nullptr;
+			const char* token_end = nullptr;
 			PaletteIndex token_color = PaletteIndex::Default;
 
-			bool hasTokenizeResult = false;
+			boost::cmatch c;
 
-			if (mLanguageDefinition.mTokenize != nullptr)
+			int k = 0;
+
+			auto first = bufferBegin;
+
+			while (boost::regex_search(first, last, c, p.first, boost::regex_constants::match_prev_avail) && first < last)
 			{
-				if (mLanguageDefinition.mTokenize(first, last, token_begin, token_end, token_color))
-					hasTokenizeResult = true;
-			}
+				first = c[0].second;
+				k++;
 
-			if (hasTokenizeResult == false)
-			{
-				// todo : remove
-				//printf("using regex for %.*s\n", first + 10 < last ? 10 : int(last - first), first);
+				auto& v = *c.begin();
+				token_begin = v.first;
+				token_end = v.second;
+				token_color = p.second;
 
-				for (auto& p : mRegexList)
-				{
-					if (std::regex_search(first, last, results, p.first, std::regex_constants::match_continuous))
-					{
-						hasTokenizeResult = true;
-
-						auto& v = *results.begin();
-						token_begin = v.first;
-						token_end = v.second;
-						token_color = p.second;
-						break;
-					}
-				}
-			}
-
-			if (hasTokenizeResult == false)
-			{
-				first++;
-			}
-			else
-			{
 				const size_t token_length = token_end - token_begin;
 
 				if (token_color == PaletteIndex::Identifier)
 				{
 					id.assign(token_begin, token_end);
 
-					// todo : allmost all language definitions use lower case to specify keywords, so shouldn't this use ::tolower ?
 					if (!mLanguageDefinition.mCaseSensitive)
 						std::transform(id.begin(), id.end(), id.begin(), ::toupper);
 
-					if (!line[first - bufferBegin].mPreprocessor)
+					if (!line[first - bufferBegin - 1].mPreprocessor)
 					{
 						if (mLanguageDefinition.mKeywords.count(id) != 0)
 							token_color = PaletteIndex::Keyword;
@@ -2308,10 +2287,85 @@ void TextEditor::ColorizeRange(int aFromLine, int aToLine)
 
 				for (size_t j = 0; j < token_length; ++j)
 					line[(token_begin - bufferBegin) + j].mColorIndex = token_color;
-
-				first = token_end;
 			}
 		}
+		
+		//for (auto first = bufferBegin; first != last; )
+		//{
+		//	const char * token_begin = nullptr;
+		//	const char * token_end = nullptr;
+		//	PaletteIndex token_color = PaletteIndex::Default;
+
+		//	bool hasTokenizeResult = false;
+
+		//	if (mLanguageDefinition.mTokenize != nullptr)
+		//	{
+		//		if (mLanguageDefinition.mTokenize(first, last, token_begin, token_end, token_color))
+		//			hasTokenizeResult = true;
+		//	}
+
+		//	if (hasTokenizeResult == false)
+		//	{
+		//		// todo : remove
+		//		//printf("using regex for: %.*s\n", first + 10 < last ? 10 : int(last - first), first);
+
+		//		for (auto& p : mRegexList)
+		//		{
+		//			//printf("using regex for: %.*s\n", first + 10 < last ? 10 : int(last - first), first);
+		//			
+
+		//			if (boost::regex_search(first, last, results, p.first, boost::regex_constants::match_continuous))
+		//			{
+		//				hasTokenizeResult = true;
+
+		//				auto& v = *results.begin();
+		//				token_begin = v.first;
+		//				token_end = v.second;
+		//				token_color = p.second;
+
+		//				break;
+		//			}
+		//		}
+		//	}
+
+		//	if (hasTokenizeResult == false)
+		//	{
+		//		first++;
+		//	}
+		//	else
+		//	{
+		//		const size_t token_length = token_end - token_begin;
+
+		//		if (token_color == PaletteIndex::Identifier)
+		//		{
+		//			id.assign(token_begin, token_end);
+
+		//			// todo : allmost all language definitions use lower case to specify keywords, so shouldn't this use ::tolower ?
+		//			if (!mLanguageDefinition.mCaseSensitive)
+		//				std::transform(id.begin(), id.end(), id.begin(), ::toupper);
+
+		//			if (!line[first - bufferBegin].mPreprocessor)
+		//			{
+		//				if (mLanguageDefinition.mKeywords.count(id) != 0)
+		//					token_color = PaletteIndex::Keyword;
+		//				else if (mLanguageDefinition.mIdentifiers.count(id) != 0)
+		//					token_color = PaletteIndex::KnownIdentifier;
+		//				else if (mLanguageDefinition.mPreprocIdentifiers.count(id) != 0)
+		//					token_color = PaletteIndex::PreprocIdentifier;
+		//			}
+		//			else
+		//			{
+		//				if (mLanguageDefinition.mPreprocIdentifiers.count(id) != 0)
+		//					token_color = PaletteIndex::PreprocIdentifier;
+		//			}
+		//		}
+
+		//		for (size_t j = 0; j < token_length; ++j)
+		//			line[(token_begin - bufferBegin) + j].mColorIndex = token_color;
+
+		//		first = token_end;
+		//	}
+		//}
 	}
 }
 
@@ -3072,8 +3126,6 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 			"ORA", "CMP", "RNZ", "POP", "JNZ", "JMP", "CNZ", "PUSH", "ADI", "RST", "RZ", "RET", "JZ", "CZ", "CALL", "ACI", 
 			"RNC", "JNC", "OUT", "CNC", "SUI", "RC", "JC", "IN", "CC", "SBI", "RPO", "JPO", "XTHL", "CPO", "ANI", "RPE", 
 			"PCHL", "JPE", "XCHG", "CPE", "XRI", "RP", "JP", "DI", "CP", "ORI", "RM", "SPHL", "JM", "EI", "CM", "CPI",
-
-			"EQU", "MACRO", "ENDM", "DB", "DW", "ORG", 
 		};
 
 		for (auto& k : keywords)
@@ -3081,12 +3133,19 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 
 		static const char* const Registers[] = {
 			"A","B","C","D","E","H","L","M", "PSW", 
-			"CODE", "STDM", "DCD", "STDC"
 		};
 
 		static const char* const Predefines[] = {
-			"CODE", "RST0", "STDM", "DCD", "STDC", "BEEP", "BEEPFD", "CLEARDISPLAY", "KIND",
-			"RST1", "RST2", "RST3", "RST4", "RST5", "RST6", "RST7", "RST45", "RST55", "RST65", "RST75"
+			"CODE", "STDM", "DCD", "STDC", "BEEP", "BEEPFD", "CLEARDISPLAY", "KIND",
+			
+			"RST0", "RST1", "RST2", "RST3", "RST4", "RST5", "RST6", "RST7", "RST45", "RST55", "RST65", "RST75"
+		};
+
+		static const char* const PreProcIdentifiers[] = {
+			"EQU", "MACRO", "ENDM", "DB", "DW", "ORG",
+			"IF", "ELSE", "ENDIF",
+			"EQ", "NEQ", "LT", "LTE", "GT", "GTE",
+
 		};
 
 		for (auto& k : Registers)
@@ -3103,17 +3162,26 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 			langDef.mIdentifiers.insert(std::make_pair(std::string(k), id));
 		}
 
+		for (auto& k : PreProcIdentifiers)
+		{
+			Identifier id;
+			id.mDeclaration = "Predefined Memory Location";
+			langDef.mPreprocIdentifiers.insert(std::make_pair(std::string(k), id));
+		}
+
 		Identifier id;
 		id.mDeclaration = "INTR interrupt calls here.";
 		langDef.mIdentifiers.insert(std::make_pair(std::string("INTR_ROUTINE"), id));
 
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z_][a-zA-Z0-9_]*", PaletteIndex::Identifier));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z0-9_]+:", PaletteIndex::CharLiteral));
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("L?\\\"(\\\\.|[^\\\"])*\\\"", PaletteIndex::String));
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("\\\'[^\\\']\\\'", PaletteIndex::String));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9])+($| |\t|;|,)", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-1]+)[bB]($| |\t|;|,)", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9]|[a-fA-F])+[hH]($| |\t|;|,)", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z0-9_]+:($| |\t|;)", PaletteIndex::CharLiteral));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z_][a-zA-Z0-9_]*", PaletteIndex::Identifier));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9]|[a-fA-F])+[hH]\\b", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-1]+)[bB]\\b", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9])+\\b", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z0-9_]+ (?=equ|EQU)", PaletteIndex::Preprocessor));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("(?<=equ|EQU) [a-zA-Z0-9_]+", PaletteIndex::Preprocessor));
 		
 		langDef.mCommentStart = "/dasfafd*";
 		langDef.mCommentEnd = "*asdfafsd/";

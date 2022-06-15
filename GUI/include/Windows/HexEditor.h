@@ -48,7 +48,7 @@ namespace HexEditor
 		}
 
 		ImGui::Begin("Hex", &_Open);
-		if (Simulation::memory_data != nullptr)
+		if (Simulation::program.Memory != nullptr)
 		{
 			if (Simulation::GetRunning() && (Simulation::_Stepping || Simulation::GetPaused()))
 			{
@@ -70,7 +70,7 @@ namespace HexEditor
 				_HexEditor.HighlightMax = 0;
 			}
 
-			_HexEditor.DrawContents(Simulation::memory_data + start, end + 1 - start, start);
+			_HexEditor.DrawContents(Simulation::program.Memory + start, end + 1 - start, start);
 		}
 		ImGui::End();
 	}

@@ -194,15 +194,15 @@ namespace CodeEditor {
 			{
 				_PrevLineCount = editor.GetTotalLines();
 
-				for (int i = 0; i < Simulation::Errors.size(); i++)
+				for (int i = 0; i < Simulation::program.Errors.size(); i++)
 				{
-					if (cpos.mLine + 1 <= Simulation::Errors.at(i).first)
+					if (cpos.mLine + 1 <= Simulation::program.Errors.at(i).first)
 					{
-						Simulation::Errors.at(i).first++;
+						Simulation::program.Errors.at(i).first++;
 					}
-					else if (cpos.mLine + 1 == Simulation::Errors.at(i).first + 1 && _PrevCpos.mColumn == 0)
+					else if (cpos.mLine + 1 == Simulation::program.Errors.at(i).first + 1 && _PrevCpos.mColumn == 0)
 					{
-						Simulation::Errors.at(i).first++;
+						Simulation::program.Errors.at(i).first++;
 					}
 				}
 			}
@@ -210,35 +210,35 @@ namespace CodeEditor {
 			{
 				_PrevLineCount = editor.GetTotalLines();
 
-				for (int i = 0; i < Simulation::Errors.size(); i++)
+				for (int i = 0; i < Simulation::program.Errors.size(); i++)
 				{
-					if (cpos.mLine + 1 < Simulation::Errors.at(i).first)
+					if (cpos.mLine + 1 < Simulation::program.Errors.at(i).first)
 					{
-						Simulation::Errors.at(i).first--;
+						Simulation::program.Errors.at(i).first--;
 					}
 				}
 			}
 			else
 			{
-				for (int i = 0; i < Simulation::Errors.size(); i++)
+				for (int i = 0; i < Simulation::program.Errors.size(); i++)
 				{
-					if (cpos.mLine + 1 == Simulation::Errors.at(i).first)
-						Simulation::Errors.erase(Simulation::Errors.begin() + i);
+					if (cpos.mLine + 1 == Simulation::program.Errors.at(i).first)
+						Simulation::program.Errors.erase(Simulation::program.Errors.begin() + i);
 				}
 			}
 		}
 		_PrevCpos = cpos;
 
 		TextEditor::ErrorMarkers markers;
-		for (int i = 0; i < Simulation::Errors.size(); i++)
+		for (int i = 0; i < Simulation::program.Errors.size(); i++)
 		{
-			markers.insert(Simulation::Errors.at(i));
+			markers.insert(Simulation::program.Errors.at(i));
 		}
 		editor.SetErrorMarkers(markers);
 
 		if (Simulation::GetRunning() && (Simulation::GetPaused() || Simulation::_Stepping || Simulation::cpu->GetHalted()))
 		{
-			auto symbols = Assembler::GetSymbols();
+			auto symbols = Simulation::program.Symbols;
 
 			for (int i = 0; i < symbols.size(); i++)
 			{
@@ -280,12 +280,12 @@ namespace CodeEditor {
 				{
 					editor.SetText("");
 					FilePath = "";
-					Simulation::Errors.clear();
+					Simulation::program.Errors.clear();
 				}
 				if (ImGui::MenuItem("Load", 0, false, !editor.IsReadOnly()))
 				{
 					TextEditorLoadFile();
-					Simulation::Errors.clear();
+					Simulation::program.Errors.clear();
 				}
 
 				if (ImGui::MenuItem("Save", "CTRL+S"))

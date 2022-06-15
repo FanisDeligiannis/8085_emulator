@@ -8,57 +8,168 @@
 #include "Bootloader.h"
 #include "macro.h"
 
-//TODO: MACRO
-
-uint8_t* _Memory;
-
 uint16_t startingAddr = 0x0800;
 uint16_t currentAddr = 0x0800;
 
-std::vector < std::pair<std::string, uint16_t> > labels;
-std::vector<std::pair<int, std::string>> Errors;
-std::vector<std::pair<uint16_t, int>> Symbols;
-std::vector<Macro*> Macros;
-
-std::vector<std::pair<std::string, uint16_t>> Assembler::GetLabels()
-{
-	return labels;
-}
-
-void Assembler::SetLabels(std::vector<std::pair<std::string, uint16_t>> newLabels)
-{
-	labels = newLabels;
-}
-
-
-std::vector<std::pair<int, std::string>> Assembler::GetErrors()
-{
-	return Errors;
-}
-
-std::vector<std::pair<uint16_t, int>> Assembler::GetSymbols()
-{
-	return Symbols;
-}
-
-bool Assembler::HasSymbols(uint16_t addr)
-{
-	for (int i = 0; i < Symbols.size(); i++)
-	{
-		if (Symbols.at(i).first == addr)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
+Assembler::Assembly* currentAssembler;
 
 void Error(std::string err, SourceFile* source)
 {
 	//Print and add each error to a list
 	printf("Error: Line %d, Character %d\n%s\n", source->GetLine(), source->GetCharCount(), err.c_str());
-	Errors.push_back({ source->GetLine(), err });
+	currentAssembler->Errors.push_back({ source->GetLine(), err });
+}
+
+void Error(std::string err, int line)
+{
+	//Print and add each error to a list
+	printf("Error: Line %d, Character %d\n%s\n", line, 0, err.c_str());
+	currentAssembler->Errors.push_back({ line, err });
+}
+
+void ParseIfDirective(SourceFile* source, std::vector<IfBuffer> &IfBuffer)
+{
+	std::string word = source->GetLastWord();
+	int ifLine = source->GetLine();
+
+	if (word == "IF")
+	{
+		std::string first = source->Next();
+		if(first == "")
+		{
+			Error("Expected expression after IF", ifLine);
+			return;
+		}
+		std::string _operator = source->Next();
+		if (_operator == "")
+		{
+			Error("Expected expression after IF", ifLine);
+			return;
+		}
+		std::string other = source->Next();
+		if (other == "")
+		{
+			Error("Expected expression after IF", ifLine);
+			return;
+		}
+
+		if (isNumber(first) && isNumber(other))
+		{
+			uint16_t first_numeric = StringToUInt16(first, source);
+			uint16_t other_numeric = StringToUInt16(other, source);
+			if (_operator == "EQ")
+			{
+				IfBuffer.push_back({ first_numeric == other_numeric, false });
+			}
+			else if (_operator == "NEQ")
+			{
+				IfBuffer.push_back({ first_numeric != other_numeric, false });
+			}
+			else if (_operator == "LT")
+			{
+				IfBuffer.push_back({ first_numeric < other_numeric, false });
+			}
+			else if (_operator == "LTE")
+			{
+				IfBuffer.push_back({ first_numeric <= other_numeric, false });
+			}
+			else if (_operator == "GT")
+			{
+				IfBuffer.push_back({ first_numeric > other_numeric, false });
+			}
+			else if (_operator == "GTE")
+			{
+				IfBuffer.push_back({ first_numeric >= other_numeric, false });
+			}
+			else
+			{
+				Error("Unknown operator " + _operator + " between numbers", source);
+			}
+		}
+		else if(!isNumber(first) && !isNumber(other))
+		{
+			if (_operator == "EQ")
+			{
+				IfBuffer.push_back({ first == other, false });
+			}
+			else if (_operator == "NEQ")
+			{
+				IfBuffer.push_back({ first != other, false });
+			}
+			else
+			{
+				Error("Unknown operator " + _operator + " between literals", source);
+			}
+		}
+		else
+		{
+			Error("Unable to compare literal and number.", source);
+		}
+	}
+	else if (word == "ELSE")
+	{
+		if (IfBuffer.size() == 0)
+		{
+			Error("Unexpected ELSE; Expecting IF before ELSE", source);
+		}
+		else if (IfBuffer.at(IfBuffer.size() - 1).isElse)
+		{
+			Error("Unexpected ELSE; Expecting IF before ELSE", source);
+		}
+		else
+		{
+			IfBuffer.at(IfBuffer.size() - 1).expression = !IfBuffer.at(IfBuffer.size() - 1).expression;
+			IfBuffer.at(IfBuffer.size() - 1).isElse = true;
+		}
+	}
+	else if (word == "ENDIF")
+	{
+		if (IfBuffer.size() == 0)
+		{
+			Error("Unexpected ENDIF; Expecting IF before ENDIF", source);
+		}
+		else
+		{
+			IfBuffer.pop_back();
+		}
+	}
+}
+
+bool isNumber(std::string str)
+{
+	if (str.size() == 0)
+		return false;
+	if (str[str.size() - 1] == 'H')
+	{
+		if (str.size() == 1) return false;
+		for (int i = 0; i < str.size() - 1; i++)
+		{
+			if ((str[i] >= '0' && str[i] <= '9') || (str[i] >= 'A' && str[i] <= 'F')) continue;
+
+			return false;
+		}
+	}
+	else if (str[str.size() - 1] == 'B')
+	{
+		if (str.size() == 1) return false;
+		for (int i = 0; i < str.size() - 1; i++)
+		{
+			if (str[i] == '1' || str[i] == '0') continue;
+
+			return false;
+		}
+	}
+	else
+	{
+		for (int i = 0; i < str.size(); i++)
+		{
+			if (str[i] >= '0' && str[i] <= '9') continue;
+
+			return false;
+		}
+	}
+
+	return true;
 }
 
 uint8_t StringToUInt8(std::string str, SourceFile* source)
@@ -205,130 +316,44 @@ uint16_t StringToUInt16(std::string str, SourceFile* source, bool noerrors, bool
 	return result;
 }
 
-//Parse the file first, looking for labels and calculating their location in memory.
+//Parse the file first, looking for labels and calculating their location in memory. This is my "scanning" mode.
 //We do this so we can use a label before we declare it.
 //Otherwise, we wouldn't be able to use a label that's BELOW the code we're currently writing in a file.
-void ScanForLabels(SourceFile* source)
+// Same for EQU and MACROs
+//And then actually parse the file.
+uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning)
 {
-	bool ended = false;
-
-	while (source->HasMore() && !ended)
+	if (!scanning)
 	{
-		std::string word = source->Next(true);
-		
-		if (word == "") { continue; }
-
-
-		bool found = false;
-		int i = 0;
-
-		while (i < 0xff && !found)
+		if (result.Memory != nullptr)
 		{
-			if (Instructions[i].OPERAND == word)
-			{
-				found = true;
-				currentAddr += Instructions[i].bytes;
-			}
-			i++;
+			free(result.Memory);
 		}
 
-		if (found)
+		result.Memory = (uint8_t*)calloc(0xffff + 1, sizeof(uint8_t));
+
+		//If we failed to allocate memory.
+		//Probably should throw error instead of crashing...
+		//TODO
+		if (result.Memory == nullptr)
 		{
-
-		}
-		else if (word == "ORG")
-		{
-			std::string addrStr = source->Next();
-
-			uint16_t addr = StringToUInt16(addrStr, source);
-
-			currentAddr = addr;
-		}
-		else if (source->NextNoCursor() == "EQU") //If the NEXT word is "EQU", but don't increment the cursor on SourceFile.
-		{
-
-			std::string label = word; //Label of EQU is our current word.
-			source->Next(); // We ignore next word, we know it's "EQU"
-			std::string val = source->Next(); //Value of EQU is the 3rd word.
-
-			source->_Equ.push_back({ label, val });
-		}
-		else if (source->NextNoCursor() == "MACRO")
-		{
-			Macro* macro = new Macro(word, source);
-			Macros.push_back(macro);
-		}
-		else if (word == "END")
-		{
-			ended = true;
-		}
-		else if (word == "DB") {}
-		else if (word == "DW") {}
-		else if (word[word.length() - 1] == ':')
-		{
-			if (word.length() > 1)
-			{
-				std::string label = word.substr(0, word.length() - 1);
-
-				for (int i = 0; i < labels.size(); i++)
-				{
-					if (labels.at(i).first == label)
-					{
-						Error("Label " + label + " already exists", source);
-					}
-				}
-
-				labels.push_back({ label, currentAddr-1 });
-			}
-			else
-			{
-				Error("Expected a name for the label", source);
-			}
-		}
-		else
-		{
-			found = false;
-
-			for (int i = 0; i < Macros.size(); i++)
-			{
-				if (Macros.at(i)->Name == word)
-				{
-					found = true;
-					currentAddr = Macros.at(i)->CalculateNewAddr(source, currentAddr);
-				}
-			}
+			perror("Unable to allocate memory");
+			exit(1);
 		}
 	}
-}
 
-//Actually parse the file.
-uint8_t* parse(SourceFile* source)
-{
-	_Memory = (uint8_t*)calloc(0xffff + 1, sizeof(uint8_t));
-
-	//If we failed to allocate memory.
-	//Probably should throw error instead of crashing...
-	//TODO
-	if (_Memory == nullptr)
-	{
-		perror("Unable to allocate memory");
-		exit(1);
-	}
-
-	//Clear them all.
-	labels.clear();
-	Errors.clear();
-	Symbols.clear();
+	currentAssembler = &result;
 
 	currentAddr = startingAddr;
 
 	//Scan for labels
-	ScanForLabels(source);
+	if(!scanning)
+		parse(source, result, true);
 	source->ResetFile();
 	source->ResetBootloader();
 	
 
-	//Reset currentAddr after "ScanForLabels" is called.
+	//Reset currentAddr after scanning for labels.
 	currentAddr = startingAddr;
 
 	bool ended = false;
@@ -337,8 +362,26 @@ uint8_t* parse(SourceFile* source)
 	{
 		std::string word = source->Next(true);
 
+	//-----------------------------------------------------------
+		
 		if (word == "") { continue; }
 
+		else if (word == "IF" || word == "ELSE" || word == "ENDIF")
+		{
+			ParseIfDirective(source, result.IfBuffer);
+			continue;
+		}
+
+		if (result.IfBuffer.size() == 0)
+		{
+
+		}
+		else if (!result.IfBuffer.at(result.IfBuffer.size() - 1).expression)
+		{
+			continue;
+		}
+
+	//-----------------------------------------------------------
 
 		bool found = false;
 		int i = 0;
@@ -347,9 +390,12 @@ uint8_t* parse(SourceFile* source)
 			if (Instructions[i].OPERAND == word)
 			{
 				found = true;
-				if (source->IsBootloaderDone())
-					Symbols.push_back({ currentAddr, source->GetLine() }); //So we know which instruction corresponds to which line
-				bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, _Memory + currentAddr); // Not really using ret. . .
+				if (!scanning)
+				{
+					if (source->IsBootloaderDone())
+						result.Symbols.push_back({ currentAddr, source->GetLine() }); //So we know which instruction corresponds to which line
+					bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, result.Memory + currentAddr); // Not really using ret. . .
+				}
 				currentAddr += Instructions[i].bytes;
 			}
 
@@ -357,7 +403,7 @@ uint8_t* parse(SourceFile* source)
 		}
 
 		if (found) {}
-		else if (word == "ORG") //Could have it as a 0 byte "instruction" instead
+		else if (word == "ORG")
 		{
 			//Read address
 			std::string addrStr = source->Next();
@@ -368,15 +414,71 @@ uint8_t* parse(SourceFile* source)
 			//Make it the currentAddr
 			currentAddr = addr;
 		}
-		else if (source->NextNoCursor() == "EQU") { source->Next(); source->Next(); }
-		else if (source->NextNoCursor() == "MACRO") { source->ReadRawUntil("ENDM"); }
-		else if (word[word.length() - 1] == ':') {} // Ignore labels, we have already scanned and added them.
+		else if (source->NextNoCursor() == "EQU")  //If the NEXT word is "EQU", but don't increment the cursor on SourceFile.
+		{
+			if (scanning)
+			{
+				std::string label = word; //Label of EQU is our current word.
+				source->Next(); // We ignore next word, we know it's "EQU"
+				std::string val = source->Next(); //Value of EQU is the 3rd word.
+
+				if (val.empty())
+				{
+					Error("Expected a value after EQU", source);
+				}
+
+				source->_Equ.push_back({ label, val });
+			}
+			else
+			{
+				source->Next();
+				source->Next();
+			}
+		}
+		else if (source->NextNoCursor() == "MACRO") 
+		{
+			if (scanning)
+			{
+				Macro* macro = new Macro(word, source);
+				result.Macros.push_back(macro);
+			}
+			else
+			{
+				source->ReadRawUntil("ENDM"); 
+			}
+		}
+		else if (word[word.length() - 1] == ':') 
+		{
+			if (scanning)
+			{
+				if (word.length() > 1)
+				{
+					std::string label = word.substr(0, word.length() - 1);
+
+					for (int i = 0; i < result.Labels.size(); i++)
+					{
+						if (result.Labels.at(i).first == label)
+						{
+							Error("Label " + label + " already exists", source);
+						}
+					}
+
+					result.Labels.push_back({ label, currentAddr - 1 });
+				}
+				else
+				{
+					Error("Expected a name for the label", source);
+				}
+			}
+		}
 		else if (word == "END") // Not needed, but want to be fully compatible with microlab.
 		{
 			ended = true;
 		}
 		else if (word == "DB") //DB saves one or more bytes in current memory address and forward
 		{
+			if (scanning) continue; // Potential problems if someone has DB/DW randomly inside their code.
+
 			std::string nextWord = source->Next(); //Read next word
 
 			if (nextWord[0] == '\'') //If it starts with '  , it is a character.
@@ -393,7 +495,7 @@ uint8_t* parse(SourceFile* source)
 
 				std::string numStr = nextWord.substr(1, nextWord.length() - 2);
 
-				_Memory[currentAddr++] = numStr[0];
+				result.Memory[currentAddr++] = numStr[0];
 			}
 			else if (nextWord[0] == '\"') // If it starts with ", it is a string and has to also end with "
 			{
@@ -411,16 +513,18 @@ uint8_t* parse(SourceFile* source)
 
 				for (int i = 0; i < numStr.length(); i++) //Add it all to memory.
 				{
-					_Memory[currentAddr++] = numStr[i];
+					result.Memory[currentAddr++] = numStr[i];
 				}
 			}
 			else //Otherwise, we expect an 8bit number.
 			{
-				_Memory[currentAddr++] = StringToUInt8(nextWord, source);
+				result.Memory[currentAddr++] = StringToUInt8(nextWord, source);
 			}
 		}
 		else if (word == "DW") //DW get's a 16 bit number.
 		{
+			if (scanning) continue;
+
 			uint16_t addr = GetImmediate16(source);
 
 			uint8_t HIGH = (addr >> 8) & 0xff;
@@ -428,44 +532,54 @@ uint8_t* parse(SourceFile* source)
 			
 			//TODO: LITTLE/BIG endian??
 
-			_Memory[currentAddr++] = LOW;
-			_Memory[currentAddr++] = HIGH;
+			result.Memory[currentAddr++] = LOW;
+			result.Memory[currentAddr++] = HIGH;
 		}
 		else
 		{
 			found = false;
 
-			for (int i = 0; i < Macros.size(); i++)
+			for (int i = 0; i < result.Macros.size(); i++)
 			{
-				if (Macros.at(i)->Name == word)
+				if (result.Macros.at(i)->Name == word)
 				{
 					found = true;
-					currentAddr = Macros.at(i)->Parse(source, _Memory, currentAddr);
-
-					if (source->IsBootloaderDone())
+					if (scanning)
 					{
-						for (int j = 0; j < Macros.at(i)->GetSymbols().size(); j++)
+						currentAddr = result.Macros.at(i)->Parse(source, currentAddr, result, true);
+					}
+					else
+					{
+						currentAddr = result.Macros.at(i)->Parse(source, currentAddr, result);
+
+						if (source->IsBootloaderDone())
 						{
-							Symbols.push_back(Macros.at(i)->GetSymbols().at(j)); // Get the Symbols from inside the MACRO.
+							for (int j = 0; j < result.Macros.at(i)->GetSymbols().size(); j++)
+							{
+								result.Symbols.push_back(result.Macros.at(i)->GetSymbols().at(j)); // Get the Symbols from inside the MACRO.
+							}
 						}
 					}
 				}
 			}
 
-			if (!found)
+			if (!found && !scanning)
 			{
 				Error("Unexpected " + word, source);
 			}
 		}
 	}
 
-	while(Macros.size() > 0)
+	if (!scanning)
 	{
-		delete Macros.at(0);
-		Macros.erase(Macros.begin());
+		while(result.Macros.size() > 0)
+		{
+			delete result.Macros.at(0);
+			result.Macros.erase(result.Macros.begin());
+		}
 	}
 
-	return _Memory;
+	return nullptr;
 }
 
 SourceFile* Assembler::ReadSourceFile(std::string fileName) // Helper function to convert FileName to SourceFile*
@@ -492,60 +606,14 @@ SourceFile* Assembler::ReadSourceFile(std::string fileName) // Helper function t
 	return source;
 }
 
-uint8_t* Assembler::GetAssembledMemory(SourceFile* source) //Helper function to convert SourceFile* to assembled memory
+uint8_t* Assembler::GetAssembledMemory(SourceFile* source, Assembler::Assembly& result) //Helper function to convert SourceFile* to assembled memory
 {
-	return parse(source);
+	return parse(source, result);
 }
 
-uint8_t* Assembler::GetAssembledMemory(std::string code) //Helper function to convert the code to assembled memory
+uint8_t* Assembler::GetAssembledMemory(std::string code, Assembler::Assembly& result) //Helper function to convert the code to assembled memory
 {
 	SourceFile* source = new SourceFile(Bootloader, code);
 
-	return parse(source);
+	return parse(source, result);
 }
-
-uint8_t* Assembler::GetAssembledMemory(char* file) //Helper function to convert FileName to assembled memory
-{
-	SourceFile* source = ReadSourceFile(file);
-	uint8_t* ret = parse(source);
-	
-	delete source;
-	
-	return ret;
-}
-
-//Same helper functions but they save it as a .bin file.
-//Not really useful, may get some use out of it in the future or will remove it.
-//Was used when testing in the very very early stages, probably should be removed.
-
-void Assembler::SaveAssembledMemory(uint8_t* memory, std::string outFileName)
-{
-	std::ofstream outFile;
-
-	outFile.open(outFileName.c_str(), std::ios::out | std::ios::trunc | std::ios::binary);
-
-	for (int i = 0; i < 0xffff; i++)
-	{
-		outFile << std::hex << memory[i];
-	}
-
-	outFile.close();
-}
-
-void Assembler::SaveAssembledMemory(SourceFile* source, std::string outFileName)
-{
-	uint8_t* Memory;
-	Memory = GetAssembledMemory(source);	
-
-	SaveAssembledMemory(Memory, outFileName);
-
-	free(Memory);
-}
-
-void Assembler::SaveAssembledMemory(std::string inFileName, std::string outFileName)
-{
-	SourceFile* source = ReadSourceFile(inFileName);
-	SaveAssembledMemory(source, outFileName);
-	delete source;
-}
-

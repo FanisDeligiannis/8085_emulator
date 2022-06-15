@@ -15,12 +15,14 @@ project "ImGui_TextEditor"
 
 	defines
 	{
-		"_CRT_SECURE_NO_WARNINGS"
+		"_CRT_SECURE_NO_WARNINGS",
+		"BOOST_REGEX_STANDALONE"
 	}
 
 	includedirs
 	{
-        path.join(_WORKING_DIR, 'dependencies/imgui')
+        path.join(_WORKING_DIR, 'dependencies/imgui'),
+		path.join(_WORKING_DIR, 'dependencies/boost_regex/include')
 	}
 
 	links 

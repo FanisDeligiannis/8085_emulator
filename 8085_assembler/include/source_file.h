@@ -120,15 +120,16 @@ public:
 		}
 	}
 
-	inline std::string ReadRawUntil(std::string until)
+	inline std::string ReadRawUntil(std::string until, std::string until2 = "-_-=+=!2")
 	{
 		std::string ret = "";
 
-		while (NextInternal(_Source, true, true) != until && _HasMore)
+		while ((NextInternal(_Source, true, true) != until && NextInternal(_Source, true,true) != until2) && _HasMore)
 		{
-			ret += NextInternal(_Source, true, false, true);
+			std::string str = NextInternal(_Source, true, false, true);
+			ret += str;
 		}
-
+		
 		NextInternal(_Source, true);
 
 		return ret;

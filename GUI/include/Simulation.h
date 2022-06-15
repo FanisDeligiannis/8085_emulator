@@ -7,18 +7,18 @@
 #include <vector>
 
 #include "cpu.h"
+#include "assembler.h"
 
 namespace Simulation {
 	extern CPU* cpu;
-	extern uint8_t* memory_data;
 	extern std::thread t;
 
 	extern bool Paused;
 	extern bool _Stepping;
 
 	extern IOchip* _IOchip;
-	
-	extern std::vector<std::pair<int, std::string>> Errors;
+
+	extern Assembler::Assembly program;
 
 
 	void Assemble(std::string text);

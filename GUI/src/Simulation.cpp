@@ -3,32 +3,31 @@
 #include <iostream>
 
 #include "Application.h"
-#include "assembler.h"
 #include "Windows/CodeEditor.h"
 #include "Windows/RegistersWindow.h"
 
 namespace Simulation {
 	CPU* cpu;
-	uint8_t* memory_data;
 	std::thread t;
 
 	IOchip* _IOchip = nullptr;
+
+	Assembler::Assembly program;
 
 	bool Paused = false;
 	bool _ScheduledStep = false;
 	bool _Stepping = false;
 
-	std::vector<std::pair<int, std::string>> Errors;
-
 	void Assemble(std::string text)
 	{
-		memory_data = Assembler::GetAssembledMemory(text);
-		Errors = Assembler::GetErrors();
+		Assembler::Assembly result;
+		Assembler::GetAssembledMemory(text, result);
+		program = result;
 	}
 
 	void Run(bool stepping)
 	{
-		if (Errors.size() > 0)
+		if (program.Errors.size() > 0)
 		{
 			//TODO: Have a popup or something.
 			return;
@@ -105,7 +104,20 @@ namespace Simulation {
 
 	void Init()
 	{
-		memory_data = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
+		program.Memory = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
+	}
+
+	bool HasSymbols(Assembler::Assembly program, uint16_t addr)
+	{
+		for (int i = 0; i < program.Symbols.size(); i++)
+		{
+			if (program.Symbols.at(i).first == addr)
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	void thread()
@@ -116,19 +128,15 @@ namespace Simulation {
 		}
 
 		//Create CPU.
-		cpu = new CPU(memory_data, 0xffff, _IOchip, CodeEditor::editor._Breakpoints, Assembler::GetSymbols());
+		cpu = new CPU(program.Memory, 0xffff, _IOchip, CodeEditor::editor._Breakpoints, program.Symbols);
 
 		Application::SimulationStart();
-
-		//Helper typedefs
-		typedef std::chrono::milliseconds ms;
-		typedef std::chrono::duration<float> fsec;
 
 		auto _StartOfFrame = std::chrono::system_clock::now();
 
 		//----- Set the INTR_ADDR to the address of the label "INTR_ROUTINE"
 		//maybe find a better way?
-		auto labels = Assembler::GetLabels();
+		auto labels = program.Labels;
 
 		for (int i = 0; i < labels.size(); i++)
 		{
@@ -168,9 +176,9 @@ namespace Simulation {
 					// Probably should add an option to enable/disable that. TODO
 
 					// BUT. If we have symbols on that address, it means it's user code, added using "ORG". So we don't skip it. 
-					while (_ScheduledStep || (_Stepping && GetRunning() && !Assembler::HasSymbols(cpu->PC->Get())))
+					while (_ScheduledStep || (_Stepping && GetRunning() && !HasSymbols(program, cpu->PC->Get())))
 					{
-						cpu->Step(Assembler::GetSymbols());
+						cpu->Step(program.Symbols);
 						_ScheduledStep = false;
 
 						_StartOfFrame += std::chrono::microseconds(1000000 / CLOCK_ACCURACY);

@@ -7,7 +7,10 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <map>
-#include <regex>
+
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <boost/regex.hpp>
+
 #include "imgui.h"
 
 class TextEditor
@@ -276,7 +279,7 @@ public:
 	static const Palette& GetRetroBluePalette();
 
 private:
-	typedef std::vector<std::pair<std::regex, PaletteIndex>> RegexList;
+	typedef std::vector<std::pair<boost::regex, PaletteIndex>> RegexList;
 
 	struct EditorState
 	{
