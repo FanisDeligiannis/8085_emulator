@@ -112,6 +112,11 @@ namespace Application
 		Keyboard::SimulationStart();
 	}
 
+	void PreDestroy()
+	{
+		CodeEditor::PreDestroy();
+	}
+
 	void Destroy()
 	{
 		Simulation::Stop();

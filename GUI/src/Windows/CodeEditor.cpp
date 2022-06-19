@@ -34,6 +34,7 @@ namespace CodeEditor {
 	bool ShouldLoadFile = false;
 	bool FileLoaded = false;
 	bool StuffToSave = false;
+	bool ClosePopup = false;
 
 	void Init()
 	{
@@ -366,7 +367,7 @@ namespace CodeEditor {
 
 		ImGui::PushFont(_Font);
 
-		ImGui::Begin("Code Editor", nullptr, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
+		ImGui::Begin("Code Editor", 0, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
 
 		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_Equal, false))
 		{
@@ -512,8 +513,7 @@ namespace CodeEditor {
 					StuffToSave = false;
 
 					ImGui::CloseCurrentPopup();
-				}
-				
+				}	
 			}
 			
 			ImGui::SameLine();
@@ -531,6 +531,44 @@ namespace CodeEditor {
 			if (ImGui::Button("Cancel"))
 			{
 				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
+		if (ClosePopup)
+		{
+			ImGui::OpenPopup("Close Application");
+			ClosePopup = false;
+		}
+
+		if (ImGui::BeginPopupModal("Close Application", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+		{
+			ImGui::Text("There are unsaved changes in the current file!");
+
+			if (ImGui::Button("Save"))
+			{
+				if (TextEditorSaveFile())
+				{
+					ImGui::CloseCurrentPopup();
+					CloseApplication();
+				}
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Don't save"))
+			{
+				ImGui::CloseCurrentPopup();
+				CloseApplication();
+			}
+
+			ImGui::SameLine();
+
+			if (ImGui::Button("Cancel"))
+			{
+				ImGui::CloseCurrentPopup();
+				CancelCloseApplication();
 			}
 
 			ImGui::EndPopup();
@@ -568,5 +606,17 @@ namespace CodeEditor {
 		}
 
 		ImGui::PopFont();
+	}
+
+	void PreDestroy()
+	{
+		if (StuffToSave)
+		{
+			ClosePopup = true;
+		}
+		else
+		{
+			CloseApplication();
+		}
 	}
 }

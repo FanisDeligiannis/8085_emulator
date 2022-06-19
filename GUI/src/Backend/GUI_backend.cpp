@@ -25,6 +25,20 @@ int FontSize = 15;
 
 ImFont* _SevenSegmentFont;
 
+bool _Closed = false;
+bool _PreparingClose = false;
+
+void CloseApplication()
+{
+    _Closed = true;
+}
+
+void CancelCloseApplication()
+{
+    _Closed = false;
+    _PreparingClose = false;
+}
+
 ImFont* LoadFont(int size)
 {
     ImGuiIO io = ImGui::GetIO();
@@ -240,8 +254,15 @@ int InitImGui()
     _SevenSegmentFont = io.Fonts->AddFontFromMemoryCompressedTTF(SevenSegment_compressed_data, SevenSegment_compressed_size, 50);
 
     // Main loop
-    while (!glfwWindowShouldClose(window))
+    while (!_Closed)
     {
+        if (glfwWindowShouldClose(window) && !_PreparingClose)
+        {
+            Application::PreDestroy();
+            glfwSetWindowShouldClose(window, GLFW_FALSE);
+            _PreparingClose = true;
+        }
+
         // Poll and handle events (inputs, window resize, etc.)
         // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
         // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application.

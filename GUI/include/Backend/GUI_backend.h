@@ -7,6 +7,9 @@ extern int FontSize;
 
 extern ImFont* _SevenSegmentFont;
 
+void CloseApplication();
+void CancelCloseApplication();
+
 ImFont* LoadFont(int size);
 
 int InitImGui();

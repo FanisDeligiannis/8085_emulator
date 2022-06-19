@@ -22,4 +22,6 @@ namespace CodeEditor {
 	bool TextEditorSaveFile();
 	
 	void Render();
+
+	void PreDestroy();
 }
