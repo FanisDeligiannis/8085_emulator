@@ -2,6 +2,8 @@
 
 #include "TextEditor.h"
 
+#define RECENT_FILES ".8085emu/recents"
+
 namespace CodeEditor {
 
 	extern TextEditor editor;
@@ -9,10 +11,15 @@ namespace CodeEditor {
 
 	void Init();
 
-	void TextEditorLoadFile();
-	void TextEditorLoadFile(std::string path);
+
+	std::vector<std::string> getRecentFiles(std::string path);
+	void AddRecentFile(std::string path);
+	void SaveRecentFiles(std::string path);
+
+	bool TextEditorLoadFile();
+	bool TextEditorLoadFile(std::string path);
 	std::string GetSavePath();
-	void TextEditorSaveFile();
+	bool TextEditorSaveFile();
 	
 	void Render();
 }

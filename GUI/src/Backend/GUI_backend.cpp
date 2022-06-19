@@ -4,6 +4,8 @@
 #include <string>
 #include <stdio.h>
 
+#include <filesystem>
+
 #include "imgui.h"
 #include "Backend/imgui_impl_glfw.h"
 #include "Backend/imgui_impl_opengl3.h"
@@ -35,16 +37,6 @@ ImFont* LoadFont(int size)
 static void glfw_error_callback(int error, const char* description)
 {
     fprintf(stderr, "Glfw Error %d: %s\n", error, description);
-}
-
-bool file_exists(const std::string& name) {
-    if (FILE* file = fopen(name.c_str(), "r")) {
-        fclose(file);
-        return true;
-    }
-    else {
-        return false;
-    }
 }
 
 void SaveDefaultImGuiIni()
@@ -147,7 +139,7 @@ DockSpace           ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,55 Size=1920,953 Split
 )";
 
     std::ofstream file;
-    file.open("imgui.ini", std::ios_base::out);
+    file.open(".8085emu/imgui.ini", std::ios_base::out);
     file << defaultFileContent;
     file.close();
 }
@@ -159,7 +151,12 @@ void window_maximize_callback(GLFWwindow* window, int maximized)
 
 int InitImGui()
 {
-    if (!file_exists("imgui.ini"))
+    if (!std::filesystem::exists(".8085emu"))
+    {
+        std::filesystem::create_directory(".8085emu");
+    }
+
+    if (!std::filesystem::exists(".8085emu/imgui.ini"))
     {
         SaveDefaultImGuiIni();
     }
@@ -195,6 +192,8 @@ int InitImGui()
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.IniFilename = ".8085emu/imgui.ini";
+    
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking

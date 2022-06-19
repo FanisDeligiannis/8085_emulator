@@ -1,5 +1,7 @@
 #include "Windows/CodeEditor.h"
+
 #include <fstream>
+#include <filesystem>
 
 #include "Backend/GUI_backend.h"
 #include "Simulation.h"
@@ -16,6 +18,8 @@
 
 namespace CodeEditor {
 
+	std::vector<std::string> RecentFiles;
+
 	ImFont* _Font;
 	int FontSize;
 	int InitialFontSize;
@@ -25,11 +29,16 @@ namespace CodeEditor {
 
 	TextEditor editor;
 	std::string FilePath = "";
+	std::string NewFilePath = "";
 
+	bool ShouldLoadFile = false;
+	bool FileLoaded = false;
 	bool StuffToSave = false;
 
 	void Init()
 	{
+		RecentFiles = getRecentFiles(RECENT_FILES);
+
 		auto lang = TextEditor::LanguageDefinition::ASM8085();
 		editor.SetLanguageDefinition(lang);
 		editor.SetShowWhitespaces(false);
@@ -44,6 +53,83 @@ namespace CodeEditor {
 		//editor.SetPalette(TextEditor::GetLightPalette());
 	}
 
+	std::vector<std::string> getRecentFiles(std::string path)
+	{
+		std::vector<std::string> result;
+
+		//std::ifstream f(path.c_str());
+		std::string abspath = std::filesystem::absolute(path).string();
+		std::ifstream f(abspath);
+
+		if (!f)
+		{
+			printf("Recents file could not be opened: %s\n", abspath.c_str()); // Report error
+			printf("Error code: %s\n", strerror(errno)); // Get some info as to why
+			return result;
+		}
+
+		std::string	line;
+
+		while (std::getline(f, line))
+		{
+			if (!line.empty())
+			{
+				std::ifstream recent_file(line.c_str());
+				if(recent_file.good())
+					result.push_back(line);
+			}
+		}
+
+		return result;
+	}
+
+	void AddRecentFile(std::string path)
+	{
+		bool already_added = false;
+
+		for (int i = 0; i < RecentFiles.size(); i++)
+		{
+			if (RecentFiles.at(i) == path)
+			{
+				already_added = true;
+
+				RecentFiles.erase(RecentFiles.begin() + i);
+				RecentFiles.push_back(path);
+
+				SaveRecentFiles(RECENT_FILES);
+			}
+		}
+
+		if (already_added)
+			return;
+
+		while (RecentFiles.size() >= 6)
+		{
+			RecentFiles.erase(RecentFiles.begin());
+		}
+
+		RecentFiles.push_back(path);
+		
+		SaveRecentFiles(RECENT_FILES);
+	}
+
+	void SaveRecentFiles(std::string path)
+	{
+		std::ofstream file;
+		file.open(path, std::ios_base::out);
+		
+		for (int i = 0; i < RecentFiles.size(); i++)
+		{
+			file << RecentFiles.at(i);
+
+			if (i != RecentFiles.size() - 1)
+				file << "\n";
+		}
+
+		file.close();
+	}
+
+
 	void SetFontSize(int size)
 	{
 		FontSize = size;
@@ -53,21 +139,14 @@ namespace CodeEditor {
 		ConfigIni::SetInt("CodeEditor", "FontSize", FontSize);
 	}
 
-	void TextEditorLoadFile()
+	bool TextEditorLoadFile()
 	{
 #ifdef NFD
 		nfdchar_t* outPath = NULL;
 		nfdresult_t result = NFD_OpenDialog("8085,asm", NULL, &outPath);
 		if (result == NFD_OKAY)
 		{
-			std::ifstream t(outPath);
-			if (t.good())
-			{
-				std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
-				editor.SetText(str);
-				FilePath = outPath;
-				StuffToSave = false;
-			}
+			return TextEditorLoadFile(outPath);
 			free(outPath);
 		}
 		else if (result == NFD_CANCEL)
@@ -75,33 +154,42 @@ namespace CodeEditor {
 #ifdef _DEBUG
 			printf("User pressed cancel.\n");
 #endif
+			return false;
 		}
 		else
 		{
 #ifdef _DEBUG
 			printf("Error: %s\n", NFD_GetError());
 #endif
+			return false;
 		}
 #else
 		printf("Error opening file dialog\n");
 #endif
+		return false;
 	}
 
-	void TextEditorLoadFile(std::string path)
+	bool TextEditorLoadFile(std::string path)
 	{
 		std::ifstream t(path);
 		if (t.good())
 		{
+			AddRecentFile(path);
+
 			std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 			editor.SetText(str);
 			FilePath = path;
 			StuffToSave = false;
+			FileLoaded = true;
+
+			return true;
 		}
 		else
 		{
 #ifdef _DEBUG
 			printf("Error loading file %s \n", path.c_str());
 #endif
+			return false;
 		}
 	}
 
@@ -145,7 +233,7 @@ namespace CodeEditor {
 		return extension != std::string::npos;
 	}
 
-	void TextEditorSaveFile()
+	bool TextEditorSaveFile()
 	{
 		if (editor.SaveFileAs || FilePath == "")
 		{
@@ -158,13 +246,15 @@ namespace CodeEditor {
 				editor.SaveFileAs = false;
 
 				FilePath = temp;
-				return;
+				return false;
 			}
 			
 			if (!HasExtension(FilePath))
 			{
 				FilePath = FilePath + ".8085";
 			}
+
+			AddRecentFile(FilePath);
 		}
 
 
@@ -175,17 +265,27 @@ namespace CodeEditor {
 
 		std::string text = editor.GetText();
 		text = text.substr(0, text.length() - 1);
+
 		std::ofstream file;
 		file.open(FilePath, std::ios_base::out);
-		file << text;
-		file.close();
+
+		if (file.good())
+		{
+			file << text;
+			file.close();
+		}
+
+		return true;
 	}
 
 	void Render()
 	{
 		if (editor.IsTextChanged())
 		{
-			StuffToSave = true;
+			if (!FileLoaded)
+				StuffToSave = true;
+			else
+				FileLoaded = false;
 		}
 
 		if (Simulation::GetRunning())
@@ -289,15 +389,33 @@ namespace CodeEditor {
 			{
 				if (ImGui::MenuItem("New", 0, false, !editor.IsReadOnly()))
 				{
-					editor.SetText("");
-					FilePath = "";
+					NewFilePath = ".";
+					ShouldLoadFile = true;
 					Simulation::program.Errors.clear();
 				}
 				if (ImGui::MenuItem("Load", 0, false, !editor.IsReadOnly()))
 				{
-					TextEditorLoadFile();
+					NewFilePath = "";
+					ShouldLoadFile = true;
 					Simulation::program.Errors.clear();
 				}
+
+				if (ImGui::BeginMenu("Recent", !editor.IsReadOnly()))
+				{
+					for (int i = RecentFiles.size() - 1; i >= 0; i--)
+					{
+						std::string filename = std::filesystem::path(RecentFiles.at(i)).filename().string();
+
+						if (ImGui::MenuItem((filename.c_str())))
+						{
+							ShouldLoadFile = true;
+							NewFilePath = RecentFiles.at(i);
+							Simulation::program.Errors.clear();
+						}
+					}
+					ImGui::EndMenu();
+				}
+
 
 				if (ImGui::MenuItem("Save", "CTRL+S"))
 				{
@@ -381,6 +499,73 @@ namespace CodeEditor {
 		editor.Render("TextEditor");
 		
 		ImGui::End();
+
+		if (ImGui::BeginPopupModal("Load File", 0, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+		{
+			ImGui::Text("There are unsaved changes in the current file!");
+
+			if (ImGui::Button("Save"))
+			{
+				if (TextEditorSaveFile())
+				{
+					ShouldLoadFile = true;
+					StuffToSave = false;
+
+					ImGui::CloseCurrentPopup();
+				}
+				
+			}
+			
+			ImGui::SameLine();
+
+			if (ImGui::Button("Don't save"))
+			{
+				ShouldLoadFile = true;
+				StuffToSave = false;
+
+				ImGui::CloseCurrentPopup();
+			}
+			
+			ImGui::SameLine();
+
+			if (ImGui::Button("Cancel"))
+			{
+				ImGui::CloseCurrentPopup();
+			}
+
+			ImGui::EndPopup();
+		}
+
+		if (ShouldLoadFile)
+		{
+			if (StuffToSave)
+			{
+				ImGui::OpenPopup("Load File");
+				ShouldLoadFile = false;
+			}
+			else
+			{
+				ShouldLoadFile = false;
+
+				if (NewFilePath == "")
+				{
+					TextEditorLoadFile();
+				}
+				else if (NewFilePath == ".")
+				{
+					editor.SetText("");
+					FilePath = "";
+					FileLoaded = true;
+				}
+				else
+				{
+					TextEditorLoadFile(NewFilePath);
+				}
+
+				StuffToSave = false;
+				NewFilePath = "";
+			}
+		}
 
 		ImGui::PopFont();
 	}

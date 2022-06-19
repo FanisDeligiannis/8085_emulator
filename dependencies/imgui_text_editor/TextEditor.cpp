@@ -1148,9 +1148,12 @@ void TextEditor::Render()
 		// Draw a tooltip on known identifiers/preprocessor symbols
 		if (ImGui::IsMousePosValid())
 		{
-			auto id = GetWordAt(ScreenPosToCoordinates(ImGui::GetMousePos()));
+			//TODO NEED TO FIX
+			
+			/*auto id = GetWordAt(ScreenPosToCoordinates(ImGui::GetMousePos()));
 			if (!id.empty())
 			{
+
 				auto it = mLanguageDefinition.mIdentifiers.find(id);
 				if (it != mLanguageDefinition.mIdentifiers.end())
 				{
@@ -1168,7 +1171,7 @@ void TextEditor::Render()
 						ImGui::EndTooltip();
 					}
 				}
-			}
+			}*/
 		}
 	}
 
@@ -3151,26 +3154,26 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 		for (auto& k : Registers)
 		{
 			Identifier id;
-			id.mDeclaration = "Register";
+			//id.mDeclaration = "Register";
 			langDef.mIdentifiers.insert(std::make_pair(std::string(k), id));
 		}
 
 		for (auto& k : Predefines)
 		{
 			Identifier id;
-			id.mDeclaration = "Predefined Memory Location";
+			//id.mDeclaration = "Predefined Memory Location";
 			langDef.mIdentifiers.insert(std::make_pair(std::string(k), id));
 		}
 
 		for (auto& k : PreProcIdentifiers)
 		{
 			Identifier id;
-			id.mDeclaration = "Predefined Memory Location";
+			//id.mDeclaration = "Predefined Memory Location";
 			langDef.mPreprocIdentifiers.insert(std::make_pair(std::string(k), id));
 		}
 
 		Identifier id;
-		id.mDeclaration = "INTR interrupt calls here.";
+		//id.mDeclaration = "INTR interrupt calls here.";
 		langDef.mIdentifiers.insert(std::make_pair(std::string("INTR_ROUTINE"), id));
 
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z_][a-zA-Z0-9_]*", PaletteIndex::Identifier));

@@ -4,7 +4,7 @@
 
 namespace ConfigIni
 {
-	mINI::INIFile file("config.ini");
+	mINI::INIFile file(".8085emu/config.ini");
 	mINI::INIStructure ini;
 
 
