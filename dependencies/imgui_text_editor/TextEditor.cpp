@@ -6,7 +6,7 @@
 
 #include "TextEditor.h"
 
-#include "imgui.h" // for imGui::GetCurrentWindow()
+#include "imgui.h"
 
 template<class InputIt1, class InputIt2, class BinaryPredicate>
 bool equals(InputIt1 first1, InputIt1 last1,
@@ -1175,9 +1175,9 @@ void TextEditor::Render()
 		}
 	}
 
-
-	ImGui::Dummy(ImVec2((longest + 2), mLines.size() * mCharAdvance.y));
-
+	ImGui::SetCursorPos(ImVec2(0, 0));
+	ImGui::Dummy(ImVec2((longest + 2), mLines.size()* mCharAdvance.y ));
+	
 	if (mScrollToCursor)
 	{
 		EnsureCursorVisible();
@@ -1194,6 +1194,7 @@ void TextEditor::Render(const char* aTitle, const ImVec2& aSize, bool aBorder)
 
 	ImGui::PushStyleColor(ImGuiCol_ChildBg, ImGui::ColorConvertU32ToFloat4(mPalette[(int)PaletteIndex::Background]));
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+
 	if (!mIgnoreImGuiChild)
 		ImGui::BeginChild(aTitle, aSize, aBorder, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysHorizontalScrollbar | ImGuiWindowFlags_NoMove);
 
@@ -3129,6 +3130,8 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 			"ORA", "CMP", "RNZ", "POP", "JNZ", "JMP", "CNZ", "PUSH", "ADI", "RST", "RZ", "RET", "JZ", "CZ", "CALL", "ACI", 
 			"RNC", "JNC", "OUT", "CNC", "SUI", "RC", "JC", "IN", "CC", "SBI", "RPO", "JPO", "XTHL", "CPO", "ANI", "RPE", 
 			"PCHL", "JPE", "XCHG", "CPE", "XRI", "RP", "JP", "DI", "CP", "ORI", "RM", "SPHL", "JM", "EI", "CM", "CPI",
+
+			"DSUB"
 		};
 
 		for (auto& k : keywords)
