@@ -86,6 +86,7 @@ bool RC(int bytes, SourceFile* source, uint8_t* _Memory);
 bool RET(int bytes, SourceFile* source, uint8_t* _Memory);
 bool RIM(int bytes, SourceFile* source, uint8_t* _Memory);
 bool RLC(int bytes, SourceFile* source, uint8_t* _Memory);
+bool DSUB(int bytes, SourceFile* source, uint8_t* _Memory);
 bool RM(int bytes, SourceFile* source, uint8_t* _Memory);
 bool RNC(int bytes, SourceFile* source, uint8_t* _Memory);
 bool RNZ(int bytes, SourceFile* source, uint8_t* _Memory);

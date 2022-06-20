@@ -208,6 +208,7 @@ int RC(int bytes);
 int RET(int bytes);
 int RIM(int bytes);
 int RLC(int bytes);
+int DSUB(int bytes);
 int RM(int bytes);
 int RNC(int bytes);
 int RNZ(int bytes);

@@ -2165,6 +2165,22 @@ int RLC(int bytes)
     return 4;
 }
 
+int DSUB(int bytes)
+{
+    uint16_t HL = GetHLSigned();
+    uint16_t BC = GetBCSigned();
+
+    uint16_t result = HL - BC;
+
+    int8_t HIGH = (result >> 8) & 0xff;
+    int8_t LOW = result & 0xff;
+
+    CPU::cpu->H->SetSigned(HIGH);
+    CPU::cpu->L->SetSigned(LOW);
+
+    return 8;
+}
+
 int RM(int bytes)
 {
     if (!CPU::cpu->Flags->GetBit(SIGN_FLAG))
@@ -2961,7 +2977,7 @@ CPUInstruction CPUInstructions[] = {
     {0x5, "DCR", 1, DCRB},
     {0x6, "MVI", 2, MVIBData},
     {0x7, "RLC", 1, RLC},
-    {},
+    {0x8, "DSUB", 1, DSUB},
     {0x9, "DAD", 1, DADB},
     {0xa, "LDAX", 1, LDAXB},
     {0xb, "DCX", 1, DCXB},

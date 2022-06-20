@@ -147,8 +147,10 @@ namespace CodeEditor {
 		nfdresult_t result = NFD_OpenDialog("8085,asm", NULL, &outPath);
 		if (result == NFD_OKAY)
 		{
-			return TextEditorLoadFile(outPath);
+			bool ret = TextEditorLoadFile(outPath);
 			free(outPath);
+
+			return ret;
 		}
 		else if (result == NFD_CANCEL)
 		{
@@ -367,7 +369,7 @@ namespace CodeEditor {
 
 		ImGui::PushFont(_Font);
 
-		ImGui::Begin("Code Editor", 0, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_MenuBar);
+		ImGui::Begin("Code Editor", 0, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_HorizontalScrollbar);
 
 		if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_Equal, false))
 		{

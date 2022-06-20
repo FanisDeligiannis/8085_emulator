@@ -810,6 +810,13 @@ bool RLC(int bytes, SourceFile* source, uint8_t* _Memory)
     return true;
 }
 
+bool DSUB(int bytes, SourceFile* source, uint8_t* _Memory)
+{
+    _Memory[0] = 0x08;
+
+    return true;
+}
+
 bool RM(int bytes, SourceFile* source, uint8_t* _Memory)
 {
     _Memory[0] = 0xf8;
@@ -1038,7 +1045,7 @@ Instruction Instructions[] = {
     {0x5, "DCR", 1, DCR, "B"},
     {0x6, "MVI", 2, MVI, "B N"},
     {0x7, "RLC", 1, RLC, ""},
-    {},
+    {0x8, "DSUB", 1, DSUB, ""},
     {0x9, "DAD", 1, DAD, "B"},
     {0xa, "LDAX", 1, LDAX, "B"},
     {0xb, "DCX", 1, DCX, "B"},
