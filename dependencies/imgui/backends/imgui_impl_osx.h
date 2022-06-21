@@ -8,8 +8,7 @@
 //  [X] Platform: OSX clipboard is supported within core Dear ImGui (no specific code in this backend).
 //  [X] Platform: Gamepad support. Enabled with 'io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad'.
 //  [X] Platform: IME support.
-// Issues:
-//  [ ] Platform: Multi-viewport / platform windows.
+//  [X] Platform: Multi-viewport / platform windows.
 
 // You can use unmodified imgui_impl_* files in your project. See examples/ folder for examples of using this.
 // Prefer including the entire imgui/ repository into your project (either as a copy or as a submodule), and only build the backends you need.
@@ -24,4 +23,3 @@
 IMGUI_IMPL_API bool     ImGui_ImplOSX_Init(NSView* _Nonnull view);
 IMGUI_IMPL_API void     ImGui_ImplOSX_Shutdown();
 IMGUI_IMPL_API void     ImGui_ImplOSX_NewFrame(NSView* _Nullable view);
-IMGUI_IMPL_API bool     ImGui_ImplOSX_HandleEvent(NSEvent* _Nonnull event, NSView* _Nullable view);
