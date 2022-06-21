@@ -71,25 +71,16 @@ namespace Leds
 			ImU32 col = ImColor(ImVec4(1,0,0,1));
 			
 			//Draw green / red circles.
-			if (ledValues != nullptr)
+			
+			for (int i = 0; i < 8; i++)
 			{
-				for (int i = 0; i < 8; i++)
-				{
-					if ((*ledValues & (1 << i)) == 0)
-					{
-						draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(0, 255, 0, 255), 0);
-					}
-					else
-					{
-						draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(255, 0, 0, 255), 0);
-					}
-				}
-			}
-			else
-			{
-				for (int i = 0; i < 8; i++)
+				if (ledValues == nullptr || (*ledValues & (1 << i)) > 0)
 				{
 					draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(255, 0, 0, 255), 0);
+				}
+				else
+				{
+					draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(0, 255, 0, 255), 0);
 				}
 			}
 		}

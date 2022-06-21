@@ -9,7 +9,7 @@
 
 //The entire instruction set, used in assembling the binary from text.
 
-uint16_t FindLabel(std::string label, SourceFile* source)
+uint16_t FindLabel(const std::string& label, SourceFile* source)
 {
     //Loop all labels to find the address associated with it.
     //If not found, show an error.
@@ -44,9 +44,8 @@ uint8_t GetNextRegister(SourceFile* source, bool a, bool m)
         Error("Expected Register: " + str, source);
         return false;
     }
-    char R = str[0];
-
-    switch (R)
+    
+    switch (str[0])
     {
     case 'A':
         if (a)
@@ -73,7 +72,7 @@ uint8_t GetNextRegister(SourceFile* source, bool a, bool m)
             Error("Can't use register M for this operation", source);
         return 0;
     default:
-        Error("Unknown Register: " + R, source);
+        Error("Unknown Register: " + str.substr(0,1), source);
         return 0;
     }
 }
@@ -104,9 +103,8 @@ uint8_t GetNextDoubleRegister(SourceFile* source, bool h, bool sp, bool psw)
         Error("Expected Double Register: " + str, source);
         return false;
     }
-    char R = str[0];
-
-    switch (R)
+    
+    switch (str[0])
     {
     case 'B':
         return 0x00;
@@ -118,7 +116,7 @@ uint8_t GetNextDoubleRegister(SourceFile* source, bool h, bool sp, bool psw)
         else
             Error("Can't use double register H in this operation", source);
     default:
-        Error("Unknown Double Register: " + R, source);
+        Error("Unknown Double Register: " + str.substr(0,1), source);
         return 0;
     }
 }
@@ -700,7 +698,7 @@ bool MOV(int bytes, SourceFile* source, uint8_t* _Memory)
         }
         _Memory[0] = 0x70 + firstR;
     }
-    if (secondR == 6)
+    else if (secondR == 6)
     {
         _Memory[0] = 0x46 + (firstR * 0x08);
     }
@@ -876,9 +874,8 @@ bool RST(int bytes, SourceFile* source, uint8_t* _Memory)
         Error("Expected number between 0-7: " + str, source);
         return false;
     }
-    char R = str[0];
-
-    switch (R)
+    
+    switch (str[0])
     {
     case '0':
         _Memory[0] = 0xc7;
@@ -905,7 +902,7 @@ bool RST(int bytes, SourceFile* source, uint8_t* _Memory)
         _Memory[0] = 0xff;
         return true;
     default:
-        Error("Expected number (0-7): " + R, source);
+        Error("Expected number (0-7): " + str.substr(0,1), source);
         return 0;
     }
 

@@ -41,37 +41,7 @@ CPU::CPU(Memory* memory, IOchip* io, std::vector<int> &breakpoints, std::vector<
 }
 
 CPU::CPU(uint8_t* memory, size_t size, IOchip* io, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols)
-	: _Breakpoints(breakpoints), _Symbols(symbols)
-{
-	cpu = this;
-
-	_Running = true;
-	_Halted = false;
-	_HangingCycles = 0;
-	
-	_Memory = new Memory(memory, size);
-
-	_IOchip = io;
-
-	_Stack = new Stack(16);
-	_Stack->SetDataPointer(_Memory->GetData());
-
-	A = new Register8();
-	B = new Register8();
-	C = new Register8();
-	D = new Register8();
-	E = new Register8();
-	H = new Register8();
-	L = new Register8();
-
-	Flags = new Register8();
-
-	PC = new Register();
-	PC->Clear();
-	SP = new Register();
-
-	SP->SetRef(_Stack->GetSPPointer());
-}
+	: CPU(new Memory(memory, size), io, breakpoints, symbols) {}
 
 CPU::~CPU()
 {

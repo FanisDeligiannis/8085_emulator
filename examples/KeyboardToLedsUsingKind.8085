@@ -4,6 +4,8 @@
 LOOP:
 	CALL KIND ; Hangs until a button is pressed
 	
+	CMA
+	
 	OUT 30H ; Output it to LEDS
 	
 	JMP LOOP ; Loop forever

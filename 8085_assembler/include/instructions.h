@@ -18,7 +18,7 @@ struct Instruction
     char ARGS[16];
 } typedef Instruction;
 
-uint16_t FindLabel(std::string label, SourceFile* source);
+uint16_t FindLabel(const std::string& label, SourceFile* source);
 
 uint8_t GetNextRegister(SourceFile* source, bool a = true, bool m = true);
 

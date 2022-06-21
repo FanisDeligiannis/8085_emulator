@@ -143,6 +143,12 @@ bool isNumber(std::string str)
 {
 	if (str.size() == 0)
 		return false;
+
+	if (str[0] == '-')
+	{
+		str = str.substr(1, str.length() - 1);
+	}
+
 	if (str[str.size() - 1] == 'H')
 	{
 		if (str.size() == 1) return false;

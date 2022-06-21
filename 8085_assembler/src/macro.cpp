@@ -109,9 +109,7 @@ uint16_t Macro::Assemble(SourceFile* source, Assembler::Assembly& result, uint16
 
 	_IfBuffer.clear();
 
-	bool ended = false;
-
-	while (source->HasMore() && !ended)
+	while (source->HasMore())
 	{
 		std::string word = source->Next(true);
 
