@@ -16,7 +16,7 @@ private:
 
 	std::vector < std::pair<std::string, uint16_t> > labels;
 	std::vector<std::pair<uint16_t, int>> Symbols;
-	std::vector<IfBuffer> _IfBuffer;
+	std::vector<IfExpr> _IfBuffer;
 
 
 	int _StartLine = 0;

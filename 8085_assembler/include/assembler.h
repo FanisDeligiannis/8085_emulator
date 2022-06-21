@@ -5,7 +5,7 @@
 
 #include "source_file.h"
 
-struct IfBuffer
+struct IfExpr
 {
 	bool expression;
 	bool isElse;
@@ -23,7 +23,7 @@ namespace Assembler
 		std::vector < std::pair<std::string, uint16_t> > Labels;
 		std::vector<std::pair<int, std::string>> Errors;
 		std::vector<std::pair<uint16_t, int>> Symbols;
-		std::vector<IfBuffer> IfBuffer;
+		std::vector<IfExpr> IfBuffer;
 		std::vector<Macro*> Macros;
 	};
 
@@ -38,7 +38,7 @@ extern Assembler::Assembly* currentAssembler;
 void Error(std::string err, SourceFile* source); // Add error to error list. 
 void Error(std::string err, int line); // Add error to error list. 
 
-void ParseIfDirective(SourceFile* source, std::vector<IfBuffer> &_IfBuffer);
+void ParseIfDirective(SourceFile* source, std::vector<IfExpr> &_IfBuffer);
 
 bool isNumber(std::string str);
 uint8_t StringToUInt8(std::string str, SourceFile* source); // Converts string to uint8. Could be hex(ending in 'h'), binary(ending in 'b') or dec. 

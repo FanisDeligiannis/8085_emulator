@@ -21,11 +21,6 @@
 //We divide that in CLOCK_ACCURACY steps.
 //More explanation in .cpp file.
 
-// Probably should make them into variables and have options about them..
-
-#define CLOCK_SPEED 3200000 // Clock speed of 8085 is 3.2mhz
-#define CLOCK_ACCURACY 200 // The higher, the better the accuracy of the timing.
-
 class CPU
 {
 private:
@@ -75,13 +70,16 @@ public:
 	bool _IPINTR = false;
 	uint16_t INTR_ADDR = 0;
 
+	double _ClockCyclesPerLoop = 0;
+	long long _CurrentCycles = 0;
+
 public:
 
 	CPU(Memory* memory, IOchip* io, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>>& symbols);
 	CPU(uint8_t* memory, size_t size, IOchip* io, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols);
 	~CPU();
 
-	std::thread Run();
+	void SetClock(int clock_speed, int accuracy);
 
 	bool Interrupts();
 

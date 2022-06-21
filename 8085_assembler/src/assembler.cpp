@@ -31,7 +31,7 @@ void Error(std::string err, int line)
 	currentAssembler->Errors.push_back({ line, err });
 }
 
-void ParseIfDirective(SourceFile* source, std::vector<IfBuffer> &IfBuffer)
+void ParseIfDirective(SourceFile* source, std::vector<IfExpr> &IfBuffer)
 {
 	std::string word = source->GetLastWord();
 	int ifLine = source->GetLine();

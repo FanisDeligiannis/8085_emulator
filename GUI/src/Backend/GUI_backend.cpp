@@ -31,6 +31,8 @@ ImFont* _SevenSegmentFont;
 bool _Closed = false;
 bool _PreparingClose = false;
 
+int _TargetFPS = 10;
+
 void CloseApplication()
 {
     _Closed = true;
@@ -40,6 +42,17 @@ void CancelCloseApplication()
 {
     _Closed = false;
     _PreparingClose = false;
+}
+
+int GetFPS()
+{
+    return _TargetFPS;
+}
+
+void SetFPS(int fps)
+{
+    _TargetFPS = fps;
+    ConfigIni::SetInt("Backend", "FPS_limit", fps);
 }
 
 ImFont* LoadFont(int size)
@@ -180,6 +193,8 @@ int InitImGui()
 
     ConfigIni::Init();
 
+    _TargetFPS = ConfigIni::GetInt("Backend", "FPS_limit", 10);
+
     //Setup window
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
@@ -300,6 +315,12 @@ int InitImGui()
 
         ImGui::NewFrame();
 
+      /*  {
+            ImGui::Begin("Framerate");
+            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+            ImGui::End();
+        }*/
+
         //-------------
         ImGui::PushFont(_Font);
 
@@ -331,10 +352,11 @@ int InitImGui()
 
         glfwSwapBuffers(window);
 
-        while (glfwGetTime() < lasttime + 1.0 / 10) {
+        while (glfwGetTime() < lasttime + 1.0 / _TargetFPS) {
+            Application::Update();
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        lasttime += 1.0 / 10;
+        lasttime = glfwGetTime();
     }
 
     Application::Destroy();

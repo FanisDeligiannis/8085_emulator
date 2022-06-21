@@ -145,11 +145,13 @@ namespace Keyboard
 		}
 	}
 
+	void Update()
+	{
+		HandleRequest();
+	}
 
 	void Render()
 	{
-		HandleRequest();
-
 		if (!_Open)
 		{
 			Close();

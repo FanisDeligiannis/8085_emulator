@@ -39,7 +39,7 @@ namespace Beep8085
 		threadDone = true;
 	}
 
-	void Render()
+	void Update()
 	{
 		if (Simulation::GetRunning() && Duration != nullptr)
 		{

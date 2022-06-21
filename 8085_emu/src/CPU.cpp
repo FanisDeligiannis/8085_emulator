@@ -60,14 +60,9 @@ CPU::~CPU()
 	cpu = nullptr;
 }
 
-
-std::thread CPU::Run()
+void CPU::SetClock(int clock_speed, int accuracy)
 {
-	//Start a thread.
-	//Deprecated, not really used now.
-	std::thread f(&CPU::Loop, this);
-
-	return f;
+	_ClockCyclesPerLoop = ((double)clock_speed) / ((double)accuracy);
 }
 
 bool CPU::Interrupts()
@@ -133,10 +128,6 @@ bool CPU::Interrupts()
 
 	return false;
 }
-
-//Probably should not be static and decided upon compile. Maybe an option for slower computers?
-auto _ClockCyclesPerLoop = ((double)CLOCK_SPEED) / ((double)CLOCK_ACCURACY);
-long long _CurrentCycles = 0;
 
 //In my program, a Loop is something that happens as many times as "CLOCK_ACCURACY" describes per second.
 //"CLOCK" is something that happens as many times as "CLOCK_SPEED" says per second. _HangingCycles are clock cycles that are skipped.

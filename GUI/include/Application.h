@@ -9,7 +9,8 @@ namespace Application
 
 	void Init();
 	void ImGuiRender();
-	
+	void Update();
+
 	void SimulationStart();
 
 	void PreDestroy();

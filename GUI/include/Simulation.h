@@ -20,9 +20,12 @@ namespace Simulation {
 
 	extern Assembler::Assembly program;
 
-
 	void Assemble(std::string text);
 
+	void SetClock(int clock_speed, int accuracy);
+	int GetClock();
+	int GetAccuracy();
+	
 	void Run(bool stepping = false);
 	void Stop();
 	void Pause();

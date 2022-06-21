@@ -3,6 +3,7 @@
 #include <iostream>
 
 #include "Application.h"
+#include "ConfigIni.h"
 #include "Windows/CodeEditor.h"
 #include "Windows/RegistersWindow.h"
 
@@ -17,6 +18,9 @@ namespace Simulation {
 	bool Paused = false;
 	bool _ScheduledStep = false;
 	bool _Stepping = false;
+
+	int CPU_Speed;
+	int CPU_Accuracy;
 
 	void Assemble(std::string text)
 	{
@@ -62,6 +66,23 @@ namespace Simulation {
 		}
 	}
 
+	void SetClock(int clock_speed, int accuracy)
+	{
+		CPU_Speed = clock_speed;
+		CPU_Accuracy = accuracy;
+
+		ConfigIni::SetInt("Simulation", "CPU_Speed", clock_speed);
+		ConfigIni::SetInt("Simulation", "CPU_Accuracy", accuracy);
+
+		if (GetRunning() && cpu != nullptr)
+		{
+			cpu->SetClock(CPU_Speed, CPU_Accuracy);
+		}
+	}
+
+	int GetClock() { return CPU_Speed; }
+	int GetAccuracy() { return CPU_Accuracy; }
+
 	void Stop()
 	{
 		if (cpu != nullptr)
@@ -105,6 +126,8 @@ namespace Simulation {
 	void Init()
 	{
 		program.Memory = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
+		CPU_Speed = ConfigIni::GetInt("Simulation", "CPU_Speed", 3200000);
+		CPU_Accuracy = ConfigIni::GetInt("Simulation", "CPU_Accuracy", 500);
 	}
 
 	bool HasSymbols(Assembler::Assembly program, uint16_t addr)
@@ -129,6 +152,8 @@ namespace Simulation {
 
 		//Create CPU.
 		cpu = new CPU(program.Memory, 0xffff, _IOchip, CodeEditor::editor._Breakpoints, program.Symbols);
+
+		cpu->SetClock(CPU_Speed, CPU_Accuracy);
 
 		Application::SimulationStart();
 
@@ -183,7 +208,7 @@ namespace Simulation {
 						cpu->Step(program.Symbols);
 						_ScheduledStep = false;
 
-						_StartOfFrame += std::chrono::microseconds(1000000 / CLOCK_ACCURACY);
+						_StartOfFrame += std::chrono::microseconds(1000000 / CPU_Accuracy);
 						std::this_thread::sleep_until(_StartOfFrame);
 					}
 				}
@@ -210,7 +235,7 @@ namespace Simulation {
 
 			//Sleep until appropriate times has passed since START OF FRAME. 
 			//Not from now. This accounts for the time it takes for the clock/loop to run.
-			_StartOfFrame += std::chrono::microseconds(1000000 / CLOCK_ACCURACY);
+			_StartOfFrame += std::chrono::microseconds(1000000 / CPU_Accuracy);
 			std::this_thread::sleep_until(_StartOfFrame);
 		}
 		

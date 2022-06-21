@@ -7,8 +7,13 @@ extern int FontSize;
 
 extern ImFont* _SevenSegmentFont;
 
+extern int _TargetFPS;
+
 void CloseApplication();
 void CancelCloseApplication();
+
+int GetFPS();
+void SetFPS(int fps);
 
 ImFont* LoadFont(int size);
 
