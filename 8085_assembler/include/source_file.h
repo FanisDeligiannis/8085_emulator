@@ -114,6 +114,10 @@ public:
 
 			return ret;
 		}
+		else if (!_HasMore)
+		{
+			return "";
+		}
 		else
 		{
 			return NextInternal(_Source, ignore_newline_at_start);
@@ -267,12 +271,31 @@ private:
 
 		std::transform(word.begin(), word.end(), word.begin(), ::toupper); //Convert all letters to upper
 
+		bool found = false;
+
 		for (int i = _Equ.size()-1; i >= 0; i--) //If word is found in defines, replace it.
 		{
 			if (_Equ.at(i).first == word)
 			{
 				word = _Equ.at(i).second;
+				found = true;
 				break;
+			}
+		}
+
+		if (!found)
+		{
+			if (word[0] == '-')
+			{
+				for (int i = _Equ.size() - 1; i >= 0; i--) //If word is found in defines, replace it.
+				{
+					if (_Equ.at(i).first == word.substr(1, word.size()-1))
+					{
+						word = "-" + _Equ.at(i).second;
+						found = true;
+						break;
+					}
+				}
 			}
 		}
 

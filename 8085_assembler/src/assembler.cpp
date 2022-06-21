@@ -178,6 +178,11 @@ bool isNumber(std::string str)
 
 uint8_t StringToUInt8(std::string str, SourceFile* source)
 {
+	if (str.length() == 0)
+	{
+		return 0;
+	}
+
 	if (str[str.length() - 1] == 'H') // if it ends with H, treat it as HEX
 	{
 		std::string numStr = str.substr(0, str.length() - 1);
@@ -245,6 +250,11 @@ uint8_t StringToUInt8(std::string str, SourceFile* source)
 //Same exact thing, but with uint16_t number.
 uint16_t StringToUInt16(std::string str, SourceFile* source, bool noerrors, bool *NaN) 
 {
+	if (str.length() == 0)
+	{
+		return 0;
+	}
+
 	if (str[str.length() - 1] == 'H')
 	{
 		std::string numStr = str.substr(0, str.length() - 1);
