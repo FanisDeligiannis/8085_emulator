@@ -21,6 +21,7 @@
 //Include the .cpp files containing the info for our fonts.
 #include "../fonts/MonoLisa.cpp"
 #include "../fonts/SevenSegment.cpp"
+#include <thread>
 
 ImFont* _Font;
 int FontSize = 15;
@@ -273,6 +274,8 @@ int InitImGui()
     _Font = LoadFont(15);
     _SevenSegmentFont = io.Fonts->AddFontFromMemoryCompressedTTF(SevenSegment_compressed_data, SevenSegment_compressed_size, 50);
 
+    double lasttime = glfwGetTime();
+
     // Main loop
     while (!_Closed)
     {
@@ -327,6 +330,11 @@ int InitImGui()
         }
 
         glfwSwapBuffers(window);
+
+        while (glfwGetTime() < lasttime + 1.0 / 10) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        lasttime += 1.0 / 10;
     }
 
     Application::Destroy();
