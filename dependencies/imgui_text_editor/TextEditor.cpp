@@ -987,13 +987,15 @@ void TextEditor::Render()
 			ImGui::SetCursorScreenPos(lineStartScreenPos);
 
 			if (ImGui::InvisibleButton(buf, size, ImGuiButtonFlags_MouseButtonMask_))
-			{
+			{				
 				if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Space)))
 				{
 
 				}
 				else
 				{
+					_BreakpointsChanged = true;
+
 					bool found = false;
 					for (int i = 0; i < _Breakpoints.size(); i++)
 					{

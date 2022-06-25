@@ -61,11 +61,8 @@ CPU::CPU(Memory* memory, std::vector<int> &breakpoints, std::vector<std::pair<ui
 			_Symbols[symbols.at(i).second] = symbols.at(i).first;
 		}
 	}
-	else
-	{
-		exit(1); // TODO: BETTER ERROR HANDLING
-	}
 
+	UpdateBreakpoints();
 }
 
 CPU::CPU(uint8_t* memory, size_t size, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols)
@@ -199,21 +196,10 @@ void CPU::Clock()
 
 		uint16_t currentAddr = PC->Get();
 
-		for (int i = 0; i < _SymbolSize; i++)
+		for (int i = 0; i < _BreakpointsArrSize; i++) // Search the Breakpoint Array.
 		{
-			if (_Symbols[i] == currentAddr)
+			if (_BreakpointsArr[i] == currentAddr) // If the currentAddr is in there, break.
 			{
-				currentLine = i;
-				break;
-			}
-		}
-		
-		//Search the breakpoints to see if that line has a breakpoint set.
-		for (int i = 0; i < _Breakpoints.size(); i++)
-		{
-			if (_Breakpoints.at(i) == currentLine)
-			{
-				//If yes, halt the CPU and cancel the clock
 				_Halted = true;
 				alreadyHalted = true;
 				return;
@@ -274,6 +260,34 @@ void CPU::SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, ui
 		((parity != -1) ? (parity & 1) << 2 : Flags->GetBit(PARITY_FLAG)) |
 		((carry != -1) ? (carry & 1) << 0 : Flags->GetBit(CARRY_FLAG))
 	);
+}
+
+void CPU::UpdateBreakpoints()
+{
+	if (_BreakpointsArr == nullptr)
+	{
+		free(_BreakpointsArr);
+	}
+
+	_BreakpointsArr = (uint16_t*)calloc(_Breakpoints.size(), sizeof(uint16_t));
+	_BreakpointsArrSize = _Breakpoints.size();
+
+	if (_BreakpointsArr == nullptr)
+	{
+		//exit(1); //TODO: Better error handling
+		return;
+	}
+
+	for (int i = 0; i < _Breakpoints.size(); i++) // We convert from Breakpoint Line to Memory Address.
+	{
+		for (int j = 0; j < _SymbolSize; j++)
+		{
+			if (_Breakpoints.at(i) == j)
+			{
+				_BreakpointsArr[i] = _Symbols[j];
+			}
+		}
+	}
 }
 
 int CPU::GetInstructionBytes()

@@ -36,7 +36,9 @@ private:
 public:
 	static CPU* cpu;
 
-	std::vector<int> &_Breakpoints;
+	std::vector<int>& _Breakpoints;
+	uint16_t* _BreakpointsArr;
+	size_t _BreakpointsArrSize;
 	uint16_t* _Symbols;
 	size_t _SymbolSize;
 
@@ -92,6 +94,8 @@ public:
 	void Step(std::vector<std::pair<uint16_t, int>> Symbols);
 
 	void SetFlags(uint8_t sign, uint8_t zero, uint8_t aux_c, uint8_t parity, uint8_t carry);
+
+	void UpdateBreakpoints();
 
 	int GetInstructionBytes();
 

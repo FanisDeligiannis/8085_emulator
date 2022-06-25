@@ -23,6 +23,7 @@ public:
 	float startOfText = 0;
 
 	std::vector<int> _Breakpoints;
+	bool _BreakpointsChanged = false;
 
 	enum class PaletteIndex
 	{

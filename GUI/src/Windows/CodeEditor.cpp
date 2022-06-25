@@ -294,7 +294,13 @@ namespace CodeEditor {
 
 		if (Simulation::GetRunning())
 		{
-			editor.SetReadOnly(true);
+			editor.SetReadOnly(true);	
+
+			if (editor._BreakpointsChanged)
+			{
+				Simulation::cpu->UpdateBreakpoints();
+				editor._BreakpointsChanged = false;
+			}
 		}
 		else
 		{
