@@ -7,7 +7,7 @@
 #include "memory.h"
 #include "stack.h"
 #include "register.h"
-#include "IOchip.h"
+#include "IO.h"
 
 //Flag bits
 
@@ -32,6 +32,7 @@ private:
 	bool _Running;
 	bool _Halted;
 
+	std::vector<IO> IOInterface;
 public:
 	static CPU* cpu;
 
@@ -39,7 +40,6 @@ public:
 	std::vector<std::pair<uint16_t, int>> _Symbols;
 
 	Memory* _Memory;
-	IOchip* _IOchip;
 	Stack* _Stack;
 
 	Register8* A;
@@ -75,8 +75,8 @@ public:
 
 public:
 
-	CPU(Memory* memory, IOchip* io, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>>& symbols);
-	CPU(uint8_t* memory, size_t size, IOchip* io, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols);
+	CPU(Memory* memory, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>>& symbols);
+	CPU(uint8_t* memory, size_t size, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols);
 	~CPU();
 
 	void SetClock(int clock_speed, int accuracy);
@@ -118,10 +118,6 @@ public:
 		return _Memory;
 	}
 
-	inline IOchip* GetIO()
-	{
-		return _IOchip;
-	}
 
 	//Read memory at location pointed by H,L. Return unsigned.
 	inline uint8_t GetUnsignedM()
@@ -161,4 +157,11 @@ public:
 	{
 		return _Memory->GetDataAtAddr(PC->Get());
 	}
+
+	inline void AddIOInterface(uint16_t addr, void(*OUTPUT)(uint8_t out), uint8_t(*INPUT)())
+	{
+		IOInterface.push_back({ addr, OUTPUT, INPUT });
+	}
+
+	inline std::vector<IO> GetIOInterface() { return IOInterface; }
 };

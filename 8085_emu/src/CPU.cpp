@@ -7,7 +7,7 @@
 CPU* CPU::cpu;
 
 
-CPU::CPU(Memory* memory, IOchip* io, std::vector<int> &breakpoints, std::vector<std::pair<uint16_t, int>> &symbols)
+CPU::CPU(Memory* memory, std::vector<int> &breakpoints, std::vector<std::pair<uint16_t, int>> &symbols)
 	: _Breakpoints(breakpoints), _Symbols(symbols)
 {
 	cpu = this;
@@ -16,7 +16,6 @@ CPU::CPU(Memory* memory, IOchip* io, std::vector<int> &breakpoints, std::vector<
 	_Halted = false;
 	_HangingCycles = 0;
 	_Memory = memory;
-	_IOchip = io;
 
 	_Stack = new Stack(16);
 	_Stack->SetDataPointer(_Memory->GetData());
@@ -40,8 +39,8 @@ CPU::CPU(Memory* memory, IOchip* io, std::vector<int> &breakpoints, std::vector<
 	SP->SetRef(_Stack->GetSPPointer());
 }
 
-CPU::CPU(uint8_t* memory, size_t size, IOchip* io, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols)
-	: CPU(new Memory(memory, size), io, breakpoints, symbols) {}
+CPU::CPU(uint8_t* memory, size_t size, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols)
+	: CPU(new Memory(memory, size), breakpoints, symbols) {}
 
 CPU::~CPU()
 {

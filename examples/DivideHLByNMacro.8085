@@ -1,0 +1,63 @@
+DIVIDE MACRO n ; Devides double register HL with number n
+; Stores the result in B
+; And the remainder in HL
+
+	PUSH PSW
+	PUSH D
+	
+	PUSH H ; Because we will need to calculate n's two's complement, 
+	; our 16bit calculations will be done on HL
+	; And we don't want to lose the number
+	
+	MVI B, 00H
+	
+	; find TWOs complement of n
+	LXI H,n
+	MOV A,H
+	CMA ; CMA high
+	MOV H,A
+	MOV A,L
+	CMA ; CMA low
+	MOV L,A
+	
+	LXI D,01H ; ADD one to it
+	DAD D
+	
+	XCHG ; D now has n's two's complement.
+	
+	POP H
+	
+	LOOP:
+		INR B ; Increase our counter
+		DAD D ; Decrease our number
+		MOV A,H ; Is H < 0?
+		ANI FFH ; This simply updates the flags
+		JP LOOP ; If positive, keep looping
+
+
+	; We exit our loop when we go into negative numbers
+	; That means we looped one too many times
+	DCR B ; So we decrease B once
+	
+	LXI D,n ; And add n one more time to go back into positive
+	DAD D
+	
+	POP D
+	POP PSW
+ENDM
+
+
+; B = RESULT
+; HL = REMAINDER
+
+LXI H, 1000
+
+DIVIDE 10 
+
+HLT
+
+LXI H, 1000
+
+DIVIDE 101
+
+HLT

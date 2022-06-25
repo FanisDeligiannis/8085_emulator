@@ -65,21 +65,13 @@ namespace Switches
 	bool switch1;
 	bool switch0;
 
-	uint8_t* switches;
-
 	void SimulationStart()
 	{
-		switches = Simulation::cpu->GetIO()->GetDataAtAddrPointer(0x20);
+		Simulation::cpu->AddIOInterface(0x20, nullptr, []() -> uint8_t { return  (switch7 << 7) | (switch6 << 6) | (switch5 << 5) | (switch4 << 4) | (switch3 << 3) | (switch2 << 2) | (switch1 << 1) | (switch0 << 0); });
 	}
 
 	void Render()
 	{
-		if (switches != nullptr)
-		{
-			uint8_t val = (switch7 << 7) | (switch6 << 6) | (switch5 << 5) | (switch4 << 4) | (switch3 << 3) | (switch2 << 2) | (switch1 << 1) | (switch0 << 0);
-			*switches = val;
-		}
-
 		if(!_Open)
 		{
 			Close();

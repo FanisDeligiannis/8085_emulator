@@ -1051,9 +1051,22 @@ int HLT(int bytes)
 int INPortAddress(int bytes) // PORTS
 {
     uint8_t addr = CPU::cpu->NextPC();
-    CPU::cpu->_IOchip->WaitResponse(addr);
-    uint8_t val = CPU::cpu->_IOchip->GetDataAtAddr(addr);
-    CPU::cpu->A->SetUnsigned(val);
+
+    std::vector<IO> io = CPU::cpu->GetIOInterface();
+
+    for (int i = 0; i < io.size(); i++)
+    {
+        if (io.at(i).addr == addr)
+        {
+            if (io.at(i).INPUT != nullptr)
+            {
+                uint8_t val = io.at(i).INPUT();
+                CPU::cpu->A->SetUnsigned(val);
+            }
+
+            return 10;
+        }
+    }
 
     return 10;
 }
@@ -1980,8 +1993,21 @@ int ORIData(int bytes)
 int OUTPortAddress(int bytes) // PORT
 {
     uint8_t addr = CPU::cpu->NextPC();
-    CPU::cpu->_IOchip->SetDataAtAddr(addr, CPU::cpu->A->GetUnsigned());
-    CPU::cpu->_IOchip->WaitResponse(addr);
+    
+    std::vector<IO> io = CPU::cpu->GetIOInterface();
+
+    for (int i = 0; i < io.size(); i++)
+    {
+        if (io.at(i).addr == addr)
+        {
+            if (io.at(i).OUTPUT != nullptr)
+            {
+                io.at(i).OUTPUT(CPU::cpu->A->GetUnsigned());
+            }
+
+            return 10;
+        }
+    }
 
     return 10;
 }

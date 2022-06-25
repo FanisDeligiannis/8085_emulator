@@ -66,9 +66,116 @@ void RegistersWindow::Render()
 {
 	UpdateBuffers();	
 
+	ImGui::Begin("Registers Dec");
+	{
+		if (ImGui::BeginTable("RegistersDec", 8, ImGuiTableFlags_Borders))
+		{
+			ImGui::TableNextRow();
+
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("A");
+
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("B");
+
+			ImGui::TableSetColumnIndex(2);
+			ImGui::Text("C");
+
+			ImGui::TableSetColumnIndex(3);
+			ImGui::Text("D");
+
+			ImGui::TableSetColumnIndex(4);
+			ImGui::Text("E");
+
+			ImGui::TableSetColumnIndex(5);
+			ImGui::Text("H");
+
+			ImGui::TableSetColumnIndex(6);
+			ImGui::Text("L");
+
+			ImGui::TableSetColumnIndex(7);
+			ImGui::Text("M");
+
+			ImGui::TableNextRow();
+
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("%03hhu", A);
+
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%03hhu", B);
+
+			ImGui::TableSetColumnIndex(2);
+			ImGui::Text("%03hhu", C);
+
+			ImGui::TableSetColumnIndex(3);
+			ImGui::Text("%03hhu", D);
+
+			ImGui::TableSetColumnIndex(4);
+			ImGui::Text("%03hhu", E);
+
+			ImGui::TableSetColumnIndex(5);
+			ImGui::Text("%03hhu", H);
+
+			ImGui::TableSetColumnIndex(6);
+			ImGui::Text("%03hhu", L);
+
+			ImGui::TableSetColumnIndex(7);
+			ImGui::Text("%03hhu", M);
+
+			ImGui::EndTable();
+		}
+
+		if (ImGui::BeginTable("Flags-PC-SPDec", 6, ImGuiTableFlags_Borders | ImGuiTableColumnFlags_WidthStretch))
+		{
+			ImGui::TableNextRow();
+
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("S");
+
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("Z");
+
+			ImGui::TableSetColumnIndex(2);
+			ImGui::Text("P");
+
+			ImGui::TableSetColumnIndex(3);
+			ImGui::Text("Cy");
+
+			ImGui::TableSetColumnIndex(4);
+			ImGui::Text("PC");
+
+			ImGui::TableSetColumnIndex(5);
+			ImGui::Text("SP");
+
+			ImGui::TableNextRow();
+
+			ImGui::TableSetColumnIndex(0);
+			ImGui::Text("%hhu", Sign_flag);
+
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%hhu", Zero_flag);
+
+			ImGui::TableSetColumnIndex(2);
+			ImGui::Text("%hhu", Parity_flag);
+
+			ImGui::TableSetColumnIndex(3);
+			ImGui::Text("%hhu", Carry_flag);
+
+			ImGui::TableSetColumnIndex(4);
+			ImGui::Text("%04X", PC);
+
+			ImGui::TableSetColumnIndex(5);
+			ImGui::Text("%04X", SP);
+
+			ImGui::EndTable();
+		}
+	}
+	ImGui::End();
+
+
 	ImGui::Begin("Registers");
 	{
-		if (ImGui::BeginTable("Registers", 8, ImGuiTableFlags_Borders))
+		if (ImGui::BeginTable("RegistersHex", 8, ImGuiTableFlags_Borders))
 		{
 			ImGui::TableNextRow();
 
@@ -125,7 +232,7 @@ void RegistersWindow::Render()
 			ImGui::EndTable();
 		}
 
-		if (ImGui::BeginTable("Flags-PC-SP", 6, ImGuiTableFlags_Borders))
+		if (ImGui::BeginTable("Flags-PC-SPHex", 6, ImGuiTableFlags_Borders))
 		{
 			ImGui::TableNextRow();
 

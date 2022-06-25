@@ -89,8 +89,8 @@ namespace Application
 
 			if (ImGui::BeginMenu("Options"))
 			{
-				ImGui::MenuItem("Only affects the windows.", 0, false, false);
-				ImGui::MenuItem("How often the Registers", 0, false, false);
+				ImGui::MenuItem("Only affects the UI. For example,", 0, false, false);
+				ImGui::MenuItem("how often the Registers", 0, false, false);
 				ImGui::MenuItem("Window updates values etc.", 0, false, false);
 				if (ImGui::DragInt("FPS", &_TargetFPS, 1, 5, 60))
 				{

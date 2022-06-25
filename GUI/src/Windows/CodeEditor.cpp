@@ -181,6 +181,7 @@ namespace CodeEditor {
 
 			std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
 			editor.SetText(str);
+			editor.SetSelection({ 0,0 }, { 0,0 });
 			FilePath = path;
 			StuffToSave = false;
 			FileLoaded = true;
@@ -594,6 +595,7 @@ namespace CodeEditor {
 				else if (NewFilePath == ".")
 				{
 					editor.SetText("");
+					editor.SetSelection({ 0,0 }, { 0,0 });
 					FilePath = "";
 					FileLoaded = true;
 				}

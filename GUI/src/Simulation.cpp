@@ -11,8 +11,6 @@ namespace Simulation {
 	CPU* cpu;
 	std::thread t;
 
-	IOchip* _IOchip = nullptr;
-
 	Assembler::Assembly program;
 
 	bool Paused = false;
@@ -89,7 +87,6 @@ namespace Simulation {
 		{
 			cpu->SetRunning(false);
 			cpu->SetHalted(false);
-			_IOchip->StopWaiting();
 			Paused = false;
 			_Stepping = false;
 		}
@@ -145,13 +142,8 @@ namespace Simulation {
 
 	void thread()
 	{
-		if (_IOchip == nullptr)
-		{
-			_IOchip = new IOchip();
-		}
-
 		//Create CPU.
-		cpu = new CPU(program.Memory, 0xffff, _IOchip, CodeEditor::editor._Breakpoints, program.Symbols);
+		cpu = new CPU(program.Memory, 0xffff, CodeEditor::editor._Breakpoints, program.Symbols);
 
 		cpu->SetClock(CPU_Speed, CPU_Accuracy);
 

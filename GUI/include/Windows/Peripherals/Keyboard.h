@@ -6,9 +6,8 @@
 
 namespace Keyboard
 {
-	uint8_t* Scan;
-	uint8_t* Out;
-
+	uint8_t Scan;
+	
 	int8_t lastButton = -1;
 
 	bool _Open = true;
@@ -18,6 +17,7 @@ namespace Keyboard
 	{
 		_Open = ConfigIni::GetInt("Keyboard", "Open", 1);
 		_Saved = _Open;
+		Scan = 0x7f;
 	}
 
 	void Open()
@@ -37,117 +37,121 @@ namespace Keyboard
 	}
 
 
-	void SimulationStart()
+	void SetScanLine(uint8_t val)
 	{
-		Scan = Simulation::_IOchip->GetDataAtAddrPointer(0x28);
-		Out = Simulation::_IOchip->GetDataAtAddrPointer(0x18);
-
-		*Scan = 0x7f;
-		*Out = 0xff;
-		lastButton = -1;
-
-		Simulation::_IOchip->ShouldWaitResponse(0x18, true);
-		Simulation::_IOchip->DoneResponse(0x18, false);
+		Scan = val;
 	}
 
-	void HandleRequest()
+	uint8_t GetKeys()
 	{
-		if (Scan != nullptr)
+		uint8_t out;
+		if (Scan != 0x7f)
 		{
-			if (*Scan != 0x7f)
+			out = 0xff;
+
+			if (!(Scan & 0b00000001))
 			{
-				*Out = 0xff;
-
-				if (!(*Scan & 0b00000001))
+				if (lastButton == 0)
 				{
-					if (lastButton == 0)
-					{
-						*Out = 0b11111110;
-					}
-					else if (lastButton == 1)
-					{
-						*Out = 0b11111101;
-					}
-					else if (lastButton == 2)
-					{
-						*Out = 0b11111011;
-					}
-					else if (lastButton == 3)
-					{
-						*Out = 0b11110111;
-					}
+					out = 0b11111110;
 				}
-				else if (!(*Scan & 0b00000010))
+				else if (lastButton == 1)
 				{
-					if (lastButton == 4)
-					{
-						*Out = 0b11111110;
-					}
-					else if (lastButton == 5)
-					{
-						*Out = 0b11111101;
-					}
-					else if (lastButton == 6)
-					{
-						*Out = 0b11111011;
-					}
-					else if (lastButton == 7)
-					{
-						*Out = 0b11110111;
-					}
+					out = 0b11111101;
 				}
-				else if (!(*Scan & 0b00000100))
+				else if (lastButton == 2)
 				{
-					if (lastButton == 8)
-					{
-						*Out = 0b11111110;
-					}
-					else if (lastButton == 9)
-					{
-						*Out = 0b11111101;
-					}
-					else if (lastButton == 10)
-					{
-						*Out = 0b11111011;
-					}
-					else if (lastButton == 11)
-					{
-						*Out = 0b11110111;
-					}
+					out = 0b11111011;
 				}
-
-				else if (!(*Scan & 0b00001000))
+				else if (lastButton == 3)
 				{
-					if (lastButton == 12)
-					{
-						*Out = 0b11111110;
-					}
-					else if (lastButton == 13)
-					{
-						*Out = 0b11111101;
-					}
-					else if (lastButton == 14)
-					{
-						*Out = 0b11111011;
-					}
-					else if (lastButton == 15)
-					{
-						*Out = 0b11110111;
-					}
+					out = 0b11110111;
 				}
-
-				if (*Out != 0xff)
-					lastButton = -1;
-				*Scan = 0x7f;
-
-				Simulation::_IOchip->DoneResponse(0x18);
 			}
+			else if (!(Scan & 0b00000010))
+			{
+				if (lastButton == 4)
+				{
+					out = 0b11111110;
+				}
+				else if (lastButton == 5)
+				{
+					out = 0b11111101;
+				}
+				else if (lastButton == 6)
+				{
+					out = 0b11111011;
+				}
+				else if (lastButton == 7)
+				{
+					out = 0b11110111;
+				}
+			}
+			else if (!(Scan & 0b00000100))
+			{
+				if (lastButton == 8)
+				{
+					out = 0b11111110;
+				}
+				else if (lastButton == 9)
+				{
+					out = 0b11111101;
+				}
+				else if (lastButton == 10)
+				{
+					out = 0b11111011;
+				}
+				else if (lastButton == 11)
+				{
+					out = 0b11110111;
+				}
+			}
+
+			else if (!(Scan & 0b00001000))
+			{
+				if (lastButton == 12)
+				{
+					out = 0b11111110;
+				}
+				else if (lastButton == 13)
+				{
+					out = 0b11111101;
+				}
+				else if (lastButton == 14)
+				{
+					out = 0b11111011;
+				}
+				else if (lastButton == 15)
+				{
+					out = 0b11110111;
+				}
+			}
+
+			if (out != 0xff)
+				lastButton = -1;
+			Scan = 0x7f;
+
+			return out;
 		}
+
+		return 0xff;
+	}
+
+	void SimulationStart()
+	{
+		/*Scan = Simulation::_IOchip->GetDataAtAddrPointer(0x28);
+		Out = Simulation::_IOchip->GetDataAtAddrPointer(0x18);*/
+
+		Scan = 0x7f;
+		lastButton = -1;
+		
+		Simulation::cpu->AddIOInterface(0x28, SetScanLine, nullptr);
+		Simulation::cpu->AddIOInterface(0x18, nullptr, GetKeys);
 	}
 
 	void Update()
 	{
-		HandleRequest();
+
 	}
 
 	void Render()

@@ -77,26 +77,21 @@ Pos=0,21
 Size=1920,953
 Collapsed=0
 
-[Window][Debug##Default]
-Pos=577,201
-Size=481,363
-Collapsed=0
-
 [Window][Controls]
-Pos=882,21
-Size=311,179
+Pos=891,21
+Size=302,179
 Collapsed=0
 DockId=0x00000009,0
 
 [Window][Registers]
-Pos=882,218
-Size=311,133
+Pos=891,218
+Size=302,133
 Collapsed=0
 DockId=0x0000000F,0
 
 [Window][Code Editor]
 Pos=0,21
-Size=880,953
+Size=889,953
 Collapsed=0
 DockId=0x00000003,0
 
@@ -106,39 +101,35 @@ Size=725,953
 Collapsed=0
 DockId=0x00000002,0
 
-[Window][Dear ImGui Demo]
-Pos=650,20
-Size=550,680
-Collapsed=0
-
-[Window][Example: Custom rendering]
-Pos=615,115
-Size=485,438
-Collapsed=0
-
 [Window][LEDs]
-Pos=882,353
-Size=311,114
+Pos=891,353
+Size=302,114
 Collapsed=0
 DockId=0x0000000C,0
 
 [Window][Switches]
-Pos=882,469
-Size=311,113
+Pos=891,469
+Size=302,113
 Collapsed=0
 DockId=0x0000000D,0
 
 [Window][7 Segment Display]
-Pos=882,584
-Size=311,123
+Pos=891,584
+Size=302,123
 Collapsed=0
 DockId=0x00000005,0
 
 [Window][Keyboard]
-Pos=882,709
-Size=311,265
+Pos=891,709
+Size=302,265
 Collapsed=0
 DockId=0x0000000B,0
+
+[Window][Registers Dec]
+Pos=891,218
+Size=302,133
+Collapsed=0
+DockId=0x0000000F,1
 
 [Table][0xA1CC17D3,4]
 Column 0  Weight=1.0000
@@ -150,15 +141,18 @@ Column 3  Weight=1.0000
 Column 0  Weight=1.0000
 Column 1  Weight=1.0000
 
+[Table][0x7AB1C8F4,6]
+Column 0  Sort=0v
+
 [Docking][Data]
 DockSpace           ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,55 Size=1920,953 Split=X
   DockNode          ID=0x00000001 Parent=0x8B93E3BD SizeRef=1193,720 Split=X Selected=0x529688BB
-    DockNode        ID=0x00000003 Parent=0x00000001 SizeRef=880,974 CentralNode=1 Selected=0x529688BB
-    DockNode        ID=0x00000004 Parent=0x00000001 SizeRef=311,974 Split=Y Selected=0xEAEE9E08
+    DockNode        ID=0x00000003 Parent=0x00000001 SizeRef=889,974 CentralNode=1 Selected=0x529688BB
+    DockNode        ID=0x00000004 Parent=0x00000001 SizeRef=302,974 Split=Y Selected=0xEAEE9E08
       DockNode      ID=0x00000007 Parent=0x00000004 SizeRef=303,573 Split=Y Selected=0xEAEE9E08
         DockNode    ID=0x00000006 Parent=0x00000007 SizeRef=305,337 Split=Y Selected=0x67284010
-          DockNode  ID=0x00000009 Parent=0x00000006 SizeRef=311,199 Selected=0x67284010
-          DockNode  ID=0x0000000F Parent=0x00000006 SizeRef=311,136 Selected=0xEAEE9E08
+          DockNode  ID=0x00000009 Parent=0x00000006 SizeRef=311,195 Selected=0x67284010
+          DockNode  ID=0x0000000F Parent=0x00000006 SizeRef=311,133 Selected=0xEAEE9E08
         DockNode    ID=0x0000000A Parent=0x00000007 SizeRef=305,234 Split=Y Selected=0x8F1A5834
           DockNode  ID=0x0000000C Parent=0x0000000A SizeRef=305,116 Selected=0x8F1A5834
           DockNode  ID=0x0000000D Parent=0x0000000A SizeRef=305,116 Selected=0xCF60CDE8
@@ -193,7 +187,7 @@ int InitImGui()
 
     ConfigIni::Init();
 
-    _TargetFPS = ConfigIni::GetInt("Backend", "FPS_limit", 10);
+    _TargetFPS = ConfigIni::GetInt("Backend", "FPS_limit", 30);
 
     //Setup window
     glfwSetErrorCallback(glfw_error_callback);

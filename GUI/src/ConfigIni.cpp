@@ -37,6 +37,7 @@ namespace ConfigIni
 		}
 		else
 		{
+			SetInt(section, key, defaultVal);
 			return defaultVal;
 		}
 	}
@@ -50,6 +51,7 @@ namespace ConfigIni
 		}
 		else
 		{
+			SetString(section, key, defaultVal);
 			return defaultVal;
 		}
 	}

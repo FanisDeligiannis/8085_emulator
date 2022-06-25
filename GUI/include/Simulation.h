@@ -16,8 +16,6 @@ namespace Simulation {
 	extern bool Paused;
 	extern bool _Stepping;
 
-	extern IOchip* _IOchip;
-
 	extern Assembler::Assembly program;
 
 	void Assemble(std::string text);

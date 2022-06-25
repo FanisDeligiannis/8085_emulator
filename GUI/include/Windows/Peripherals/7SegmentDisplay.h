@@ -8,6 +8,9 @@
 
 namespace SegmentDisplay
 {
+	char chars[6];
+	int show = 0;
+	
 	bool _Open = true;
 	bool _Saved = true;
 
@@ -43,19 +46,52 @@ namespace SegmentDisplay
 		return false;
 	}
 
-	uint8_t* chars;
+
+	void Char1(uint8_t val)
+	{
+		chars[0] = val;
+	}
+	void Char2(uint8_t val)
+	{
+		chars[1] = val;
+	}
+	void Char3(uint8_t val)
+	{
+		chars[2] = val;
+	}
+	void Char4(uint8_t val)
+	{
+		chars[3] = val;
+	}
+	void Char5(uint8_t val)
+	{
+		chars[4] = val;
+	}
+	void Char6(uint8_t val)
+	{
+		chars[5] = val;
+	}
+	void Show(uint8_t val)
+	{
+		show = val;
+	}
 
 	void SimulationStart()
 	{
-		chars = Simulation::cpu->GetIO()->GetDataAtAddrPointer(0x50);
+		Simulation::cpu->AddIOInterface(0x50, Char1, nullptr);
+		Simulation::cpu->AddIOInterface(0x51, Char2, nullptr);
+		Simulation::cpu->AddIOInterface(0x52, Char3, nullptr);
+		Simulation::cpu->AddIOInterface(0x53, Char4, nullptr);
+		Simulation::cpu->AddIOInterface(0x54, Char5, nullptr);
+		Simulation::cpu->AddIOInterface(0x55, Char6, nullptr);
+		Simulation::cpu->AddIOInterface(0x56, Show, nullptr);
 
-		chars[0] = 0;
-		chars[1] = 0;
-		chars[2] = 0;
-		chars[3] = 0;
-		chars[4] = 0;
-		chars[5] = 0;
-		chars[6] = 0;
+		chars[0] = '\0';
+		chars[1] = '\0';
+		chars[2] = '\0';
+		chars[3] = '\0';
+		chars[4] = '\0';
+		chars[5] = '\0';
 	}
 
 	void Render()
@@ -103,7 +139,7 @@ namespace SegmentDisplay
 
 			if (chars != nullptr)
 			{
-				if (chars[6] > 0)
+				if (show > 0)
 				{
 					ImGui::PushFont(_SevenSegmentFont);
 
@@ -124,7 +160,7 @@ namespace SegmentDisplay
 						}
 					}
 
-					chars[6]--;
+					show--;
 
 					ImGui::PopFont();
 				}
