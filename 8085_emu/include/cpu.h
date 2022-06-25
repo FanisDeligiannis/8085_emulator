@@ -37,7 +37,9 @@ public:
 	static CPU* cpu;
 
 	std::vector<int> &_Breakpoints;
-	std::vector<std::pair<uint16_t, int>> _Symbols;
+	uint16_t* _Symbols;
+	size_t _SymbolSize;
+
 
 	Memory* _Memory;
 	Stack* _Stack;

@@ -8,7 +8,7 @@ CPU* CPU::cpu;
 
 
 CPU::CPU(Memory* memory, std::vector<int> &breakpoints, std::vector<std::pair<uint16_t, int>> &symbols)
-	: _Breakpoints(breakpoints), _Symbols(symbols)
+	: _Breakpoints(breakpoints)
 {
 	cpu = this;
 
@@ -37,6 +37,35 @@ CPU::CPU(Memory* memory, std::vector<int> &breakpoints, std::vector<std::pair<ui
 
 	//SP is literally a pointer to the address of the stack.
 	SP->SetRef(_Stack->GetSPPointer());
+
+	//The following code is done because it's much faster to use a pointer array than a vector
+	//TODO: Find a way to do the same with Breakpoints (but must be updated in real time, unlike symbols).
+
+	int maxLine = 0;
+
+	for (int i = 0; i < symbols.size(); i++)
+	{
+		if (symbols.at(i).second > maxLine)
+		{
+			maxLine = symbols.at(i).second;
+		}
+	}
+
+	_Symbols = (uint16_t*)calloc(maxLine + 1, sizeof(uint16_t));
+	if (_Symbols != nullptr)
+	{
+		_SymbolSize = maxLine + 1;
+
+		for (int i = 0; i < symbols.size(); i++)
+		{
+			_Symbols[symbols.at(i).second] = symbols.at(i).first;
+		}
+	}
+	else
+	{
+		exit(1); // TODO: BETTER ERROR HANDLING
+	}
+
 }
 
 CPU::CPU(uint8_t* memory, size_t size, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols)
@@ -55,6 +84,8 @@ CPU::~CPU()
 	delete SP;
 	delete _Stack;
 	delete _Memory;
+
+	free(_Symbols);
 
 	cpu = nullptr;
 }
@@ -166,11 +197,14 @@ void CPU::Clock()
 	{
 		int currentLine = 0; //Search for the line that corresponds to the current opcode
 
-		for (int i = 0; i < _Symbols.size(); i++)
+		uint16_t currentAddr = PC->Get();
+
+		for (int i = 0; i < _SymbolSize; i++)
 		{
-			if (_Symbols.at(i).first == PC->Get())
+			if (_Symbols[i] == currentAddr)
 			{
-				currentLine = _Symbols.at(i).second;
+				currentLine = i;
+				break;
 			}
 		}
 		
