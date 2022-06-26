@@ -39,8 +39,6 @@ CPU::CPU(Memory* memory, std::vector<int> &breakpoints, std::vector<std::pair<ui
 	SP->SetRef(_Stack->GetSPPointer());
 
 	//The following code is done because it's much faster to use a pointer array than a vector
-	//TODO: Find a way to do the same with Breakpoints (but must be updated in real time, unlike symbols).
-
 	int maxLine = 0;
 
 	for (int i = 0; i < symbols.size(); i++)
@@ -61,7 +59,7 @@ CPU::CPU(Memory* memory, std::vector<int> &breakpoints, std::vector<std::pair<ui
 			_Symbols[symbols.at(i).second] = symbols.at(i).first;
 		}
 	}
-
+	//Same with breakpoints
 	UpdateBreakpoints();
 }
 
@@ -96,37 +94,17 @@ bool CPU::Interrupts()
 {
 	//TODO: SHOULD INTERRUPTS BE DISABLED DURING OTHER INTERRUPT HANDLING?
 
+	if (!_InterruptsEnabled)
+	{
+		return false;
+	}
 
 	//M = mask
 	//IP = Interrupt Pending
 
 	//If interrupts enabled, and if it's NOT masked, and if it's pending . . .
 
-	if (_InterruptsEnabled && !_M55 && _IP55) // Interrupt 5.5
-	{
-		_IP55 = false;
-
-		CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
-		CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
-
-		CPU::cpu->PC->Set(0x002C);
-		
-		return true;
-	}
-
-	if (_InterruptsEnabled && !_M65 && _IP65) // Interrupt 6.5
-	{
-		_IP65 = false;
-
-		CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
-		CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
-
-		CPU::cpu->PC->Set(0x0034);
-
-		return true;
-	}
-
-	if (_InterruptsEnabled && !_M75 && _IP75) // Interrupt 7.5
+	if (!_M75 && _IP75) // Interrupt 7.5, highest priority
 	{
 		_IP75 = false;
 
@@ -135,10 +113,41 @@ bool CPU::Interrupts()
 
 		CPU::cpu->PC->Set(0x003C);
 
+		_InterruptsEnabled = false;
+
+		return true;
+	}
+	
+	if (!_M65 && _IP65) // Interrupt 6.5
+	{
+		_IP65 = false;
+
+		CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
+		CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
+
+		CPU::cpu->PC->Set(0x0034);
+		
+		_InterruptsEnabled = false;
+
 		return true;
 	}
 
-	if (_InterruptsEnabled && _IPINTR)
+	if (!_M55 && _IP55) // Interrupt 5.5
+	{
+		_IP55 = false;
+
+		CPU::cpu->_Stack->Push(CPU::cpu->PC->GetHigh());
+		CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
+
+		CPU::cpu->PC->Set(0x002C);
+
+		_InterruptsEnabled = false;
+
+		return true;
+	}
+
+
+	if (_IPINTR) // Interrupt INTR, lowest priority
 	{
 		if (INTR_ADDR != 0)
 		{
@@ -148,6 +157,8 @@ bool CPU::Interrupts()
 			CPU::cpu->_Stack->Push(CPU::cpu->PC->GetLow());
 
 			CPU::cpu->PC->Set(INTR_ADDR+1);
+
+			_InterruptsEnabled = false;
 
 			return true;
 		}

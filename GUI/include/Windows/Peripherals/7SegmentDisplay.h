@@ -126,7 +126,7 @@ namespace SegmentDisplay
 					if (chars != nullptr)
 					{
 						if (ImGui::MenuItem(" ", 0, false, false)) {}
-						chars[6] = 2;
+						show = 2;
 					}
 					else
 					{

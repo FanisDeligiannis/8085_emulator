@@ -353,8 +353,7 @@ uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning)
 		result.Memory = (uint8_t*)calloc(0xffff + 1, sizeof(uint8_t));
 
 		//If we failed to allocate memory.
-		//Probably should throw error instead of crashing...
-		//TODO
+		//TODO Probably should throw error instead of crashing...
 		if (result.Memory == nullptr)
 		{
 			perror("Unable to allocate memory");

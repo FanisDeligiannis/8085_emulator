@@ -153,7 +153,7 @@ namespace Simulation {
 
 		//----- Set the INTR_ADDR to the address of the label "INTR_ROUTINE"
 		//maybe find a better way?
-		auto labels = program.Labels;
+		auto &labels = program.Labels;
 
 		for (int i = 0; i < labels.size(); i++)
 		{
