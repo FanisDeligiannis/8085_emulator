@@ -44,4 +44,4 @@ bool isNumber(std::string str);
 uint8_t StringToUInt8(std::string str, SourceFile* source); // Converts string to uint8. Could be hex(ending in 'h'), binary(ending in 'b') or dec. 
 uint16_t StringToUInt16(std::string str, SourceFile* source, bool noerrors = false, bool *NaN = nullptr); // Same but for uint16_t
 
-uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning = false); // Parses the file, returing a dump of the assembled memory or simply scans the file, parsing but only saving labels/EQU/MACRO
+uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning = false, bool bootloader = false); // Parses the file, returing a dump of the assembled memory or simply scans the file, parsing but only saving labels/EQU/MACRO

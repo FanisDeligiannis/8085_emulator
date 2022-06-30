@@ -20,7 +20,7 @@ Macro::Macro(std::string name, SourceFile* source)
 	std::string r = source->GetLastWord();
 	if (r == "ENDM")
 	{
-		_Source = new SourceFile("", "");
+		_Source = new SourceFile("");
 		return;
 	}
 
@@ -29,12 +29,12 @@ Macro::Macro(std::string name, SourceFile* source)
 
 	if (source->GetLastWord() != "ENDM")
 	{
-		_Source = new SourceFile("", "");
+		_Source = new SourceFile("");
 		Error("Expected ENDM to end the MACRO.", source);
 		return;
 	}
 
-	_Source = new SourceFile("", r);
+	_Source = new SourceFile(r);
 }
 
 uint16_t Macro::Parse(SourceFile* source, uint16_t currentAddr, Assembler::Assembly& result, bool scanning)
@@ -139,8 +139,8 @@ uint16_t Macro::Assemble(SourceFile* source, Assembler::Assembly& result, uint16
 				found = true;
 				if (!scanning)
 				{
-					if (source->IsBootloaderDone())
-						Symbols.push_back({ currentAddr, source->GetLine() }); //So we know which instruction corresponds to which line
+					Symbols.push_back({ currentAddr, source->GetLine() }); //So we know which instruction corresponds to which line
+					
 					if(result.Memory != nullptr)
 						bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, result.Memory + currentAddr); // Not really using ret. . .
 				}

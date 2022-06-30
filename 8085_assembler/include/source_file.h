@@ -10,12 +10,9 @@
 class SourceFile
 {
 private:
-	std::string _Bootloader; // Our bootloader
 	std::string _Source; // Our program
 	std::string _LastWord; // Last word we read.
 	int _Cursor = 0; // Current cursor in the text.
-
-	bool _BootloaderDone = false; 
 
 	bool _HasMore = true; // Is there more text?
 
@@ -29,11 +26,10 @@ public:
 	std::vector < std::pair<std::string, std::string> > _Equ; // A list of all "EQU" defines of our program.
 
 public:
-	SourceFile(std::string bootloader, std::string source)
-		: _Bootloader(bootloader), _Source(source), _LastWord("") 
+	SourceFile(std::string source)
+		: _Source(source), _LastWord("") 
 	{
-		if (_Bootloader == "")
-			_BootloaderDone = true;
+	
 	}
 
 	inline bool HasMore()
@@ -70,16 +66,6 @@ public:
 		_PrevCharCount = 1;
 	}
 
-	inline void ResetBootloader()
-	{
-		_BootloaderDone = false;
-	}
-
-	inline bool IsBootloaderDone()
-	{
-		return _BootloaderDone;
-	}
-
 	inline void SetFileCursor(int cursor)
 	{
 		_Cursor = cursor;
@@ -87,41 +73,14 @@ public:
 
 	inline std::string NextNoCursor(bool ignore_newline_at_start = false)
 	{
-		if (!_BootloaderDone) //We start reading from bootloader.
-		{
-			return NextInternal(_Bootloader, ignore_newline_at_start, true);
-		}
-		else //If we have nothing else to read on bootloader, we read from user's file.
-		{
-			return NextInternal(_Source, ignore_newline_at_start, true);
-		}
+		return NextInternal(_Source, ignore_newline_at_start, true);
 	}
 
 
 	inline std::string Next(bool ignore_newline_at_start = false)
 	{
-		if (!_BootloaderDone)
-		{
-			std::string ret = NextInternal(_Bootloader, ignore_newline_at_start);
-
-			if (!_HasMore) //Means bootloader is done. Reset pointers to start, but not bootloader.
-			{
-				_HasMore = true;
-				_BootloaderDone = true;
-
-				ResetFile();
-			}
-
-			return ret;
-		}
-		else if (!_HasMore)
-		{
-			return "";
-		}
-		else
-		{
-			return NextInternal(_Source, ignore_newline_at_start);
-		}
+		
+		return NextInternal(_Source, ignore_newline_at_start);
 	}
 
 	inline std::string ReadRawUntil(std::string until, std::string until2 = "-_-=+=!2")

@@ -5,6 +5,7 @@
 #include <bitset>
 
 #include "cpu.h"
+#include "IO_cb.h"
 
 //Set sign, zero and parity flag, depending on a certain number.
 //Not enough info to know aux_c and carry.
@@ -1052,7 +1053,7 @@ int INPortAddress(int bytes) // PORTS
 {
     uint8_t addr = CPU::cpu->NextPC();
 
-    std::vector<IO> io = CPU::cpu->GetIOInterface();
+    std::vector<IOCallback> io = CPU::cpu->GetIOInterface();
 
     for (int i = 0; i < io.size(); i++)
     {
@@ -1994,7 +1995,7 @@ int OUTPortAddress(int bytes) // PORT
 {
     uint8_t addr = CPU::cpu->NextPC();
     
-    std::vector<IO> io = CPU::cpu->GetIOInterface();
+    std::vector<IOCallback> io = CPU::cpu->GetIOInterface();
 
     for (int i = 0; i < io.size(); i++)
     {

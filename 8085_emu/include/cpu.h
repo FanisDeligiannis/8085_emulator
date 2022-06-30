@@ -7,7 +7,7 @@
 #include "memory.h"
 #include "stack.h"
 #include "register.h"
-#include "IO.h"
+#include "IO_cb.h"
 
 //Flag bits
 
@@ -32,7 +32,7 @@ private:
 	bool _Running;
 	bool _Halted;
 
-	std::vector<IO> IOInterface;
+	std::vector<IOCallback> IOInterface;
 public:
 	static CPU* cpu;
 
@@ -169,5 +169,5 @@ public:
 		IOInterface.push_back({ addr, OUTPUT, INPUT });
 	}
 
-	inline std::vector<IO> GetIOInterface() { return IOInterface; }
+	inline std::vector<IOCallback> GetIOInterface() { return IOInterface; }
 };

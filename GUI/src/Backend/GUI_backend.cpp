@@ -31,7 +31,7 @@ ImFont* _SevenSegmentFont;
 bool _Closed = false;
 bool _PreparingClose = false;
 
-int _TargetFPS = 10;
+int _TargetFPS = 30;
 
 void CloseApplication()
 {
@@ -73,63 +73,75 @@ void SaveDefaultImGuiIni()
 {
     std::string defaultFileContent = R"(
 [Window][DockSpaceViewport_11111111]
-Pos=0,21
-Size=1920,953
+Pos=0,20
+Size=1920,989
 Collapsed=0
 
 [Window][Controls]
-Pos=891,21
-Size=302,179
+Pos=883,20
+Size=303,178
 Collapsed=0
 DockId=0x00000009,0
 
 [Window][Registers]
-Pos=891,218
-Size=302,133
+Pos=883,204
+Size=303,159
 Collapsed=0
 DockId=0x0000000F,0
 
 [Window][Code Editor]
-Pos=0,21
-Size=889,953
+Pos=0,20
+Size=881,989
 Collapsed=0
 DockId=0x00000003,0
 
 [Window][Hex]
-Pos=1195,21
-Size=725,953
+Pos=1188,20
+Size=732,989
 Collapsed=0
 DockId=0x00000002,0
 
 [Window][LEDs]
-Pos=891,353
-Size=302,114
+Pos=883,365
+Size=303,101
 Collapsed=0
 DockId=0x0000000C,0
 
 [Window][Switches]
-Pos=891,469
-Size=302,113
+Pos=883,468
+Size=303,106
 Collapsed=0
 DockId=0x0000000D,0
 
 [Window][7 Segment Display]
-Pos=891,584
-Size=302,123
+Pos=883,576
+Size=303,125
 Collapsed=0
 DockId=0x00000005,0
 
 [Window][Keyboard]
-Pos=891,709
-Size=302,265
+Pos=883,703
+Size=303,306
 Collapsed=0
 DockId=0x0000000B,0
 
 [Window][Registers Dec]
-Pos=891,218
-Size=302,133
+Pos=878,204
+Size=315,159
 Collapsed=0
 DockId=0x0000000F,1
+
+[Window][Dec]
+Pos=883,204
+Size=303,159
+Collapsed=0
+DockId=0x0000000F,1
+
+[Window][Dec Signed]
+Pos=883,204
+Size=303,159
+Collapsed=0
+DockId=0x0000000F,2
 
 [Table][0xA1CC17D3,4]
 Column 0  Weight=1.0000
@@ -141,25 +153,34 @@ Column 3  Weight=1.0000
 Column 0  Weight=1.0000
 Column 1  Weight=1.0000
 
-[Table][0x7AB1C8F4,6]
+[Table][0x7AB1C8F4,5]
+Column 0  Sort=0v
+
+[Table][0x58DBD347,6]
+Column 0  Sort=0v
+
+[Table][0x14565F95,5]
+Column 0  Sort=0v
+
+[Table][0xE5315829,5]
 Column 0  Sort=0v
 
 [Docking][Data]
-DockSpace           ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,55 Size=1920,953 Split=X
-  DockNode          ID=0x00000001 Parent=0x8B93E3BD SizeRef=1193,720 Split=X Selected=0x529688BB
-    DockNode        ID=0x00000003 Parent=0x00000001 SizeRef=889,974 CentralNode=1 Selected=0x529688BB
-    DockNode        ID=0x00000004 Parent=0x00000001 SizeRef=302,974 Split=Y Selected=0xEAEE9E08
-      DockNode      ID=0x00000007 Parent=0x00000004 SizeRef=303,573 Split=Y Selected=0xEAEE9E08
-        DockNode    ID=0x00000006 Parent=0x00000007 SizeRef=305,337 Split=Y Selected=0x67284010
-          DockNode  ID=0x00000009 Parent=0x00000006 SizeRef=311,195 Selected=0x67284010
-          DockNode  ID=0x0000000F Parent=0x00000006 SizeRef=311,133 Selected=0xEAEE9E08
-        DockNode    ID=0x0000000A Parent=0x00000007 SizeRef=305,234 Split=Y Selected=0x8F1A5834
-          DockNode  ID=0x0000000C Parent=0x0000000A SizeRef=305,116 Selected=0x8F1A5834
-          DockNode  ID=0x0000000D Parent=0x0000000A SizeRef=305,116 Selected=0xCF60CDE8
-      DockNode      ID=0x00000008 Parent=0x00000004 SizeRef=303,399 Split=Y Selected=0xDA025FA3
-        DockNode    ID=0x00000005 Parent=0x00000008 SizeRef=311,126 Selected=0xDA025FA3
-        DockNode    ID=0x0000000B Parent=0x00000008 SizeRef=311,271 Selected=0xC5BEB8DE
-  DockNode          ID=0x00000002 Parent=0x8B93E3BD SizeRef=725,720 Selected=0xD39109C3
+DockSpace           ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,43 Size=1920,989 Split=X
+  DockNode          ID=0x00000001 Parent=0x8B93E3BD SizeRef=1186,720 Split=X Selected=0x529688BB
+    DockNode        ID=0x00000003 Parent=0x00000001 SizeRef=881,974 CentralNode=1 Selected=0x529688BB
+    DockNode        ID=0x00000004 Parent=0x00000001 SizeRef=303,974 Split=Y Selected=0xEAEE9E08
+      DockNode      ID=0x00000007 Parent=0x00000004 SizeRef=303,554 Split=Y Selected=0xEAEE9E08
+        DockNode    ID=0x00000006 Parent=0x00000007 SizeRef=305,343 Split=Y Selected=0x67284010
+          DockNode  ID=0x00000009 Parent=0x00000006 SizeRef=311,181 Selected=0x67284010
+          DockNode  ID=0x0000000F Parent=0x00000006 SizeRef=311,159 Selected=0x7C6F5AC1
+        DockNode    ID=0x0000000A Parent=0x00000007 SizeRef=305,209 Split=Y Selected=0x8F1A5834
+          DockNode  ID=0x0000000C Parent=0x0000000A SizeRef=305,101 Selected=0x8F1A5834
+          DockNode  ID=0x0000000D Parent=0x0000000A SizeRef=305,106 Selected=0xCF60CDE8
+      DockNode      ID=0x00000008 Parent=0x00000004 SizeRef=303,433 Split=Y Selected=0xDA025FA3
+        DockNode    ID=0x00000005 Parent=0x00000008 SizeRef=311,125 Selected=0xDA025FA3
+        DockNode    ID=0x0000000B Parent=0x00000008 SizeRef=311,306 Selected=0xC5BEB8DE
+  DockNode          ID=0x00000002 Parent=0x8B93E3BD SizeRef=732,720 Selected=0xD39109C3
 )";
 
     std::ofstream file;
@@ -280,7 +301,7 @@ int InitImGui()
 
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     
-    _Font = LoadFont(15);
+    _Font = LoadFont(14);
     _SevenSegmentFont = io.Fonts->AddFontFromMemoryCompressedTTF(SevenSegment_compressed_data, SevenSegment_compressed_size, 50);
 
     double lasttime = glfwGetTime();

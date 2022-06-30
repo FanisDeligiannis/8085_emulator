@@ -1,9 +1,10 @@
+#include "assembler.h"
+
 #include <stdio.h>
 #include <string>
 #include <iostream>
 #include <fstream>
 
-#include "assembler.h"
 #include "instructions.h"
 #include "Bootloader.h"
 #include "macro.h"
@@ -341,9 +342,9 @@ uint16_t StringToUInt16(std::string str, SourceFile* source, bool noerrors, bool
 //Otherwise, we wouldn't be able to use a label that's BELOW the code we're currently writing in a file.
 // Same for EQU and MACROs
 //And then actually parse the file.
-uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning)
+uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning, bool bootloader)
 {
-	if (!scanning)
+	if (!scanning && !bootloader)
 	{
 		if (result.Memory != nullptr)
 		{
@@ -359,21 +360,29 @@ uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning)
 			perror("Unable to allocate memory");
 			exit(1);
 		}
+
+		currentAddr = startingAddr;
+
+		SourceFile* bl = new SourceFile(Bootloader);
+		parse(bl, result, false, true);
+		delete bl;
+		result.Symbols.clear();
 	}
 
 	currentAssembler = &result;
 
-	currentAddr = startingAddr;
+	//currentAddr = startingAddr;
+	uint16_t addr = currentAddr;
 
 	//Scan for labels
 	if(!scanning)
-		parse(source, result, true);
+		parse(source, result, true, bootloader);
+
 	source->ResetFile();
-	source->ResetBootloader();
 	
 
 	//Reset currentAddr after scanning for labels.
-	currentAddr = startingAddr;
+	currentAddr = addr;
 
 	bool ended = false;
 
@@ -411,8 +420,7 @@ uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning)
 				found = true;
 				if (!scanning)
 				{
-					if (source->IsBootloaderDone())
-						result.Symbols.push_back({ currentAddr, source->GetLine() }); //So we know which instruction corresponds to which line
+					result.Symbols.push_back({ currentAddr, source->GetLine() }); //So we know which instruction corresponds to which line
 					bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, result.Memory + currentAddr); // Not really using ret. . .
 				}
 				currentAddr += Instructions[i].bytes;
@@ -571,12 +579,9 @@ uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning)
 					{
 						currentAddr = result.Macros.at(i)->Parse(source, currentAddr, result);
 
-						if (source->IsBootloaderDone())
+						for (int j = 0; j < result.Macros.at(i)->GetSymbols().size(); j++)
 						{
-							for (int j = 0; j < result.Macros.at(i)->GetSymbols().size(); j++)
-							{
-								result.Symbols.push_back(result.Macros.at(i)->GetSymbols().at(j)); // Get the Symbols from inside the MACRO.
-							}
+							result.Symbols.push_back(result.Macros.at(i)->GetSymbols().at(j)); // Get the Symbols from inside the MACRO.
 						}
 					}
 				}
@@ -601,6 +606,8 @@ uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning)
 	return nullptr;
 }
 
+
+
 SourceFile* Assembler::ReadSourceFile(std::string fileName) // Helper function to convert FileName to SourceFile*
 {
 	std::string file;
@@ -620,7 +627,7 @@ SourceFile* Assembler::ReadSourceFile(std::string fileName) // Helper function t
 
 	inFile.close();
 
-	SourceFile* source = new SourceFile(Bootloader, file);
+	SourceFile* source = new SourceFile(file);
 
 	return source;
 }
@@ -632,7 +639,7 @@ uint8_t* Assembler::GetAssembledMemory(SourceFile* source, Assembler::Assembly& 
 
 uint8_t* Assembler::GetAssembledMemory(std::string code, Assembler::Assembly& result) //Helper function to convert the code to assembled memory
 {
-	SourceFile* source = new SourceFile(Bootloader, code);
+	SourceFile* source = new SourceFile(code);
 
 	return parse(source, result);
 }
