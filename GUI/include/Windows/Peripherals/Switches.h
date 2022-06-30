@@ -33,7 +33,7 @@ namespace Switches
 	
 	//Toggle button.
 	//Modified from creator of ImGui to switch it to vertical.
-	void ToggleButton(const char* str_id, bool* v)
+	void ToggleButton(const char* str_id, bool* v, float woffset = 0.0f)
 	{
 		ImVec2 p = ImGui::GetCursorScreenPos();
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -42,7 +42,7 @@ namespace Switches
 		float height = width * 1.55f;
 		float radius = width * 0.50f;
 
-		if (ImGui::InvisibleButton(str_id, ImVec2(width, height)))
+		if (ImGui::InvisibleButton(str_id, ImVec2(width + woffset, height)))
 			*v = !*v;
 		ImU32 col_bg;
 		if (ImGui::IsItemHovered())
@@ -94,21 +94,23 @@ namespace Switches
 				ImGui::EndMenuBar();
 			}
 
-			ToggleButton("switch7", &switch7);
+			float woffset = 1.2f;
+
+			ToggleButton("switch7", &switch7, woffset);
 			ImGui::SameLine();
-			ToggleButton("switch6", &switch6);
+			ToggleButton("switch6", &switch6, woffset);
 			ImGui::SameLine();
-			ToggleButton("switch5", &switch5);
+			ToggleButton("switch5", &switch5, woffset);
 			ImGui::SameLine();
-			ToggleButton("switch4", &switch4);
+			ToggleButton("switch4", &switch4, woffset);
 			ImGui::SameLine();
-			ToggleButton("switch3", &switch3);
+			ToggleButton("switch3", &switch3, woffset);
 			ImGui::SameLine();
-			ToggleButton("switch2", &switch2);
+			ToggleButton("switch2", &switch2, woffset);
 			ImGui::SameLine();
-			ToggleButton("switch1", &switch1);
+			ToggleButton("switch1", &switch1, woffset);
 			ImGui::SameLine();
-			ToggleButton("switch0", &switch0);
+			ToggleButton("switch0", &switch0, woffset);
 		}
 		ImGui::End();
 	}
