@@ -2,163 +2,166 @@
 
 #include <cstdint>
 
-//8 bit register.
-
-class Register8
+namespace Emulator
 {
-private:
-	union Data //Union of data for use in SIGNED and UNSIGNED operations.
+	//8 bit register.
+
+	class Register8
 	{
-		uint8_t _DataUnsigned;
-		int8_t _DataSigned;
+	private:
+		union Data //Union of data for use in SIGNED and UNSIGNED operations.
+		{
+			uint8_t _DataUnsigned;
+			int8_t _DataSigned;
+		};
+
+		Data _Data;
+
+	public:
+		//Set data with an unsigned value
+		void SetUnsigned(uint8_t value = 0xff)
+		{
+			_Data._DataUnsigned = value;
+		}
+
+		//Set data with a signed value
+		void SetSigned(int8_t value = 0b01111111)
+		{
+			_Data._DataSigned = value;
+		}
+
+		//Set a certain bit
+		void SetBit(uint8_t bit, uint8_t value = 1)
+		{
+			value &= 0x01;
+			if (value)
+				_Data._DataUnsigned = _Data._DataUnsigned | (1 << bit);
+			else
+				ClearBit(bit);
+		}
+
+		//Clear the register
+		void Clear()
+		{
+			_Data._DataSigned = 0;
+		}
+
+		//Clear a certain bit.
+		void ClearBit(uint8_t bit)
+		{
+			_Data._DataUnsigned = _Data._DataUnsigned & (~(1 << bit));
+		}
+
+		//Increment signed data.
+		void Increment()
+		{
+			_Data._DataSigned++;
+		}
+
+		//Decrement signed data.
+		void Decrement()
+		{
+			_Data._DataSigned--;
+		}
+
+		//Get data with type unsigned
+		uint8_t GetUnsigned()
+		{
+			return _Data._DataUnsigned;
+		}
+
+		//Get data with type signed
+		int8_t GetSigned()
+		{
+			return _Data._DataSigned;
+		}
+
+		//Get a certain bit
+		uint8_t GetBit(uint8_t bit)
+		{
+			return (_Data._DataUnsigned >> bit) & 0x01;
+		}
 	};
 
-	Data _Data;
-
-public:
-	//Set data with an unsigned value
-	void SetUnsigned(uint8_t value = 0xff)
+	//16 bit register.
+	class Register
 	{
-		_Data._DataUnsigned = value;
-	}
+	private:
+		//This time, _Data is a pointer
+		//This does not affect the use of Register at all outside of this class
+		//This is needed for SP, so we can point _Data to the ACTUAL stack pointer in _Stack.
+		uint16_t* _Data;
 
-	//Set data with a signed value
-	void SetSigned(int8_t value = 0b01111111)
-	{
-		_Data._DataSigned = value;
-	}
+	public:
+		Register()
+		{
+			_Data = new uint16_t();
+		}
 
-	//Set a certain bit
-	void SetBit(uint8_t bit, uint8_t value = 1)
-	{
-		value &= 0x01;
-		if (value)
-			_Data._DataUnsigned = _Data._DataUnsigned | (1 << bit);
-		else
-			ClearBit(bit);
-	}
-	
-	//Clear the register
-	void Clear()
-	{
-		_Data._DataSigned = 0;
-	}
+		~Register() //Need to delete it because it's a pointer
+		{
+			delete _Data;
+		}
 
-	//Clear a certain bit.
-	void ClearBit(uint8_t bit)
-	{
-		_Data._DataUnsigned = _Data._DataUnsigned & (~(1 << bit));
-	}
+		void SetRef(uint16_t* ref) //Set the reference to point to
+		{
+			_Data = ref;
+		}
 
-	//Increment signed data.
-	void Increment()
-	{
-		_Data._DataSigned++;
-	}
+		//Everything else is the same as Register8, but with pointer.
 
-	//Decrement signed data.
-	void Decrement()
-	{
-		_Data._DataSigned--;
-	}
+		void Set(uint16_t value = 0xffff)
+		{
+			*_Data = value;
+		}
 
-	//Get data with type unsigned
-	uint8_t GetUnsigned()
-	{
-		return _Data._DataUnsigned;
-	}
+		void SetBit(uint8_t bit, int value = 1)
+		{
+			value &= 0x01;
+			if (value)
+				*_Data = *_Data | (1 << bit);
+			else
+				ClearBit(bit);
+		}
 
-	//Get data with type signed
-	int8_t GetSigned()
-	{
-		return _Data._DataSigned;
-	}
+		void Clear()
+		{
+			*_Data = 0;
+		}
 
-	//Get a certain bit
-	uint8_t GetBit(uint8_t bit)
-	{
-		return (_Data._DataUnsigned >> bit) & 0x01;
-	}
-};
+		void ClearBit(uint8_t bit)
+		{
+			*_Data = *_Data & (~(1 << bit));
+		}
 
-//16 bit register.
-class Register
-{
-private:
-	//This time, _Data is a pointer
-	//This does not affect the use of Register at all outside of this class
-	//This is needed for SP, so we can point _Data to the ACTUAL stack pointer in _Stack.
-	uint16_t* _Data;
+		void Increment()
+		{
+			(*_Data)++;
+		}
 
-public:
-	Register()
-	{
-		_Data = new uint16_t();
-	}
+		void Decrement()
+		{
+			(*_Data)--;
+		}
 
-	~Register() //Need to delete it because it's a pointer
-	{
-		delete _Data;
-	}
+		uint16_t Get()
+		{
+			return *_Data;
+		}
 
-	void SetRef(uint16_t* ref) //Set the reference to point to
-	{
-		_Data = ref;
-	}
+		uint8_t GetHigh()
+		{
+			return (*_Data) >> 8;
+		}
 
-	//Everything else is the same as Register8, but with pointer.
+		uint8_t GetLow()
+		{
+			return (*_Data) & 0xff;
+		}
 
-	void Set(uint16_t value = 0xffff)
-	{
-		*_Data = value;
-	}
-
-	void SetBit(uint8_t bit, int value = 1)
-	{
-		value &= 0x01;
-		if (value)
-			*_Data = *_Data | (1 << bit);
-		else
-			ClearBit(bit);
-	}
-
-	void Clear()
-	{
-		*_Data = 0;
-	}
-
-	void ClearBit(uint8_t bit)
-	{
-		*_Data = *_Data & (~(1 << bit));
-	}
-
-	void Increment()
-	{
-		(*_Data)++;
-	}
-
-	void Decrement()
-	{
-		(*_Data)--;
-	}
-
-	uint16_t Get()
-	{
-		return *_Data;
-	}
-
-	uint8_t GetHigh()
-	{
-		return (*_Data)>>8;
-	}
-
-	uint8_t GetLow()
-	{
-		return (*_Data) & 0xff;
-	}
-
-	uint8_t GetBit(uint8_t bit)
-	{
-		return (*_Data >> bit) & 0x01;
-	}
-};
+		uint8_t GetBit(uint8_t bit)
+		{
+			return (*_Data >> bit) & 0x01;
+		}
+	};
+}

@@ -8,7 +8,7 @@
 #include "Windows/RegistersWindow.h"
 
 namespace Simulation {
-	CPU* cpu;
+	Emulator::CPU* cpu;
 	std::thread t;
 
 	Assembler::Assembly program;
@@ -121,7 +121,7 @@ namespace Simulation {
 	}
 
 	void Init()
-	{
+	{	
 		program.Memory = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
 		CPU_Speed = ConfigIni::GetInt("Simulation", "CPU_Speed", 3200000);
 		CPU_Accuracy = ConfigIni::GetInt("Simulation", "CPU_Accuracy", 500);
@@ -143,7 +143,7 @@ namespace Simulation {
 	void thread()
 	{
 		//Create CPU.
-		cpu = new CPU(program.Memory, 0xffff, CodeEditor::editor._Breakpoints, program.Symbols);
+		cpu = new Emulator::CPU(program.Memory, 0xffff, CodeEditor::editor._Breakpoints, program.Symbols);
 
 		cpu->SetClock(CPU_Speed, CPU_Accuracy);
 

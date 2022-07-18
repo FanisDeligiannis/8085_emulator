@@ -2,10 +2,13 @@
 
 #include <cstdint>
 
-struct IOCallback
+namespace Emulator
 {
-	uint16_t addr;
+	struct IOCallback
+	{
+		uint16_t addr;
 
-	void(*OUTPUT)(uint8_t out) = nullptr;
-	uint8_t(*INPUT)() = nullptr;
-};
+		void(*OUTPUT)(uint8_t out) = nullptr;
+		uint8_t(*INPUT)() = nullptr;
+	};
+}

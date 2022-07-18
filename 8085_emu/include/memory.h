@@ -4,63 +4,67 @@
 #include <cmath>
 #include <cstring>
 
-//Simple memory class
-//Size should be 0xffff
-//Data size is 8 bits
-
-class Memory
+namespace Emulator
 {
-private:
-	size_t _Size;
-	uint8_t* _Data;
-public:
-	Memory()
-	{
-		_Size = 0;
-		_Data = nullptr;
-	}
 
-	Memory(uint8_t* data, size_t size)
-	{
-		_Size = size;
-		_Data = data;
-	}
+	//Simple memory class
+	//Size should be 0xffff
+	//Data size is 8 bits
 
-	~Memory()
+	class Memory
 	{
-		//leave it up to the rest of the code to clean up
-		/*if(_Data != nullptr)
-			free(_Data);*/
-	}
+	private:
+		size_t _Size;
+		uint8_t* _Data;
+	public:
+		Memory()
+		{
+			_Size = 0;
+			_Data = nullptr;
+		}
 
-	void _SetData(uint8_t* data, size_t size)
-	{
-		_Size = size;
-		_Data = data;
-	}
+		Memory(uint8_t* data, size_t size)
+		{
+			_Size = size;
+			_Data = data;
+		}
 
-	void SetDataAtAddr(uint16_t addr, uint8_t val)
-	{
-		_Data[addr] = val;
-	}
+		~Memory()
+		{
+			//leave it up to the rest of the code to clean up
+			/*if(_Data != nullptr)
+				free(_Data);*/
+		}
 
-	uint8_t GetDataAtAddr(uint16_t addr)
-	{
-		return _Data[addr];
-	}
+		void _SetData(uint8_t* data, size_t size)
+		{
+			_Size = size;
+			_Data = data;
+		}
 
-	void CopyToMemory(uint16_t addr, uint8_t* values, uint16_t size)
-	{
-		memcpy(_Data + addr, values, size);
-	}
+		void SetDataAtAddr(uint16_t addr, uint8_t val)
+		{
+			_Data[addr] = val;
+		}
 
-	uint8_t* GetData()
-	{
-		return _Data;
-	}
+		uint8_t GetDataAtAddr(uint16_t addr)
+		{
+			return _Data[addr];
+		}
 
-	size_t GetSize()
-	{
-		return _Size;
-	}
-};
+		void CopyToMemory(uint16_t addr, uint8_t* values, uint16_t size)
+		{
+			memcpy(_Data + addr, values, size);
+		}
+
+		uint8_t* GetData()
+		{
+			return _Data;
+		}
+
+		size_t GetSize()
+		{
+			return _Size;
+		}
+	};
+}

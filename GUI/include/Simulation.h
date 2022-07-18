@@ -10,7 +10,7 @@
 #include "assembler.h"
 
 namespace Simulation {
-	extern CPU* cpu;
+	extern Emulator::CPU* cpu;
 	extern std::thread t;
 
 	extern bool Paused;
