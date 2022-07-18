@@ -46,3 +46,28 @@ OR if you want to open a file straight away:
 # Feedback
 
 Feel free to report bugs, ask questions or request a feature in the Issues tab.
+
+# TODO
+
+- [ ] Run-time errors, such as using "POP" on an empty stack.
+- [ ] Don't crash when background stuff goes wrong
+- [ ] **DAA** instruction should calculate Carry flag.
+- [ ] Double-check if interrupts should be disabled while another interrupt is being handled. If so, should they be re-enabled automatically?
+
+# Performance
+
+## CPU
+
+CPU usage should be very low. You can change the CPU frequency and accuracy, though that will impact how some code (such as DELA,DELB) works.
+
+## GPU
+
+Due to using hardware accelarated UI ([Dear ImGui](https://github.com/ocornut/imgui)), there is **some** GPU usage. In my laptop, this ranges from 5-15%. To lower this, you can lower the UI FPS. 
+
+Normally, this library is used for games, using their existing API, adding almost 0 overhead. In this case, the application doesn't otherwise have any GPU-accelarated code. 
+
+The entire UI is refreshed every frame even when not needed. There are [plans](https://github.com/ocornut/imgui/pull/5116#issuecomment-1161672387) to make optimizations, but with no timeframe. This would make the GPU usage 0% while not running the code, but wouldn't have a less significant impact when running, due to hex editor and registers window. That would, however, give me other ways of optimizing. 
+
+There is currently a [PR](https://github.com/ocornut/imgui/pull/5116) that implements this. But it's for directx12, thus not cross-platform. It's also not for the docking branch. I have plans of ***trying*** to implement this myself, but no promises.
+
+However, in the current state of the application, I don't think this is much of a problem.
