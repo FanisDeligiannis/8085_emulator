@@ -2,9 +2,12 @@
 
 #include <string>
 
-//This is my bootloader of 8085.
+namespace InternalAssembler
+{
 
-std::string Bootloader = R"(
+	//This is my bootloader of 8085.
+
+	std::string Bootloader = R"(
 
 RST0 EQU 0000H
 RST1 EQU 0008H
@@ -378,3 +381,4 @@ _KINDDONE:
 
 ORG CODE
 )";
+}

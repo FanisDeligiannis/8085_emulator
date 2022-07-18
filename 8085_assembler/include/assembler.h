@@ -11,8 +11,7 @@ struct IfExpr
 	bool isElse;
 };
 
-
-class Macro;
+namespace InternalAssembler { class Macro; }
 
 namespace Assembler
 {
@@ -24,24 +23,28 @@ namespace Assembler
 		std::vector<std::pair<int, std::string>> Errors;
 		std::vector<std::pair<uint16_t, int>> Symbols;
 		std::vector<IfExpr> IfBuffer;
-		std::vector<Macro*> Macros;
+		std::vector<InternalAssembler::Macro*> Macros;
 	};
 
-	SourceFile* ReadSourceFile(std::string fileName); // Take in file name, return SourceFile* of it.
+	InternalAssembler::SourceFile* ReadSourceFile(std::string fileName); // Take in file name, return SourceFile* of it.
 
-	uint8_t* GetAssembledMemory(SourceFile* source, Assembler::Assembly& result); // Assembled memory from SourceFile*
+	uint8_t* GetAssembledMemory(InternalAssembler::SourceFile* source, Assembler::Assembly& result); // Assembled memory from SourceFile*
 	uint8_t* GetAssembledMemory(std::string code, Assembler::Assembly& result); // Assembled memory from std::string
 }
 
-extern Assembler::Assembly* currentAssembler;
+namespace InternalAssembler
+{
 
-void Error(std::string err, SourceFile* source); // Add error to error list. 
-void Error(std::string err, int line); // Add error to error list. 
+	extern Assembler::Assembly* currentAssembler;
 
-void ParseIfDirective(SourceFile* source, std::vector<IfExpr> &_IfBuffer);
+	void Error(std::string err, SourceFile* source); // Add error to error list. 
+	void Error(std::string err, int line); // Add error to error list. 
 
-bool isNumber(std::string str);
-uint8_t StringToUInt8(std::string str, SourceFile* source); // Converts string to uint8. Could be hex(ending in 'h'), binary(ending in 'b') or dec. 
-uint16_t StringToUInt16(std::string str, SourceFile* source, bool noerrors = false, bool *NaN = nullptr); // Same but for uint16_t
+	void ParseIfDirective(SourceFile* source, std::vector<IfExpr>& _IfBuffer);
 
-uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning = false, bool bootloader = false); // Parses the file, returing a dump of the assembled memory or simply scans the file, parsing but only saving labels/EQU/MACRO
+	bool isNumber(std::string str);
+	uint8_t StringToUInt8(std::string str, SourceFile* source); // Converts string to uint8. Could be hex(ending in 'h'), binary(ending in 'b') or dec. 
+	uint16_t StringToUInt16(std::string str, SourceFile* source, bool noerrors = false, bool* NaN = nullptr); // Same but for uint16_t
+
+	uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning = false, bool bootloader = false); // Parses the file, returing a dump of the assembled memory or simply scans the file, parsing but only saving labels/EQU/MACRO
+}
