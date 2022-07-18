@@ -8,7 +8,7 @@
 #include "Windows/RegistersWindow.h"
 
 namespace Simulation {
-	Emulator::CPU* cpu;
+	std::shared_ptr<Emulator::CPU> cpu;
 	std::thread t;
 
 	Assembler::Assembly program;
@@ -48,7 +48,6 @@ namespace Simulation {
 			//If it's not running, create a new thread and run it there.
 			if (cpu != nullptr)
 			{
-				delete cpu;
 				cpu = nullptr;
 			}
 
@@ -122,7 +121,7 @@ namespace Simulation {
 
 	void Init()
 	{	
-		program.Memory = (uint8_t*)calloc(0xffff, sizeof(uint8_t));
+		program.Memory = std::shared_ptr<uint8_t>((uint8_t*)calloc(0xffff, sizeof(uint8_t)), free);
 		CPU_Speed = ConfigIni::GetInt("Simulation", "CPU_Speed", 3200000);
 		CPU_Accuracy = ConfigIni::GetInt("Simulation", "CPU_Accuracy", 500);
 	}
@@ -143,7 +142,7 @@ namespace Simulation {
 	void thread()
 	{
 		//Create CPU.
-		cpu = new Emulator::CPU(program.Memory, 0xffff, CodeEditor::editor._Breakpoints, program.Symbols);
+		cpu = std::make_shared<Emulator::CPU>(program.Memory, 0xffff, CodeEditor::editor._Breakpoints, program.Symbols);
 
 		cpu->SetClock(CPU_Speed, CPU_Accuracy);
 
@@ -234,7 +233,6 @@ namespace Simulation {
 		//Update buffers before deleting CPU.
 		RegistersWindow::UpdateBuffers(true);
 
-		delete cpu;
 		cpu = nullptr;
 		Paused = false;
 	}

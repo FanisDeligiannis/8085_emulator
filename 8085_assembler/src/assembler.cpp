@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <memory>
 
 #include "instructions.h"
 #include "Bootloader.h"
@@ -17,7 +18,7 @@ namespace InternalAssembler
 
 	Assembler::Assembly* currentAssembler;
 
-	void Error(std::string err, SourceFile* source)
+	void Error(std::string err, std::shared_ptr<SourceFile> source)
 	{
 		//Print and add each error to a list
 		printf("Error: Line %d, Character %d\n%s\n", source->GetLine(), source->GetCharCount(), err.c_str());
@@ -33,7 +34,7 @@ namespace InternalAssembler
 		currentAssembler->Errors.push_back({ line, err });
 	}
 
-	void ParseIfDirective(SourceFile* source, std::vector<IfExpr>& IfBuffer)
+	void ParseIfDirective(std::shared_ptr<SourceFile> source, std::vector<IfExpr>& IfBuffer)
 	{
 		std::string word = source->GetLastWord();
 		int ifLine = source->GetLine();
@@ -184,7 +185,7 @@ namespace InternalAssembler
 		return true;
 	}
 
-	uint8_t StringToUInt8(std::string str, SourceFile* source)
+	uint8_t StringToUInt8(std::string str, std::shared_ptr<SourceFile> source)
 	{
 		if (str.length() == 0)
 		{
@@ -256,7 +257,7 @@ namespace InternalAssembler
 	}
 
 	//Same exact thing, but with uint16_t number.
-	uint16_t StringToUInt16(std::string str, SourceFile* source, bool noerrors, bool* NaN)
+	uint16_t StringToUInt16(std::string str, std::shared_ptr<SourceFile> source, bool noerrors, bool* NaN)
 	{
 		if (str.length() == 0)
 		{
@@ -343,16 +344,12 @@ namespace InternalAssembler
 	//Otherwise, we wouldn't be able to use a label that's BELOW the code we're currently writing in a file.
 	// Same for EQU and MACROs
 	//And then actually parse the file.
-	uint8_t* parse(SourceFile* source, Assembler::Assembly& result, bool scanning, bool bootloader)
+	std::shared_ptr<uint8_t> parse(std::shared_ptr<SourceFile> source, Assembler::Assembly& result, bool scanning, bool bootloader)
 	{
 		if (!scanning && !bootloader)
 		{
-			if (result.Memory != nullptr)
-			{
-				free(result.Memory);
-			}
 
-			result.Memory = (uint8_t*)calloc(0xffff + 1, sizeof(uint8_t));
+			result.Memory = std::shared_ptr<uint8_t>((uint8_t*)calloc(0xffff + 1, sizeof(uint8_t)), free);
 
 			//If we failed to allocate memory.
 			//TODO Probably should throw error instead of crashing...
@@ -364,9 +361,9 @@ namespace InternalAssembler
 
 			currentAddr = startingAddr;
 
-			SourceFile* bl = new SourceFile(Bootloader);
+			std::shared_ptr<SourceFile> bl = std::make_shared<SourceFile>(Bootloader);
 			parse(bl, result, false, true);
-			delete bl;
+
 			result.Symbols.clear();
 		}
 
@@ -424,7 +421,7 @@ namespace InternalAssembler
 					if (!scanning)
 					{
 						result.Symbols.push_back({ currentAddr, source->GetLine() }); //So we know which instruction corresponds to which line
-						bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, result.Memory + currentAddr); // Not really using ret. . .
+						bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, result.Memory.get() + currentAddr); // Not really using ret. . .
 					}
 					currentAddr += Instructions[i].bytes;
 				}
@@ -525,7 +522,7 @@ namespace InternalAssembler
 
 					std::string numStr = nextWord.substr(1, nextWord.length() - 2);
 
-					result.Memory[currentAddr++] = numStr[0];
+					result.Memory.get()[currentAddr++] = numStr[0];
 				}
 				else if (nextWord[0] == '\"') // If it starts with ", it is a string and has to also end with "
 				{
@@ -543,12 +540,12 @@ namespace InternalAssembler
 
 					for (int i = 0; i < numStr.length(); i++) //Add it all to memory.
 					{
-						result.Memory[currentAddr++] = numStr[i];
+						result.Memory.get()[currentAddr++] = numStr[i];
 					}
 				}
 				else //Otherwise, we expect an 8bit number.
 				{
-					result.Memory[currentAddr++] = StringToUInt8(nextWord, source);
+					result.Memory.get()[currentAddr++] = StringToUInt8(nextWord, source);
 				}
 			}
 			else if (word == "DW") //DW get's a 16 bit number.
@@ -562,8 +559,8 @@ namespace InternalAssembler
 
 				//TODO: LITTLE/BIG endian??
 
-				result.Memory[currentAddr++] = LOW;
-				result.Memory[currentAddr++] = HIGH;
+				result.Memory.get()[currentAddr++] = LOW;
+				result.Memory.get()[currentAddr++] = HIGH;
 			}
 			else
 			{
@@ -611,7 +608,7 @@ namespace InternalAssembler
 
 }
 
-InternalAssembler::SourceFile* Assembler::ReadSourceFile(std::string fileName) // Helper function to convert FileName to SourceFile*
+std::shared_ptr<InternalAssembler::SourceFile> Assembler::ReadSourceFile(std::string fileName) // Helper function to convert FileName to SourceFile*
 {
 	std::string file;
 	std::string line;
@@ -630,19 +627,19 @@ InternalAssembler::SourceFile* Assembler::ReadSourceFile(std::string fileName) /
 
 	inFile.close();
 
-	InternalAssembler::SourceFile* source = new InternalAssembler::SourceFile(file);
+	std::shared_ptr<InternalAssembler::SourceFile> source = std::make_shared<InternalAssembler::SourceFile>(file);
 
 	return source;
 }
 
-uint8_t* Assembler::GetAssembledMemory(InternalAssembler::SourceFile* source, Assembler::Assembly& result) //Helper function to convert SourceFile* to assembled memory
+std::shared_ptr<uint8_t> Assembler::GetAssembledMemory(std::shared_ptr<InternalAssembler::SourceFile> source, Assembler::Assembly& result) //Helper function to convert SourceFile* to assembled memory
 {
 	return parse(source, result);
 }
 
-uint8_t* Assembler::GetAssembledMemory(std::string code, Assembler::Assembly& result) //Helper function to convert the code to assembled memory
+std::shared_ptr<uint8_t> Assembler::GetAssembledMemory(std::string code, Assembler::Assembly& result) //Helper function to convert the code to assembled memory
 {
-	InternalAssembler::SourceFile* source = new InternalAssembler::SourceFile(code);
+	std::shared_ptr<InternalAssembler::SourceFile> source = std::make_shared<InternalAssembler::SourceFile>(code);
 
 	return InternalAssembler::parse(source, result);
 }

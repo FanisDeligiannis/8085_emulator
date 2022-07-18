@@ -6,7 +6,7 @@
 
 namespace InternalAssembler
 {
-	Macro::Macro(std::string name, SourceFile* source)
+	Macro::Macro(std::string name, std::shared_ptr<SourceFile> source)
 		: Name(name)
 	{
 		std::string word = source->Next(); // Should be "MACRO"
@@ -22,7 +22,7 @@ namespace InternalAssembler
 		std::string r = source->GetLastWord();
 		if (r == "ENDM")
 		{
-			_Source = new SourceFile("");
+			_Source = std::make_shared<SourceFile>("");
 			return;
 		}
 
@@ -31,15 +31,16 @@ namespace InternalAssembler
 
 		if (source->GetLastWord() != "ENDM")
 		{
-			_Source = new SourceFile("");
+			_Source = std::make_shared<SourceFile>("");
+
 			Error("Expected ENDM to end the MACRO.", source);
 			return;
 		}
 
-		_Source = new SourceFile(r);
+		_Source = std::make_shared<SourceFile>(r);
 	}
 
-	uint16_t Macro::Parse(SourceFile* source, uint16_t currentAddr, Assembler::Assembly& result, bool scanning)
+	uint16_t Macro::Parse(std::shared_ptr<SourceFile> source, uint16_t currentAddr, Assembler::Assembly& result, bool scanning)
 	{
 		_Source->ResetFile();
 		_Source->_Equ.clear();
@@ -92,7 +93,7 @@ namespace InternalAssembler
 		return Assemble(_Source, result, currentAddr, source, scanning);
 	}
 
-	uint16_t Macro::Assemble(SourceFile* source, Assembler::Assembly& result, uint16_t currentAddr, SourceFile* ogSource, bool scanning)
+	uint16_t Macro::Assemble(std::shared_ptr<SourceFile> source, Assembler::Assembly& result, uint16_t currentAddr, std::shared_ptr<SourceFile> ogSource, bool scanning)
 	{
 		//Scan for labels
 		source->ResetFile();
@@ -144,7 +145,7 @@ namespace InternalAssembler
 						Symbols.push_back({ currentAddr, source->GetLine() }); //So we know which instruction corresponds to which line
 
 						if (result.Memory != nullptr)
-							bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, result.Memory + currentAddr); // Not really using ret. . .
+							bool ret = Instructions[i].ACTION(Instructions[i].bytes, source, result.Memory.get() + currentAddr); // Not really using ret. . .
 					}
 					currentAddr += Instructions[i].bytes;
 				}
@@ -229,7 +230,7 @@ namespace InternalAssembler
 
 					std::string numStr = nextWord.substr(1, nextWord.length() - 2);
 
-					result.Memory[currentAddr++] = numStr[0];
+					result.Memory.get()[currentAddr++] = numStr[0];
 				}
 				else if (nextWord[0] == '\"') // If it starts with ", it is a string and has to also end with "
 				{
@@ -249,12 +250,12 @@ namespace InternalAssembler
 
 					for (int i = 0; i < numStr.length(); i++) //Add it all to memory.
 					{
-						result.Memory[currentAddr++] = numStr[i];
+						result.Memory.get()[currentAddr++] = numStr[i];
 					}
 				}
 				else //Otherwise, we expect an 8bit number.
 				{
-					result.Memory[currentAddr++] = StringToUInt8(nextWord, source);
+					result.Memory.get()[currentAddr++] = StringToUInt8(nextWord, source);
 				}
 			}
 			else if (word == "DW") //DW get's a 16 bit number.
@@ -268,8 +269,8 @@ namespace InternalAssembler
 
 				//TODO: LITTLE/BIG endian??
 
-				result.Memory[currentAddr++] = LOW;
-				result.Memory[currentAddr++] = HIGH;
+				result.Memory.get()[currentAddr++] = LOW;
+				result.Memory.get()[currentAddr++] = HIGH;
 			}
 			else
 			{

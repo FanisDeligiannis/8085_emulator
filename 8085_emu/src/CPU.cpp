@@ -1,6 +1,7 @@
 #include "cpu.h"
 
 #include <cstdio>
+#include <memory>
 
 #include "CPUinstructions.h"
 
@@ -9,7 +10,7 @@ namespace Emulator
 
 	CPU* CPU::cpu;
 
-	CPU::CPU(Memory* memory, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>>& symbols)
+	CPU::CPU(std::shared_ptr<Memory> memory, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>>& symbols)
 		: _Breakpoints(breakpoints)
 	{
 		cpu = this;
@@ -19,22 +20,22 @@ namespace Emulator
 		_HangingCycles = 0;
 		_Memory = memory;
 
-		_Stack = new InternalEmulator::Stack(16);
+		_Stack = std::make_shared<InternalEmulator::Stack>(16);
 		_Stack->SetDataPointer(_Memory->GetData());
 
-		A = new Register8();
-		B = new Register8();
-		C = new Register8();
-		D = new Register8();
-		E = new Register8();
-		H = new Register8();
-		L = new Register8();
+		A = std::make_shared<Register8>();
+		B = std::make_shared<Register8>();
+		C = std::make_shared<Register8>();
+		D = std::make_shared<Register8>();
+		E = std::make_shared<Register8>();
+		H = std::make_shared<Register8>();
+		L = std::make_shared<Register8>();
 
-		Flags = new Register8();
+		Flags = std::make_shared<Register8>();
 
-		PC = new Register();
+		PC = std::make_shared<Register>();
 		PC->Clear();
-		SP = new Register();
+		SP = std::make_shared<Register>();
 
 
 		//SP is literally a pointer to the address of the stack.
@@ -51,41 +52,22 @@ namespace Emulator
 			}
 		}
 
-		_Symbols = (uint16_t*)calloc(maxLine + 1, sizeof(uint16_t));
+		_Symbols = std::shared_ptr<uint16_t>((uint16_t*)calloc(maxLine + 1, sizeof(uint16_t)), free);
 		if (_Symbols != nullptr)
 		{
 			_SymbolSize = maxLine + 1;
 
 			for (int i = 0; i < symbols.size(); i++)
 			{
-				_Symbols[symbols.at(i).second] = symbols.at(i).first;
+				_Symbols.get()[symbols.at(i).second] = symbols.at(i).first;
 			}
 		}
 		//Same with breakpoints
 		UpdateBreakpoints();
 	}
 
-	CPU::CPU(uint8_t* memory, size_t size, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols)
-		: CPU(new Memory(memory, size), breakpoints, symbols) {}
-
-	CPU::~CPU()
-	{
-		delete A;
-		delete B;
-		delete C;
-		delete D;
-		delete E;
-		delete H;
-		delete L;
-		delete PC;
-		delete SP;
-		delete _Stack;
-		delete _Memory;
-
-		free(_Symbols);
-
-		cpu = nullptr;
-	}
+	CPU::CPU(std::shared_ptr<uint8_t> memory, size_t size, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols)
+		: CPU(std::make_shared<Memory>(memory, size), breakpoints, symbols) {}
 
 	void CPU::SetClock(int clock_speed, int accuracy)
 	{
@@ -211,7 +193,7 @@ namespace Emulator
 
 			for (int i = 0; i < _BreakpointsArrSize; i++) // Search the Breakpoint Array.
 			{
-				if (_BreakpointsArr[i] == currentAddr) // If the currentAddr is in there, break.
+				if (_BreakpointsArr.get()[i] == currentAddr) // If the currentAddr is in there, break.
 				{
 					_Halted = true;
 					alreadyHalted = true;
@@ -277,12 +259,7 @@ namespace Emulator
 
 	void CPU::UpdateBreakpoints()
 	{
-		if (_BreakpointsArr == nullptr)
-		{
-			free(_BreakpointsArr);
-		}
-
-		_BreakpointsArr = (uint16_t*)calloc(_Breakpoints.size(), sizeof(uint16_t));
+		_BreakpointsArr = std::shared_ptr<uint16_t>((uint16_t*)calloc(_Breakpoints.size(), sizeof(uint16_t)), free);
 		_BreakpointsArrSize = _Breakpoints.size();
 
 		if (_BreakpointsArr == nullptr)
@@ -297,7 +274,7 @@ namespace Emulator
 			{
 				if (_Breakpoints.at(i) == j)
 				{
-					_BreakpointsArr[i] = _Symbols[j];
+					_BreakpointsArr.get()[i] = _Symbols.get()[j];
 				}
 			}
 		}

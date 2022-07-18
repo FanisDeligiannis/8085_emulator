@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <cstdint>
 #include <string>
+#include <memory>
 
 #include "source_file.h"
 #include "assembler.h"
@@ -12,7 +13,7 @@ namespace InternalAssembler
 
     //The entire instruction set, used in assembling the binary from text.
 
-    uint16_t FindLabel(const std::string& label, SourceFile* source)
+    uint16_t FindLabel(const std::string& label, std::shared_ptr<SourceFile> source)
     {
         //Loop all labels to find the address associated with it.
         //If not found, show an error.
@@ -32,7 +33,7 @@ namespace InternalAssembler
         return 0;
     }
 
-    uint8_t GetNextRegister(SourceFile* source, bool a, bool m)
+    uint8_t GetNextRegister(std::shared_ptr<SourceFile> source, bool a, bool m)
     {
         //Read the next word in the source code.
         //Return a number 0-7 depending on the register (B=0, . . . , A=7)
@@ -80,7 +81,7 @@ namespace InternalAssembler
         }
     }
 
-    uint8_t GetNextDoubleRegister(SourceFile* source, bool h, bool sp, bool psw)
+    uint8_t GetNextDoubleRegister(std::shared_ptr<SourceFile> source, bool h, bool sp, bool psw)
     {
         //Read the next word in the source code.
         //Return a number corresponding to double register 
@@ -124,7 +125,7 @@ namespace InternalAssembler
         }
     }
 
-    uint8_t GetImmediate8(SourceFile* source)
+    uint8_t GetImmediate8(std::shared_ptr<SourceFile> source)
     {
         //Get the next word in the source file. 
         //If it doesn't exist, error.
@@ -140,7 +141,7 @@ namespace InternalAssembler
         return StringToUInt8(nextWord, source);
     }
 
-    uint16_t GetImmediate16(SourceFile* source)
+    uint16_t GetImmediate16(std::shared_ptr<SourceFile> source)
     {
         //Get the next word in the source file. 
         //If it doesn't exist, error.
@@ -161,7 +162,7 @@ namespace InternalAssembler
     //So _Memory[0] should ALWAYS be the OPCODE
     //And subsequent addresses should be the data needed by the operand
 
-    bool ACI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool ACI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xCE;
         _Memory[1] = GetImmediate8(source);
@@ -169,7 +170,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool ADC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool ADC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         //Opcodes have an offset of 1.
         //For example:
@@ -183,14 +184,14 @@ namespace InternalAssembler
         return true;
     }
 
-    bool ADD(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool ADD(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         uint8_t opcode = 0x80 + GetNextRegister(source);
         _Memory[0] = opcode;
         return true;
     }
 
-    bool ADI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool ADI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xc6;
         _Memory[1] = GetImmediate8(source);
@@ -198,21 +199,21 @@ namespace InternalAssembler
         return true;
     }
 
-    bool ANA(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool ANA(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         uint8_t opcode = 0xA0 + GetNextRegister(source);
         _Memory[0] = opcode;
         return true;
     }
 
-    bool ANI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool ANI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xe6;
         _Memory[1] = GetImmediate8(source);
         return true;
     }
 
-    bool CALL(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CALL(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xcd;
 
@@ -233,7 +234,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool CC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xdc;
 
@@ -250,7 +251,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool CM(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CM(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xfc;
 
@@ -266,26 +267,26 @@ namespace InternalAssembler
         return true;
     }
 
-    bool CMA(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CMA(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x2f;
         return true;
     }
 
-    bool CMC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CMC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x3f;
         return true;
     }
 
-    bool CMP(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CMP(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         uint8_t opcode = 0xB8 + GetNextRegister(source);
         _Memory[0] = opcode;
         return true;
     }
 
-    bool CNC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CNC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xd4;
 
@@ -301,7 +302,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool CNZ(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CNZ(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xc4;
 
@@ -317,7 +318,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool CP(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CP(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xf4;
 
@@ -333,7 +334,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool CPE(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CPE(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xec;
 
@@ -349,7 +350,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool CPI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CPI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xfe;
         _Memory[1] = GetImmediate8(source);
@@ -357,7 +358,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool CPO(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CPO(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xe4;
 
@@ -373,7 +374,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool CZ(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool CZ(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = (uint8_t)0xcc;
 
@@ -389,21 +390,21 @@ namespace InternalAssembler
         return true;
     }
 
-    bool DAA(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool DAA(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x27;
 
         return true;
     }
 
-    bool DAD(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool DAD(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         //Offset for double registers is always 0x10, so it returns a value based on that.
         _Memory[0] = 0x09 + GetNextDoubleRegister(source);
         return true;
     }
 
-    bool DCR(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool DCR(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         //Offset between registers here is 0x08.
         //GetNextRegister return a number assuming an offset of 1
@@ -413,33 +414,33 @@ namespace InternalAssembler
         return true;
     }
 
-    bool DCX(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool DCX(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x0b + GetNextDoubleRegister(source);
 
         return true;
     }
 
-    bool DI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool DI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xf3;
         return true;
     }
 
-    bool EI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool EI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xfb;
         return true;
     }
 
-    bool HLT(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool HLT(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x76;
 
         return true;
     }
 
-    bool IN(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool IN(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xdb;
         _Memory[1] = GetImmediate8(source);
@@ -447,21 +448,21 @@ namespace InternalAssembler
         return true;
     }
 
-    bool INR(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool INR(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x04 + (GetNextRegister(source) * 0x08);
 
         return true;
     }
 
-    bool INX(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool INX(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x03 + GetNextDoubleRegister(source);
 
         return true;
     }
 
-    bool JC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool JC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xda;
 
@@ -478,7 +479,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool JM(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool JM(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xfa;
 
@@ -496,7 +497,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool JMP(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool JMP(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xc3;
 
@@ -520,7 +521,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool JNC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool JNC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xd2;
 
@@ -537,7 +538,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool JNZ(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool JNZ(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xc2;
 
@@ -554,7 +555,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool JP(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool JP(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xf2;
 
@@ -571,7 +572,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool JPE(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool JPE(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xea;
 
@@ -588,7 +589,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool JPO(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool JPO(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xe2;
 
@@ -605,7 +606,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool JZ(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool JZ(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xca;
 
@@ -622,7 +623,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool LDA(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool LDA(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x3a;
 
@@ -637,14 +638,14 @@ namespace InternalAssembler
         return true;
     }
 
-    bool LDAX(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool LDAX(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x0a + GetNextDoubleRegister(source, false);
 
         return true;
     }
 
-    bool LHLD(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool LHLD(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x2a;
 
@@ -660,7 +661,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool LXI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool LXI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x01 + GetNextDoubleRegister(source, true, true);
 
@@ -686,7 +687,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool MOV(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool MOV(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         //It has weird offsets, and the operand is vastly different depending on First Register and Second Register
         //Does not allow M,M.
@@ -712,7 +713,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool MVI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool MVI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x06 + (GetNextRegister(source) * 0x08);
         _Memory[1] = GetImmediate8(source);
@@ -720,19 +721,19 @@ namespace InternalAssembler
         return true;
     }
 
-    bool NOP(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool NOP(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x00;
         return true;
     }
 
-    bool ORA(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool ORA(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xb0 + GetNextRegister(source);
         return true;
     }
 
-    bool ORI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool ORI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xf6;
         _Memory[1] = GetImmediate8(source);
@@ -740,7 +741,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool OUT(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool OUT(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xd3;
         _Memory[1] = GetImmediate8(source);
@@ -748,126 +749,126 @@ namespace InternalAssembler
         return true;
     }
 
-    bool PCHL(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool PCHL(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xe9;
 
         return true;
     }
 
-    bool POP(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool POP(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xc1 + GetNextDoubleRegister(source, true, false, true);
 
         return true;
     }
 
-    bool PUSH(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool PUSH(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xc5 + GetNextDoubleRegister(source, true, false, true);
 
         return true;
     }
 
-    bool RAL(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RAL(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x17;
 
         return true;
     }
 
-    bool RAR(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RAR(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xf1;
 
         return true;
     }
 
-    bool RC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xd8;
 
         return true;
     }
 
-    bool RET(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RET(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xc9;
 
         return true;
     }
 
-    bool RIM(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RIM(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x20;
 
         return true;
     }
 
-    bool RLC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RLC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x07;
 
         return true;
     }
 
-    bool DSUB(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool DSUB(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x08;
 
         return true;
     }
 
-    bool RM(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RM(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xf8;
 
         return true;
     }
 
-    bool RNC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RNC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xd0;
 
         return true;
     }
 
-    bool RNZ(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RNZ(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xc0;
 
         return true;
     }
 
-    bool RP(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RP(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xf0;
 
         return true;
     }
 
-    bool RPE(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RPE(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xe8;
 
         return true;
     }
 
-    bool RPO(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RPO(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xe0;
 
         return true;
     }
 
-    bool RRC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RRC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x0f;
 
         return true;
     }
 
-    bool RST(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RST(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         //Just check next number.
 
@@ -912,21 +913,21 @@ namespace InternalAssembler
         return true;
     }
 
-    bool RZ(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool RZ(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xc8;
 
         return true;
     }
 
-    bool SBB(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool SBB(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x98 + GetNextRegister(source);
 
         return true;
     }
 
-    bool SBI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool SBI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xde;
         _Memory[1] = GetImmediate8(source);
@@ -934,7 +935,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool SHLD(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool SHLD(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x22;
         uint16_t addr = GetImmediate16(source);
@@ -948,21 +949,21 @@ namespace InternalAssembler
         return true;
     }
 
-    bool SIM(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool SIM(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x30;
 
         return true;
     }
 
-    bool SPHL(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool SPHL(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xf9;
 
         return true;
     }
 
-    bool STA(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool STA(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x32;
 
@@ -977,27 +978,27 @@ namespace InternalAssembler
         return true;
     }
 
-    bool STAX(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool STAX(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x02 + GetNextDoubleRegister(source, false);
         return true;
     }
 
-    bool STC(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool STC(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x37;
 
         return true;
     }
 
-    bool SUB(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool SUB(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0x90 + GetNextRegister(source);
 
         return true;
     }
 
-    bool SUI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool SUI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xd6;
         _Memory[1] = GetImmediate8(source);
@@ -1005,21 +1006,21 @@ namespace InternalAssembler
         return true;
     }
 
-    bool XCHG(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool XCHG(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xeb;
 
         return true;
     }
 
-    bool XRA(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool XRA(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xa8 + GetNextRegister(source);
 
         return true;
     }
 
-    bool XRI(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool XRI(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xee;
         _Memory[1] = GetImmediate8(source);
@@ -1027,7 +1028,7 @@ namespace InternalAssembler
         return true;
     }
 
-    bool XTHL(int bytes, SourceFile* source, uint8_t* _Memory)
+    bool XTHL(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
         _Memory[0] = 0xe3;
 

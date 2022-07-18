@@ -12,7 +12,7 @@ namespace InternalEmulator
 
     using namespace Emulator;
 
-    int bits_in(std::uint64_t u)
+    int bits_in(uint64_t u)
     {
         auto bs = std::bitset<64>(u);
         return bs.count();
