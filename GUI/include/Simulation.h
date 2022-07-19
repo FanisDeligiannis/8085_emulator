@@ -5,12 +5,13 @@
 #include <cstdint>
 #include <thread>
 #include <vector>
+#include <memory>
 
 #include "cpu.h"
 #include "assembler.h"
 
 namespace Simulation {
-	extern Emulator::CPU* cpu;
+	extern std::shared_ptr<Emulator::CPU> cpu;
 	extern std::thread t;
 
 	extern bool Paused;

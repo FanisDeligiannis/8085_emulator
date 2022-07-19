@@ -3,6 +3,7 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <memory>
 
 #include "memory.h"
 #include "stack.h"
@@ -19,6 +20,11 @@
 
 namespace Emulator
 {
+	enum ErrorCodes
+	{
+		None = 0,
+		EmptyStackPop = 1
+	};
 
 	//Clock speed it 3.2mhz
 	//We divide that in CLOCK_ACCURACY steps.
@@ -40,27 +46,29 @@ namespace Emulator
 		static CPU* cpu;
 
 		std::vector<int>& _Breakpoints;
-		uint16_t* _BreakpointsArr;
+		std::shared_ptr<uint16_t> _BreakpointsArr;
 		size_t _BreakpointsArrSize;
-		uint16_t* _Symbols;
+		std::shared_ptr<uint16_t> _Symbols;
 		size_t _SymbolSize;
 
+		ErrorCodes ErrorCode = None;
 
-		Memory* _Memory;
-		InternalEmulator::Stack* _Stack;
 
-		Register8* A;
-		Register8* B;
-		Register8* C;
-		Register8* D;
-		Register8* E;
-		Register8* H;
-		Register8* L;
+		std::shared_ptr<Memory> _Memory;
+		std::shared_ptr<InternalEmulator::Stack> _Stack;
 
-		Register8* Flags;
+		std::shared_ptr <Register8> A;
+		std::shared_ptr <Register8> B;
+		std::shared_ptr <Register8> C;
+		std::shared_ptr <Register8> D;
+		std::shared_ptr <Register8> E;
+		std::shared_ptr <Register8> H;
+		std::shared_ptr <Register8> L;
 
-		Register* PC;
-		Register* SP;
+		std::shared_ptr <Register8> Flags;
+
+		std::shared_ptr <Register> PC;
+		std::shared_ptr <Register> SP;
 
 	public:
 
@@ -82,10 +90,9 @@ namespace Emulator
 
 	public:
 
-		CPU(Memory* memory, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>>& symbols);
-		CPU(uint8_t* memory, size_t size, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols);
-		~CPU();
-
+		CPU(std::shared_ptr<Memory> memory, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>>& symbols);
+		CPU(std::shared_ptr<uint8_t> memory, size_t size, std::vector<int>& breakpoints, std::vector<std::pair<uint16_t, int>> symbols);
+		
 		void SetClock(int clock_speed, int accuracy);
 
 		bool Interrupts();
@@ -122,7 +129,7 @@ namespace Emulator
 			return _Halted;
 		}
 
-		inline Memory* GetMemory()
+		inline std::shared_ptr<Memory> GetMemory()
 		{
 			return _Memory;
 		}

@@ -1,11 +1,33 @@
 #pragma once
 
+#include "Windows/Window.h"
+
 #include "imgui.h"
 #include "Simulation.h"
 
-
-namespace RegistersWindow
+class RegistersWindow : public Window
 {
+private:
+	uint8_t A = 0;
+	uint8_t B = 0;
+	uint8_t C = 0;
+	uint8_t D = 0;
+	uint8_t E = 0;
+	uint8_t H = 0;
+	uint8_t L = 0;
+	uint8_t M = 0;
+
+	uint16_t PC = 0;
+	uint16_t SP = 0;
+
+	uint8_t Sign_flag = 0;
+	uint8_t Zero_flag = 0;
+	uint8_t Parity_flag = 0;
+	uint8_t Carry_flag = 0;
+
+	bool updating = false;
+
+private:
 	//Stupid IntToHex function.
 	inline std::string IntToHex(int num, const std::string prefix = "", int size = -1)
 	{
@@ -91,7 +113,16 @@ namespace RegistersWindow
 		return (prefix + result);
 	}
 
+public:
+	static RegistersWindow* Instance;
+
+public:
+	void Init() override 
+	{ 
+		Instance = this; 
+	}
+
 	void UpdateBuffers(bool force = false);
 
-	void Render();
-}
+	void Render() override;
+};

@@ -2028,6 +2028,13 @@ namespace InternalEmulator
 
     int POPB(int bytes)
     {
+        if (CPU::cpu->_Stack->GetSP() == 0xffff)
+        {
+            printf("Error: Trying to POP from empty stack!");
+            CPU::cpu->ErrorCode = ErrorCodes::EmptyStackPop;
+            HLT(0);
+        }
+
         CPU::cpu->C->SetUnsigned(CPU::cpu->_Stack->Pop());
         CPU::cpu->B->SetUnsigned(CPU::cpu->_Stack->Pop());
 

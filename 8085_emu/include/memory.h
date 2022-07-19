@@ -15,7 +15,7 @@ namespace Emulator
 	{
 	private:
 		size_t _Size;
-		uint8_t* _Data;
+		std::shared_ptr<uint8_t> _Data;
 	public:
 		Memory()
 		{
@@ -23,20 +23,13 @@ namespace Emulator
 			_Data = nullptr;
 		}
 
-		Memory(uint8_t* data, size_t size)
+		Memory(std::shared_ptr<uint8_t> data, size_t size)
 		{
 			_Size = size;
 			_Data = data;
 		}
 
-		~Memory()
-		{
-			//leave it up to the rest of the code to clean up
-			/*if(_Data != nullptr)
-				free(_Data);*/
-		}
-
-		void _SetData(uint8_t* data, size_t size)
+		void _SetData(std::shared_ptr<uint8_t> data, size_t size)
 		{
 			_Size = size;
 			_Data = data;
@@ -44,20 +37,20 @@ namespace Emulator
 
 		void SetDataAtAddr(uint16_t addr, uint8_t val)
 		{
-			_Data[addr] = val;
+			_Data.get()[addr] = val;
 		}
 
 		uint8_t GetDataAtAddr(uint16_t addr)
 		{
-			return _Data[addr];
+			return _Data.get()[addr];
 		}
 
 		void CopyToMemory(uint16_t addr, uint8_t* values, uint16_t size)
 		{
-			memcpy(_Data + addr, values, size);
+			memcpy(_Data.get() + addr, values, size);
 		}
 
-		uint8_t* GetData()
+		std::shared_ptr<uint8_t> GetData()
 		{
 			return _Data;
 		}

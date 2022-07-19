@@ -14,59 +14,50 @@ namespace InternalEmulator
 	{
 	private:
 		int _Size;
-		uint8_t* _Data;
-		uint16_t* _SP;
+		std::shared_ptr<uint8_t> _Data;
+		std::shared_ptr<uint16_t> _SP;
 	public:
 		Stack(int bits)
 		{
 			_Size = (int)pow(2, bits);
 			_Data = nullptr;
-			_SP = new uint16_t(_Size - 1);
+			_SP = std::shared_ptr<uint16_t>((uint16_t*)calloc(1, sizeof(uint16_t)), free);
+			*(_SP.get()) = _Size - 1;
 		}
 
 		~Stack() {}
 
-		void SetDataPointer(uint8_t* data)
+		void SetDataPointer(std::shared_ptr<uint8_t> data)
 		{
 			_Data = data;
 		}
 
 		void Push(uint8_t data)
 		{
-			_Data[*_SP] = data;
-			(*_SP)--;
+			_Data.get()[*(_SP.get())] = data;
+			(*(_SP.get()))--;
 		}
 
 		uint8_t Pop()
 		{
-			if (*_SP == 0xffff)
-			{
-#ifdef _DEBUG
-				printf("Trying to POP from stack when stack is empty!\n");
-#endif
-				//TODO: Error pop up or something??
-
-				return 0;
-			}
-
-			(*_SP)++;
-			uint8_t ret = _Data[*_SP];
-			_Data[*_SP] = 0;
+			(*(_SP.get()))++;
+			uint8_t ret = _Data.get()[*(_SP.get())];
+			_Data.get()[*(_SP.get())] = 0;
 
 			return ret;
 		}
 
 		uint16_t GetSP()
 		{
-			return *_SP;
+			return *(_SP.get());
 		}
 
-		uint16_t* GetSPPointer()
+		std::shared_ptr<uint16_t> GetSPPointer()
 		{
 			return _SP;
 		}
 
-		uint8_t* GetData()
+		std::shared_ptr<uint8_t> GetData()
 		{
 			return _Data;
 		}

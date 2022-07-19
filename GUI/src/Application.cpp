@@ -1,5 +1,6 @@
 #include "Application.h"
 
+#include <memory>
 #include <string>
 #include <fstream>
 #include <filesystem>
@@ -11,10 +12,13 @@
 #include "Texture.h"
 #include "Simulation.h"
 
-#include "Windows/CodeEditor.h"
-#include "Windows/Controls.h"
-#include "Windows/RegistersWindow.h"
-#include "Windows/HexEditor.h"
+#include "Windows/Window.h"
+
+#include "Windows/Core/CodeEditor.h"
+#include "Windows/Core/Controls.h"
+#include "Windows/Core/RegistersWindow.h"
+#include "Windows/Core/HexEditor.h"
+#include "Windows/Core/Popup.h"
 
 #include "Windows/Peripherals/Leds.h"
 #include "Windows/Peripherals/Switches.h"
@@ -24,6 +28,19 @@
 
 namespace Application
 {
+	std::vector<std::shared_ptr<Window>> Windows = {
+		std::make_shared<CodeEditor>(),
+		std::make_shared<Controls>(),
+		std::make_shared<Popup>(),
+		std::make_shared<HexEditor>(),
+		std::make_shared<RegistersWindow>(),
+		std::make_shared<SegmentDisplay>(),
+		std::make_shared<Beep8085>(),
+		std::make_shared<Keyboard>(),
+		std::make_shared<Leds>(),
+		std::make_shared<Switches>()
+	};
+
 	std::string DefaultFile = "";
 
 	float cpu_speed;
@@ -32,19 +49,16 @@ namespace Application
 	void Init()
 	{
 		Simulation::Init();
-		Controls::Init();
-		CodeEditor::Init();
-		HexEditor::Init();
 
-		SegmentDisplay::Init();
-		Keyboard::Init();
-		Leds::Init();
-		Switches::Init();
+		for (int i = 0; i < Windows.size(); i++)
+		{
+			Windows.at(i)->Init();
+		}
 
 		if (!DefaultFile.empty())
 		{
-			CodeEditor::FilePath = DefaultFile;
-			CodeEditor::TextEditorLoadFile(DefaultFile);
+			CodeEditor::Instance->FilePath = DefaultFile;
+			CodeEditor::Instance->TextEditorLoadFile(DefaultFile);
 		}
 
 		cpu_speed = (Simulation::GetClock() / 1000000.0f);
@@ -59,29 +73,22 @@ namespace Application
 		{
 			if (ImGui::BeginMenu("Windows"))
 			{
-				if (ImGui::MenuItem("Hex Editor", 0, HexEditor::_Open))
+				for (int i = 0; i < Windows.size(); i++)
 				{
-					HexEditor::Open();
-				}
-
-				if (ImGui::MenuItem("7 Segment Display", 0, SegmentDisplay::_Open))
-				{
-					SegmentDisplay::Open();
-				}
-
-				if (ImGui::MenuItem("Keyboard", 0, Keyboard::_Open))
-				{
-					Keyboard::Open();
-				}
-
-				if (ImGui::MenuItem("Leds", 0, Leds::_Open))
-				{
-					Leds::Open();
-				}
-
-				if (ImGui::MenuItem("Switches", 0, Switches::_Open))
-				{
-					Switches::Open();
+					if (Windows.at(i)->IncludeInWindows)
+					{
+						if (ImGui::MenuItem(Windows.at(i)->Name.c_str(), 0, Windows.at(i)->IsOpen()))
+						{
+							if (Windows.at(i)->IsOpen())
+							{
+								Windows.at(i)->Close();
+							}
+							else
+							{
+								Windows.at(i)->Open();
+							}
+						}
+					}
 				}
 
 				ImGui::EndMenu();
@@ -128,43 +135,34 @@ namespace Application
 			ImGui::EndMainMenuBar();
 		}
 
-
-		Switches::Render();
-		
-		SegmentDisplay::Render();
-
-		Leds::Render();
-
-		Controls::Render();
-
-		RegistersWindow::Render();
-
-		Keyboard::Render();
-
-		CodeEditor::Render();
-
-		HexEditor::Render();
+		for (int i = 0; i < Windows.size(); i++)
+		{
+			Windows.at(i)->Render();
+		}
 	}
 
 	void Update()
 	{
-		Beep8085::Update();
-
-		Keyboard::Update();
+		for (int i = 0; i < Windows.size(); i++)
+		{
+			Windows.at(i)->Update();
+		}
 	}
 
 	void SimulationStart()
 	{
-		Leds::SimulationStart();
-		Switches::SimulationStart();
-		SegmentDisplay::SimulationStart();
-		Beep8085::SimulationStart();
-		Keyboard::SimulationStart();
+		for (int i = 0; i < Windows.size(); i++)
+		{
+			Windows.at(i)->SimulationStart();
+		}
 	}
 
 	void PreDestroy()
 	{
-		CodeEditor::PreDestroy();
+		for (int i = 0; i < Windows.size(); i++)
+		{
+			Windows.at(i)->PreDestroy();
+		}
 	}
 
 	void Destroy()

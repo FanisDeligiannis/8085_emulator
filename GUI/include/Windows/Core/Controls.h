@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "Windows/Window.h"
+
 #include <imgui_internal.h>
 #include "imgui.h"
 
@@ -10,16 +12,19 @@
 #include "Simulation.h"
 #include "CodeEditor.h"
 
-namespace Controls
+class Controls : public Window
 {
 	//Pretty straight forward.
 	//Assemble, Step, INTR, Run, Stop, Pause buttons.
-
+private:
 	ImFont* _Font;
 
-	void Init()
+public:
+
+	void Init() override
 	{
 		_Font = LoadFont(35);
+		Name = "Controls";
 	}
 
 	bool Button(std::string text, bool condition = true, ImVec2 size = ImVec2(0,0))
@@ -41,7 +46,7 @@ namespace Controls
 		return ret;
 	}
 
-	void Render()
+	void Render() override
 	{
 		ImGui::Begin("Controls");
 		{
@@ -51,7 +56,9 @@ namespace Controls
 				!Simulation::GetRunning(), 
 				ImVec2(width, 40)))
 			{
-				Simulation::Assemble(CodeEditor::editor.GetText());
+				CodeEditor* ce = CodeEditor::Instance;
+				std::string code = ce->editor.GetText();
+				Simulation::Assemble(code);
 			}
 
 			ImGui::SameLine();
@@ -144,4 +151,4 @@ namespace Controls
 
 		ImGui::End();
 	}
-}
+};

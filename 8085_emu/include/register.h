@@ -90,20 +90,15 @@ namespace Emulator
 		//This time, _Data is a pointer
 		//This does not affect the use of Register at all outside of this class
 		//This is needed for SP, so we can point _Data to the ACTUAL stack pointer in _Stack.
-		uint16_t* _Data;
+		std::shared_ptr<uint16_t> _Data;
 
 	public:
 		Register()
 		{
-			_Data = new uint16_t();
+			_Data = std::shared_ptr<uint16_t>((uint16_t*)calloc(1, sizeof(uint16_t)), free);
 		}
 
-		~Register() //Need to delete it because it's a pointer
-		{
-			delete _Data;
-		}
-
-		void SetRef(uint16_t* ref) //Set the reference to point to
+		void SetRef(std::shared_ptr<uint16_t> ref) //Set the reference to point to
 		{
 			_Data = ref;
 		}
@@ -112,36 +107,36 @@ namespace Emulator
 
 		void Set(uint16_t value = 0xffff)
 		{
-			*_Data = value;
+			*(_Data.get()) = value;
 		}
 
 		void SetBit(uint8_t bit, int value = 1)
 		{
 			value &= 0x01;
 			if (value)
-				*_Data = *_Data | (1 << bit);
+				*(_Data.get()) = *(_Data.get()) | (1 << bit);
 			else
 				ClearBit(bit);
 		}
 
 		void Clear()
 		{
-			*_Data = 0;
+			*(_Data.get()) = 0;
 		}
 
 		void ClearBit(uint8_t bit)
 		{
-			*_Data = *_Data & (~(1 << bit));
+			*(_Data.get()) = *(_Data.get()) & (~(1 << bit));
 		}
 
 		void Increment()
 		{
-			(*_Data)++;
+			(*(_Data.get()))++;
 		}
 
 		void Decrement()
 		{
-			(*_Data)--;
+			(*(_Data.get()))--;
 		}
 
 		uint16_t Get()
@@ -151,17 +146,17 @@ namespace Emulator
 
 		uint8_t GetHigh()
 		{
-			return (*_Data) >> 8;
+			return (*(_Data.get())) >> 8;
 		}
 
 		uint8_t GetLow()
 		{
-			return (*_Data) & 0xff;
+			return (*(_Data.get())) & 0xff;
 		}
 
 		uint8_t GetBit(uint8_t bit)
 		{
-			return (*_Data >> bit) & 0x01;
+			return (*(_Data.get()) >> bit) & 0x01;
 		}
 	};
 }

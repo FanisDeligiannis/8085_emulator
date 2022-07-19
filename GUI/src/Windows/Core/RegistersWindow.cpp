@@ -1,27 +1,10 @@
-#include "Windows/RegistersWindow.h"
+#include "Windows/Core/RegistersWindow.h"
 
 #include "Backend/GUI_backend.h"
 
 //Basic Registers Window with buffers, using ImGui tables.
 
-uint8_t A = 0;
-uint8_t B = 0;
-uint8_t C = 0;
-uint8_t D = 0;
-uint8_t E = 0;
-uint8_t H = 0;
-uint8_t L = 0;
-uint8_t M = 0;
-
-uint16_t PC = 0;
-uint16_t SP = 0;
-
-uint8_t Sign_flag = 0;
-uint8_t Zero_flag = 0;
-uint8_t Parity_flag = 0;
-uint8_t Carry_flag = 0;
-
-bool updating = false;
+RegistersWindow* RegistersWindow::Instance;
 
 void RegistersWindow::UpdateBuffers(bool force)
 {

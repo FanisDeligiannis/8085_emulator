@@ -4,8 +4,8 @@
 
 #include "Application.h"
 #include "ConfigIni.h"
-#include "Windows/CodeEditor.h"
-#include "Windows/RegistersWindow.h"
+#include "Windows/Core/CodeEditor.h"
+#include "Windows/Core/RegistersWindow.h"
 
 namespace Simulation {
 	std::shared_ptr<Emulator::CPU> cpu;
@@ -142,7 +142,7 @@ namespace Simulation {
 	void thread()
 	{
 		//Create CPU.
-		cpu = std::make_shared<Emulator::CPU>(program.Memory, 0xffff, CodeEditor::editor._Breakpoints, program.Symbols);
+		cpu = std::make_shared<Emulator::CPU>(program.Memory, 0xffff, CodeEditor::Instance->editor._Breakpoints, program.Symbols);
 
 		cpu->SetClock(CPU_Speed, CPU_Accuracy);
 
@@ -231,7 +231,7 @@ namespace Simulation {
 		}
 		
 		//Update buffers before deleting CPU.
-		RegistersWindow::UpdateBuffers(true);
+		RegistersWindow::Instance->UpdateBuffers(true);
 
 		cpu = nullptr;
 		Paused = false;

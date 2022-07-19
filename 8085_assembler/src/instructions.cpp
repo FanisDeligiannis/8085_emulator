@@ -79,6 +79,7 @@ namespace InternalAssembler
             Error("Unknown Register: " + str.substr(0,1), source);
             return 0;
         }
+        return 0;
     }
 
     uint8_t GetNextDoubleRegister(std::shared_ptr<SourceFile> source, bool h, bool sp, bool psw)

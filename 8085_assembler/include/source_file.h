@@ -148,7 +148,7 @@ namespace InternalAssembler
 						//That means a string may contain spaces, commas and everything else, 
 						//But it may only be one line.
 
-						//TODO: (Probably should implement escape character)
+						//TODO: Probably should implement escape character
 						while (i < str.length() && str[i] != '\n' && str[i] != '\"')
 						{
 							word += str[i];
