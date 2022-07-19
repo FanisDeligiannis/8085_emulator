@@ -53,6 +53,7 @@ Feel free to report bugs, ask questions or request a feature in the Issues tab.
 - [ ] Don't crash when background stuff goes wrong
 - [ ] **DAA** instruction should calculate Carry flag.
 - [ ] Double-check if interrupts should be disabled while another interrupt is being handled. If so, should they be re-enabled automatically?
+- [ ] Greek characters support 
 
 # Performance
 
