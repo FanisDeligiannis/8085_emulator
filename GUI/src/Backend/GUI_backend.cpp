@@ -1,4 +1,4 @@
-#include "Backend/GUI_backend.h"
+﻿#include "Backend/GUI_backend.h"
 
 #include <fstream>
 #include <string>
@@ -22,6 +22,7 @@
 #include "../fonts/MonoLisa.cpp"
 #include "../fonts/SevenSegment.cpp"
 #include <thread>
+#include "../fonts/OpenSans.cpp"
 
 ImFont* _Font;
 int FontSize = 15;
@@ -32,6 +33,8 @@ bool _Closed = false;
 bool _PreparingClose = false;
 
 int _TargetFPS = 30;
+
+const ImWchar ranges[] = { 0x0020, 0x03ff, 0 };
 
 void CloseApplication()
 {
@@ -58,8 +61,8 @@ void SetFPS(int fps)
 ImFont* LoadFont(int size)
 {
     ImGuiIO io = ImGui::GetIO();
-    _Font = io.Fonts->AddFontFromMemoryCompressedTTF(MonoLisa_compressed_data, MonoLisa_compressed_size, size);
 
+    _Font = io.Fonts->AddFontFromMemoryCompressedTTF(MonoLisa_compressed_data, MonoLisa_compressed_size, size, 0, &ranges[0]);
 
     return _Font;
 }
@@ -337,6 +340,7 @@ int InitImGui()
         }*/
 
         //-------------
+        
         ImGui::PushFont(_Font);
 
         Application::ImGuiRender();

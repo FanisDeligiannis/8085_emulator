@@ -1,4 +1,4 @@
-#include "Windows/Core/CodeEditor.h"
+﻿#include "Windows/Core/CodeEditor.h"
 
 #include <fstream>
 #include <filesystem>
@@ -14,6 +14,7 @@
 #ifdef NFD
 #include "nfd.h"
 #endif
+#include "../../fonts/MonoLisa.cpp"
 
 CodeEditor* CodeEditor::Instance;
 
@@ -28,7 +29,7 @@ void CodeEditor::Init()
 	editor.SetShowWhitespaces(false);
 
 	InitialFontSize = ConfigIni::GetInt("CodeEditor", "FontSize", 20);
-	_Font = LoadFont(InitialFontSize);
+	_Font = LoadFont(InitialFontSize);	
 
 	FontSize = InitialFontSize;
 
@@ -254,6 +255,7 @@ bool CodeEditor::TextEditorSaveFile()
 	text = text.substr(0, text.length() - 1);
 
 	std::ofstream file;
+
 	file.open(FilePath, std::ios_base::out);
 
 	if (file.good())

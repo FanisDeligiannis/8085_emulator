@@ -1,4 +1,4 @@
-#ifdef _DIST
+﻿#ifdef _DIST
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
