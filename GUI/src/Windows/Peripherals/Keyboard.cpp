@@ -110,6 +110,8 @@ uint8_t GetKeys()
 
 void Keyboard::Init()
 {
+	Instance = this;
+
 	IncludeInWindows = true;
 	Name = "Keyboard";
 

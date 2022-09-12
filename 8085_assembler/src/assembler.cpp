@@ -110,7 +110,15 @@ namespace InternalAssembler
 			}
 			else
 			{
-				Error("Unable to compare literal and number.", source);
+				if (_operator == "EQ")
+				{
+					IfBuffer.push_back({ false, false });
+				}
+				else if (_operator == "NEQ")
+				{
+					IfBuffer.push_back({ true, false });
+				}
+				//Error("Unable to compare literal and number.", source);
 			}
 		}
 		else if (word == "ELSE")
@@ -125,8 +133,18 @@ namespace InternalAssembler
 			}
 			else
 			{
-				IfBuffer.at(IfBuffer.size() - 1).expression = !IfBuffer.at(IfBuffer.size() - 1).expression;
-				IfBuffer.at(IfBuffer.size() - 1).isElse = true;
+				bool res = true;
+				for (int i = 0; i < IfBuffer.size(); i++)
+				{
+					if (IfBuffer.at(i).expression && !IfBuffer.at(i).isElse)
+					{
+						res = false;
+						break;
+					}
+				}
+				/*IfBuffer.at(IfBuffer.size() - 1).expression = res;
+				IfBuffer.at(IfBuffer.size() - 1).isElse = true;*/
+				IfBuffer.push_back({ res, true });
 			}
 		}
 		else if (word == "ENDIF")
@@ -137,6 +155,8 @@ namespace InternalAssembler
 			}
 			else
 			{
+				if (IfBuffer.at(IfBuffer.size() - 1).isElse)
+					IfBuffer.pop_back();
 				IfBuffer.pop_back();
 			}
 		}
@@ -363,6 +383,11 @@ namespace InternalAssembler
 
 			std::shared_ptr<SourceFile> bl = std::make_shared<SourceFile>(Bootloader);
 			parse(bl, result, false, true);
+
+			for (int i = 0; i < bl->_Equ.size(); i++)
+			{
+				source->_Equ.push_back(bl->_Equ.at(i));
+			}
 
 			result.Symbols.clear();
 		}
@@ -594,7 +619,7 @@ namespace InternalAssembler
 			}
 		}
 
-		if (!scanning)
+		if (!scanning && !bootloader)
 		{
 			while (result.Macros.size() > 0)
 			{

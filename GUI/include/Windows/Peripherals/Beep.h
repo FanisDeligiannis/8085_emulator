@@ -28,6 +28,8 @@ public:
 	std::thread t;
 
 public:
+	void Init() override { Instance = this; }
+
 	void SimulationStart() override;
-	void Update() override;
+	void Render() override;
 };

@@ -10,6 +10,8 @@ Leds* Leds::Instance;
 
 void Leds::Init() 
 {
+	Instance = this;
+
 	IncludeInWindows = true;
 	Name = "Leds";
 

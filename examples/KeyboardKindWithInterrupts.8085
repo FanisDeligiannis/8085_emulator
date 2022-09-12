@@ -33,4 +33,6 @@ RST55_ROUTINE:
 	
 	POP PSW ; Get back our PSW
 	
+	EI ; Re-enable interrupt
+	
 	RET ; Always return after an interrupt

@@ -701,7 +701,7 @@ namespace InternalAssembler
             {
                 Error("MOV M,M is invalid", source);
             }
-            _Memory[0] = 0x70 + firstR;
+            _Memory[0] = 0x70 + secondR;
         }
         else if (secondR == 6)
         {

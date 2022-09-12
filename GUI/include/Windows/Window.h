@@ -18,6 +18,7 @@ public:
 
 	virtual void Init() {}
 	virtual void SimulationStart() {}
+	virtual void SimulationEnd() {}
 	virtual void Render() {}
 	virtual void Update() {}
 	virtual void PreDestroy() {}

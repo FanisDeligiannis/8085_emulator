@@ -307,7 +307,7 @@ int InitImGui()
     _Font = LoadFont(14);
     _SevenSegmentFont = io.Fonts->AddFontFromMemoryCompressedTTF(SevenSegment_compressed_data, SevenSegment_compressed_size, 50);
 
-    double lasttime = glfwGetTime();
+    auto _StartOfFrame = std::chrono::system_clock::now();
 
     // Main loop
     while (!_Closed)
@@ -333,11 +333,11 @@ int InitImGui()
 
         ImGui::NewFrame();
 
-      /*  {
-            ImGui::Begin("Framerate");
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-            ImGui::End();
-        }*/
+        //{
+        //    ImGui::Begin("Framerate");
+        //    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+        //    ImGui::End();
+        //}
 
         //-------------
         
@@ -371,11 +371,8 @@ int InitImGui()
 
         glfwSwapBuffers(window);
 
-        while (glfwGetTime() < lasttime + 1.0 / _TargetFPS) {
-            Application::Update();
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        lasttime = glfwGetTime();
+        _StartOfFrame += std::chrono::milliseconds(1000 / _TargetFPS);
+        std::this_thread::sleep_until(_StartOfFrame);
     }
 
     Application::Destroy();

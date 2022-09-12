@@ -8,6 +8,8 @@ Switches* Switches::Instance;
 
 void Switches::Init()
 {
+	Instance = this;
+
 	Name = "Switches";
 	IncludeInWindows = true;
 

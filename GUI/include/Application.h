@@ -12,6 +12,7 @@ namespace Application
 	void Update();
 
 	void SimulationStart();
+	void SimulationEnd();
 
 	void PreDestroy();
 	void Destroy();

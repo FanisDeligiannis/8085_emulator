@@ -4,9 +4,6 @@
 
 namespace InternalAssembler
 {
-
-	//This is my bootloader of 8085.
-
 	std::string Bootloader = R"(
 
 RST0 EQU 0000H

@@ -95,6 +95,8 @@ namespace Simulation {
 			t.join();
 			//t.detach();
 		}
+
+		Application::SimulationEnd();
 	}
 
 	void Pause()

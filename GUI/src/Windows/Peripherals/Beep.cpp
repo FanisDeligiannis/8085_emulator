@@ -81,7 +81,7 @@ void Beep8085::SimulationStart()
 
 }
 
-void Beep8085::Update() 
+void Beep8085::Render() 
 {
 	if (Simulation::GetRunning() && set0 && set1 && set2 && set3)
 	{

@@ -40,6 +40,7 @@ void Show(uint8_t val)
 void SegmentDisplay::Init() 
 {
 	Instance = this;
+
 	Name = "7 Segment Display";
 	IncludeInWindows = true;
 

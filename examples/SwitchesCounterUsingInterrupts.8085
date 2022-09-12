@@ -24,6 +24,8 @@ HALT_FOREVER:
 
 INTR_ROUTINE:
 	CALL COUNT ; Call count
+	
+	EI
 
 	RET ; Return to where we were in the program
 

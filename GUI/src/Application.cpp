@@ -141,7 +141,7 @@ namespace Application
 		}
 	}
 
-	void Update()
+	void Update() // Never fired rn.
 	{
 		for (int i = 0; i < Windows.size(); i++)
 		{
@@ -154,6 +154,14 @@ namespace Application
 		for (int i = 0; i < Windows.size(); i++)
 		{
 			Windows.at(i)->SimulationStart();
+		}
+	}
+
+	void SimulationEnd()
+	{
+		for (int i = 0; i < Windows.size(); i++)
+		{
+			Windows.at(i)->SimulationEnd();
 		}
 	}
 

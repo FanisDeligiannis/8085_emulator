@@ -73,13 +73,17 @@ namespace InternalAssembler
 		if (_Arguments.size() > passedArguments.size())
 		{
 			if (!scanning)
-				Error("Expected more arguments", _Source);
+			{
+				//Error("Expected more arguments", _Source);
+				Error("Expected more arguments", source);
+			}
 			return currentAddr;
 		}
 		else if (_Arguments.size() < passedArguments.size())
 		{
 			if (!scanning)
-				Error("Expected fewer arguments", _Source);
+				//Error("Expected fewer arguments", _Source);
+				Error("Expected fewer arguments", source);
 			return currentAddr;
 		}
 		else
@@ -274,7 +278,30 @@ namespace InternalAssembler
 			}
 			else
 			{
-				if (!scanning)
+				found = false;
+
+				for (int i = 0; i < result.Macros.size(); i++)
+				{
+					if (result.Macros.at(i)->Name == word)
+					{
+						found = true;
+						if (scanning)
+						{
+							currentAddr = result.Macros.at(i)->Parse(source, currentAddr, result, true);
+						}
+						else
+						{
+							currentAddr = result.Macros.at(i)->Parse(source, currentAddr, result);
+
+							for (int j = 0; j < result.Macros.at(i)->GetSymbols().size(); j++)
+							{
+								Symbols.push_back(result.Macros.at(i)->GetSymbols().at(j)); // Get the Symbols from inside the MACRO.
+							}
+						}
+					}
+				}
+
+				if (!found && !scanning)
 				{
 					Error("Unexpected " + word, source);
 					Error("Error in MACRO", ogSource);
