@@ -1366,7 +1366,7 @@ namespace InternalEmulator
 
     int LHLDAddress(int bytes)
     {
-        uint16_t addr = GetDEUnsigned();
+        uint16_t addr = GetNextPC16();
 
         CPU::cpu->L->SetUnsigned(CPU::cpu->GetMemory()->GetDataAtAddr(addr));
         CPU::cpu->H->SetUnsigned(CPU::cpu->GetMemory()->GetDataAtAddr(addr+1));

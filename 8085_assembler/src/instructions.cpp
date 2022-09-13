@@ -650,9 +650,10 @@ namespace InternalAssembler
     {
         _Memory[0] = 0x2a;
 
-        std::string label = source->Next();
+        //std::string label = source->Next();
+        //uint16_t addr = FindLabel(label, source);
+        uint16_t addr = GetImmediate16(source);
 
-        uint16_t addr = FindLabel(label, source);
 
         uint8_t HIGH = (addr >> 8) & 0xff;
         uint8_t LOW = addr & 0xff;
