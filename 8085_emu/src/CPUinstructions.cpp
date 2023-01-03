@@ -159,7 +159,7 @@ namespace InternalEmulator
 
         cpu->SetFlags(
             result < 0,
-            result != 0,
+            result == 0,
             (result4 & 0xf0) > 0,
             !(bits_in(*(uint8_t*)&result) % 2),
             (result16 & 0b100000000) > 0
@@ -182,7 +182,7 @@ namespace InternalEmulator
 
         cpu->SetFlags(
             result < 0,
-            result != 0,
+            result == 0,
             (result4 & 0xf0) > 0,
             !(bits_in(*(uint8_t*)&result) % 2),
             (result16 & 0b100000000) > 0
@@ -206,7 +206,7 @@ namespace InternalEmulator
         //TODO CHECK FLAGS HERE
         cpu->SetFlags(
             0,
-            result != 0,
+            result == 0,
             (result4 & 0xf0) > 0,
             !(bits_in(result) % 2),
             (result16 & 0b100000000) > 0
@@ -226,7 +226,7 @@ namespace InternalEmulator
 
         cpu->SetFlags(
             (result & 0b10000000) > 0,
-            result != 0,
+            result == 0,
             0,
             !(bits_in(*(uint8_t*)&result) % 2),
             0
@@ -1939,7 +1939,7 @@ namespace InternalEmulator
 
         CPU::cpu->SetFlags(
             (result & 0b10000000) > 0,
-            result != 0,
+            result == 0,
             0,
             !(bits_in(*(uint8_t*)&result) % 2),
             0
@@ -1956,7 +1956,7 @@ namespace InternalEmulator
 
         CPU::cpu->SetFlags(
             (result & 0b10000000) > 0,
-            result != 0,
+            result == 0,
             0,
             !(bits_in(*(uint8_t*)&result) % 2),
             0
@@ -1972,7 +1972,7 @@ namespace InternalEmulator
 
         CPU::cpu->SetFlags(
             (result & 0b10000000) > 0,
-            result != 0,
+            result == 0,
             0,
             !(bits_in(*(uint8_t*)&result) % 2),
             0
@@ -1989,7 +1989,7 @@ namespace InternalEmulator
 
         CPU::cpu->SetFlags(
             (result & 0b10000000) > 0,
-            result != 0,
+            result == 0,
             0,
             !(bits_in(*(uint8_t*)&result) % 2),
             0
@@ -2006,7 +2006,7 @@ namespace InternalEmulator
 
         CPU::cpu->SetFlags(
             (result & 0b10000000) > 0,
-            result != 0,
+            result == 0,
             0,
             !(bits_in(*(uint8_t*)&result) % 2),
             0
@@ -2023,7 +2023,7 @@ namespace InternalEmulator
 
         CPU::cpu->SetFlags(
             (result & 0b10000000) > 0,
-            result != 0,
+            result == 0,
             0,
             !(bits_in(*(uint8_t*)&result) % 2),
             0
@@ -2040,7 +2040,7 @@ namespace InternalEmulator
 
         CPU::cpu->SetFlags(
             (result & 0b10000000) > 0,
-            result != 0,
+            result == 0,
             0,
             !(bits_in(*(uint8_t*)&result) % 2),
             0
@@ -2057,7 +2057,7 @@ namespace InternalEmulator
 
         CPU::cpu->SetFlags(
             (result & 0b10000000) > 0,
-            result != 0,
+            result == 0,
             0,
             !(bits_in(*(uint8_t*)&result) % 2),
             0
@@ -2074,7 +2074,7 @@ namespace InternalEmulator
 
         CPU::cpu->SetFlags(
             (result & 0b10000000) > 0,
-            result != 0,
+            result == 0,
             0,
             !(bits_in(*(uint8_t*)&result) % 2),
             0
