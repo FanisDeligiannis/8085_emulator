@@ -1934,63 +1934,151 @@ namespace InternalEmulator
 
     int ORAA(int bytes)
     {
-        CPU::cpu->A->SetUnsigned(CPU::cpu->A->GetUnsigned() | CPU::cpu->A->GetUnsigned());
+        uint8_t result = CPU::cpu->A->GetUnsigned() | CPU::cpu->A->GetUnsigned();
+        CPU::cpu->A->SetUnsigned(result);
+
+        CPU::cpu->SetFlags(
+            (result & 0b10000000) > 0,
+            result != 0,
+            0,
+            !(bits_in(*(uint8_t*)&result) % 2),
+            0
+        );
 
         return 4;
     }
 
     int ORAB(int bytes)
     {
-        CPU::cpu->A->SetUnsigned(CPU::cpu->A->GetUnsigned() | CPU::cpu->B->GetUnsigned());
+        uint8_t result = CPU::cpu->A->GetUnsigned() | CPU::cpu->B->GetUnsigned();
+
+        CPU::cpu->A->SetUnsigned(result);
+
+        CPU::cpu->SetFlags(
+            (result & 0b10000000) > 0,
+            result != 0,
+            0,
+            !(bits_in(*(uint8_t*)&result) % 2),
+            0
+        );
 
         return 4;
     }
 
     int ORAC(int bytes)
     {
-        CPU::cpu->A->SetUnsigned(CPU::cpu->A->GetUnsigned() | CPU::cpu->C->GetUnsigned());
+        uint8_t result = CPU::cpu->A->GetUnsigned() | CPU::cpu->C->GetUnsigned();
+        CPU::cpu->A->SetUnsigned(result);
+
+        CPU::cpu->SetFlags(
+            (result & 0b10000000) > 0,
+            result != 0,
+            0,
+            !(bits_in(*(uint8_t*)&result) % 2),
+            0
+        );
 
         return 4;
     }
 
     int ORAD(int bytes)
     {
-        CPU::cpu->A->SetUnsigned(CPU::cpu->A->GetUnsigned() | CPU::cpu->D->GetUnsigned());
+        uint8_t result = CPU::cpu->A->GetUnsigned() | CPU::cpu->D->GetUnsigned();
+
+        CPU::cpu->A->SetUnsigned(result);
+
+        CPU::cpu->SetFlags(
+            (result & 0b10000000) > 0,
+            result != 0,
+            0,
+            !(bits_in(*(uint8_t*)&result) % 2),
+            0
+        );
 
         return 4;
     }
 
     int ORAE(int bytes)
     {
-        CPU::cpu->A->SetUnsigned(CPU::cpu->A->GetUnsigned() | CPU::cpu->E->GetUnsigned());
+        uint8_t result = CPU::cpu->A->GetUnsigned() | CPU::cpu->E->GetUnsigned();
+
+        CPU::cpu->A->SetUnsigned(result);
+
+        CPU::cpu->SetFlags(
+            (result & 0b10000000) > 0,
+            result != 0,
+            0,
+            !(bits_in(*(uint8_t*)&result) % 2),
+            0
+        );
 
         return 4;
     }
 
     int ORAH(int bytes)
     {
-        CPU::cpu->A->SetUnsigned(CPU::cpu->A->GetUnsigned() | CPU::cpu->H->GetUnsigned());
+        uint8_t result = CPU::cpu->A->GetUnsigned() | CPU::cpu->H->GetUnsigned();
+
+        CPU::cpu->A->SetUnsigned(result);
+
+        CPU::cpu->SetFlags(
+            (result & 0b10000000) > 0,
+            result != 0,
+            0,
+            !(bits_in(*(uint8_t*)&result) % 2),
+            0
+        );
 
         return 4;
     }
 
     int ORAL(int bytes)
     {
-        CPU::cpu->A->SetUnsigned(CPU::cpu->A->GetUnsigned() | CPU::cpu->L->GetUnsigned());
+        uint8_t result = CPU::cpu->A->GetUnsigned() | CPU::cpu->L->GetUnsigned();
+
+        CPU::cpu->A->SetUnsigned(result);
+
+        CPU::cpu->SetFlags(
+            (result & 0b10000000) > 0,
+            result != 0,
+            0,
+            !(bits_in(*(uint8_t*)&result) % 2),
+            0
+        );
 
         return 4;
     }
 
     int ORAM(int bytes)
     {
-        CPU::cpu->A->SetUnsigned(CPU::cpu->A->GetUnsigned() | CPU::cpu->GetUnsignedM());
+        uint8_t result = CPU::cpu->A->GetUnsigned() | CPU::cpu->GetUnsignedM();
+
+        CPU::cpu->A->SetUnsigned(result);
+
+        CPU::cpu->SetFlags(
+            (result & 0b10000000) > 0,
+            result != 0,
+            0,
+            !(bits_in(*(uint8_t*)&result) % 2),
+            0
+        );
 
         return 7;
     }
 
     int ORIData(int bytes)
     {
-        CPU::cpu->A->SetUnsigned(CPU::cpu->A->GetUnsigned() | CPU::cpu->NextPC());
+        uint8_t result = CPU::cpu->A->GetUnsigned() | CPU::cpu->NextPC();
+
+        CPU::cpu->A->SetUnsigned(result);
+
+        CPU::cpu->SetFlags(
+            (result & 0b10000000) > 0,
+            result != 0,
+            0,
+            !(bits_in(*(uint8_t*)&result) % 2),
+            0
+        );
 
         return 7;
     }
