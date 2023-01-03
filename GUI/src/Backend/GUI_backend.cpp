@@ -146,6 +146,11 @@ Size=303,159
 Collapsed=0
 DockId=0x0000000F,2
 
+[Window][Debug##Default]
+Pos=60,60
+Size=400,400
+Collapsed=0
+
 [Table][0xA1CC17D3,4]
 Column 0  Weight=1.0000
 Column 1  Weight=1.0000
@@ -176,7 +181,7 @@ DockSpace           ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,43 Size=1920,989 Split
       DockNode      ID=0x00000007 Parent=0x00000004 SizeRef=303,554 Split=Y Selected=0xEAEE9E08
         DockNode    ID=0x00000006 Parent=0x00000007 SizeRef=305,343 Split=Y Selected=0x67284010
           DockNode  ID=0x00000009 Parent=0x00000006 SizeRef=311,181 Selected=0x67284010
-          DockNode  ID=0x0000000F Parent=0x00000006 SizeRef=311,159 Selected=0x7C6F5AC1
+          DockNode  ID=0x0000000F Parent=0x00000006 SizeRef=311,159 Selected=0xEAEE9E08
         DockNode    ID=0x0000000A Parent=0x00000007 SizeRef=305,209 Split=Y Selected=0x8F1A5834
           DockNode  ID=0x0000000C Parent=0x0000000A SizeRef=305,101 Selected=0x8F1A5834
           DockNode  ID=0x0000000D Parent=0x0000000A SizeRef=305,106 Selected=0xCF60CDE8

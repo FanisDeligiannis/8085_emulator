@@ -17,6 +17,7 @@
 #include "Windows/Core/CodeEditor.h"
 #include "Windows/Core/Controls.h"
 #include "Windows/Core/RegistersWindow.h"
+#include "Windows/Core/RegistersBinary.h"
 #include "Windows/Core/HexEditor.h"
 #include "Windows/Core/Popup.h"
 
@@ -34,6 +35,7 @@ namespace Application
 		std::make_shared<Popup>(),
 		std::make_shared<HexEditor>(),
 		std::make_shared<RegistersWindow>(),
+		std::make_shared<RegistersBinary>(),
 		std::make_shared<SegmentDisplay>(),
 		std::make_shared<Beep8085>(),
 		std::make_shared<Keyboard>(),

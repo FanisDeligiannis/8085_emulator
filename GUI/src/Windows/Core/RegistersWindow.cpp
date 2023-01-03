@@ -1,55 +1,14 @@
 #include "Windows/Core/RegistersWindow.h"
 
-#include "Backend/GUI_backend.h"
+#include "RegistersBuffer.h"
 
-#include <bitset>
+#include "Backend/GUI_backend.h"
 
 //Basic Registers Window with buffers, using ImGui tables.
 
-RegistersWindow* RegistersWindow::Instance;
-
-void RegistersWindow::UpdateBuffers(bool force)
-{
-	if (!force && updating) // For thread safety reasons
-		return;
-
-	//If one thread is already updating buffers, just give up.
-
-	//But if force=true, don't give up, wait for it to be done updating.
-	while (force && updating);
-
-	updating = true;
-
-	if (force) {  }
-	else if (Simulation::cpu == nullptr || !Simulation::GetRunning())
-	{
-		updating = false;
-		return;
-	}
-
-	A = Simulation::cpu->A->GetUnsigned();
-	B = Simulation::cpu->B->GetUnsigned();
-	C = Simulation::cpu->C->GetUnsigned();
-	D = Simulation::cpu->D->GetUnsigned();
-	E = Simulation::cpu->E->GetUnsigned();
-	H = Simulation::cpu->H->GetUnsigned();
-	L = Simulation::cpu->L->GetUnsigned();
-	M = Simulation::cpu->GetUnsignedM();
-
-	Sign_flag = Simulation::cpu->Flags->GetBit(SIGN_FLAG);
-	Zero_flag = Simulation::cpu->Flags->GetBit(ZERO_FLAG);
-	Parity_flag = Simulation::cpu->Flags->GetBit(PARITY_FLAG);
-	Carry_flag = Simulation::cpu->Flags->GetBit(CARRY_FLAG);
-
-	PC = Simulation::cpu->PC->Get();
-	SP = Simulation::cpu->SP->Get();
-
-	updating = false;
-}
-
 void RegistersWindow::Render()
 {
-	UpdateBuffers();	
+	RegistersBuffer::UpdateBuffers();
 
 	ImGui::Begin("Dec");
 	{
@@ -81,25 +40,25 @@ void RegistersWindow::Render()
 			ImGui::TableNextRow();
 
 			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%03hhu", A);
+			ImGui::Text("%03hhu", RegistersBuffer::A);
 
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%03hhu", B);
+			ImGui::Text("%03hhu", RegistersBuffer::B);
 
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%03hhu", C);
+			ImGui::Text("%03hhu", RegistersBuffer::C);
 
 			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%03hhu", D);
+			ImGui::Text("%03hhu", RegistersBuffer::D);
 
 			ImGui::TableSetColumnIndex(4);
-			ImGui::Text("%03hhu", E);
+			ImGui::Text("%03hhu", RegistersBuffer::E);
 
 			ImGui::TableSetColumnIndex(5);
-			ImGui::Text("%03hhu", H);
+			ImGui::Text("%03hhu", RegistersBuffer::H);
 
 			ImGui::TableSetColumnIndex(6);
-			ImGui::Text("%03hhu", L);
+			ImGui::Text("%03hhu", RegistersBuffer::L);
 
 			ImGui::EndTable();
 		}
@@ -130,22 +89,22 @@ void RegistersWindow::Render()
 			ImGui::TableNextRow();
 
 			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%03hhu", M);
+			ImGui::Text("%03hhu", RegistersBuffer::M);
 
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%d", Sign_flag);
+			ImGui::Text("%d", RegistersBuffer::Sign_flag);
 
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%d", Zero_flag);
+			ImGui::Text("%d", RegistersBuffer::Zero_flag);
 
 			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%d", Parity_flag);
+			ImGui::Text("%d", RegistersBuffer::Parity_flag);
 
 			ImGui::TableSetColumnIndex(4);
-			ImGui::Text("%d", Carry_flag);
+			ImGui::Text("%d", RegistersBuffer::Carry_flag);
 
 			ImGui::TableSetColumnIndex(5);
-			ImGui::Text("%04X", PC);
+			ImGui::Text("%04X", RegistersBuffer::PC);
 
 			ImGui::EndTable();
 		}
@@ -169,16 +128,16 @@ void RegistersWindow::Render()
 			ImGui::TableNextRow();
 
 			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%05hu", (B << 8) | (C));
+			ImGui::Text("%05hu", (RegistersBuffer::B << 8) | (RegistersBuffer::C));
 
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%05hu", (D << 8) | (E));
+			ImGui::Text("%05hu", (RegistersBuffer::D << 8) | (RegistersBuffer::E));
 
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%05hu", (H << 8) | (L));
+			ImGui::Text("%05hu", (RegistersBuffer::H << 8) | (RegistersBuffer::L));
 
 			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%04X", SP);
+			ImGui::Text("%04X", RegistersBuffer::SP);
 
 
 			ImGui::EndTable();
@@ -216,25 +175,25 @@ void RegistersWindow::Render()
 			ImGui::TableNextRow();
 
 			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%03hhd", A);
+			ImGui::Text("%03hhd", RegistersBuffer::A);
 
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%03hhd", B);
+			ImGui::Text("%03hhd", RegistersBuffer::B);
 
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%03hhd", C);
+			ImGui::Text("%03hhd", RegistersBuffer::C);
 
 			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%03hhd", D);
+			ImGui::Text("%03hhd", RegistersBuffer::D);
 
 			ImGui::TableSetColumnIndex(4);
-			ImGui::Text("%03hhd", E);
+			ImGui::Text("%03hhd", RegistersBuffer::E);
 
 			ImGui::TableSetColumnIndex(5);
-			ImGui::Text("%03hhd", H);
+			ImGui::Text("%03hhd", RegistersBuffer::H);
 
 			ImGui::TableSetColumnIndex(6);
-			ImGui::Text("%03hhd", L);
+			ImGui::Text("%03hhd", RegistersBuffer::L);
 
 			ImGui::EndTable();
 		}
@@ -263,22 +222,22 @@ void RegistersWindow::Render()
 			ImGui::TableNextRow();
 
 			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%03hhd", M);
+			ImGui::Text("%03hhd", RegistersBuffer::M);
 
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%d", Sign_flag);
+			ImGui::Text("%d", RegistersBuffer::Sign_flag);
 
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%d", Zero_flag);
+			ImGui::Text("%d", RegistersBuffer::Zero_flag);
 
 			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%d", Parity_flag);
+			ImGui::Text("%d", RegistersBuffer::Parity_flag);
 
 			ImGui::TableSetColumnIndex(4);
-			ImGui::Text("%d", Carry_flag);
+			ImGui::Text("%d", RegistersBuffer::Carry_flag);
 
 			ImGui::TableSetColumnIndex(5);
-			ImGui::Text("%04X", PC);
+			ImGui::Text("%04X", RegistersBuffer::PC);
 
 			ImGui::EndTable();
 		}
@@ -302,16 +261,16 @@ void RegistersWindow::Render()
 			ImGui::TableNextRow();
 
 			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%05hd", (B << 8) | (C));
+			ImGui::Text("%05hd", (RegistersBuffer::B << 8) | (RegistersBuffer::C));
 
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%05hd", (D << 8) | (E));
+			ImGui::Text("%05hd", (RegistersBuffer::D << 8) | (RegistersBuffer::E));
 
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%05hd", (H << 8) | (L));
+			ImGui::Text("%05hd", (RegistersBuffer::H << 8) | (RegistersBuffer::L));
 
 			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%04X", SP);
+			ImGui::Text("%04X", RegistersBuffer::SP);
 
 			ImGui::EndTable();
 		}
@@ -350,25 +309,25 @@ void RegistersWindow::Render()
 			ImGui::TableNextRow();
 
 			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%02X", A);
+			ImGui::Text("%02X", RegistersBuffer::A);
 
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%02X", B);
+			ImGui::Text("%02X", RegistersBuffer::B);
 
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%02X", C);
+			ImGui::Text("%02X", RegistersBuffer::C);
 
 			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%02X", D);
+			ImGui::Text("%02X", RegistersBuffer::D);
 
 			ImGui::TableSetColumnIndex(4);
-			ImGui::Text("%02X", E);
+			ImGui::Text("%02X", RegistersBuffer::E);
 
 			ImGui::TableSetColumnIndex(5);
-			ImGui::Text("%02X", H);
+			ImGui::Text("%02X", RegistersBuffer::H);
 
 			ImGui::TableSetColumnIndex(6);
-			ImGui::Text("%02X", L);
+			ImGui::Text("%02X", RegistersBuffer::L);
 
 			ImGui::EndTable();
 		}
@@ -398,22 +357,22 @@ void RegistersWindow::Render()
 			ImGui::TableNextRow();
 
 			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%02X", M);
+			ImGui::Text("%02X", RegistersBuffer::M);
 
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%d", Sign_flag);
+			ImGui::Text("%d", RegistersBuffer::Sign_flag);
 
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%d", Zero_flag);
+			ImGui::Text("%d", RegistersBuffer::Zero_flag);
 
 			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%d", Parity_flag);
+			ImGui::Text("%d", RegistersBuffer::Parity_flag);
 
 			ImGui::TableSetColumnIndex(4);
-			ImGui::Text("%d", Carry_flag);
+			ImGui::Text("%d", RegistersBuffer::Carry_flag);
 
 			ImGui::TableSetColumnIndex(5);
-			ImGui::Text("%04X", PC);
+			ImGui::Text("%04X", RegistersBuffer::PC);
 
 			ImGui::EndTable();
 		}
@@ -437,150 +396,16 @@ void RegistersWindow::Render()
 			ImGui::TableNextRow();
 
 			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%04X", (B << 8) | (C));
+			ImGui::Text("%04X", (RegistersBuffer::B << 8) | (RegistersBuffer::C));
 
 			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%04X", (D << 8) | (E));
+			ImGui::Text("%04X", (RegistersBuffer::D << 8) | (RegistersBuffer::E));
 
 			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%04X", (H << 8) | (L));
+			ImGui::Text("%04X", (RegistersBuffer::H << 8) | (RegistersBuffer::L));
 
 			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%04X", SP);
-
-			ImGui::EndTable();
-		}
-	}
-	ImGui::End();
-
-	ImGui::Begin("Binary");
-	{
-		if (ImGui::BeginTable("RegistersBin", 7, ImGuiTableFlags_Borders))
-		{
-			ImGui::TableNextRow();
-
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("A");
-
-			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("B");
-
-			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("C");
-
-			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("D");
-
-			ImGui::TableSetColumnIndex(4);
-			ImGui::Text("E");
-
-			ImGui::TableSetColumnIndex(5);
-			ImGui::Text("H");
-
-			ImGui::TableSetColumnIndex(6);
-			ImGui::Text("L");
-
-
-			ImGui::TableNextRow();
-
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%s", std::bitset<8>(A).to_string().c_str());
-
-			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%s", std::bitset<8>(B).to_string().c_str());
-
-			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%s", std::bitset<8>(C).to_string().c_str());
-
-			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%s", std::bitset<8>(D).to_string().c_str());
-
-			ImGui::TableSetColumnIndex(4);
-			ImGui::Text("%s", std::bitset<8>(E).to_string().c_str());
-
-			ImGui::TableSetColumnIndex(5);
-			ImGui::Text("%s", std::bitset<8>(H).to_string().c_str());
-
-			ImGui::TableSetColumnIndex(6);
-			ImGui::Text("%s", std::bitset<8>(L).to_string().c_str());
-
-			ImGui::EndTable();
-		}
-
-		if (ImGui::BeginTable("Flags-PC-SPBin", 6, ImGuiTableFlags_Borders))
-		{
-			ImGui::TableNextRow();
-
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("M");
-
-			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("S");
-
-			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("Z");
-
-			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("P");
-
-			ImGui::TableSetColumnIndex(4);
-			ImGui::Text("Cy");
-
-			ImGui::TableSetColumnIndex(5);
-			ImGui::Text("PC");
-
-			ImGui::TableNextRow();
-
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%s", std::bitset<8>(M).to_string().c_str());
-
-			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%d", Sign_flag);
-
-			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%d", Zero_flag);
-
-			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%d", Parity_flag);
-
-			ImGui::TableSetColumnIndex(4);
-			ImGui::Text("%d", Carry_flag);
-
-			ImGui::TableSetColumnIndex(5);
-			ImGui::Text("%s", std::bitset<16>(PC).to_string().c_str());
-
-			ImGui::EndTable();
-		}
-
-		if (ImGui::BeginTable("RPBin", 4, ImGuiTableFlags_Borders))
-		{
-			ImGui::TableNextRow();
-
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("BC");
-
-			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("DE");
-
-			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("HL");
-
-			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("SP");
-
-			ImGui::TableNextRow();
-
-			ImGui::TableSetColumnIndex(0);
-			ImGui::Text("%s", std::bitset<16>((B << 8) | (C)).to_string().c_str());
-
-			ImGui::TableSetColumnIndex(1);
-			ImGui::Text("%s", std::bitset<16>((D << 8) | (E)).to_string().c_str());
-
-			ImGui::TableSetColumnIndex(2);
-			ImGui::Text("%s", std::bitset<16>((H << 8) | (L)).to_string().c_str());
-
-			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%s", std::bitset<16>(SP).to_string().c_str());
+			ImGui::Text("%04X", RegistersBuffer::SP);
 
 			ImGui::EndTable();
 		}

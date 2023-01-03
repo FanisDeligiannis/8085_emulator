@@ -5,7 +5,7 @@
 #include "Application.h"
 #include "ConfigIni.h"
 #include "Windows/Core/CodeEditor.h"
-#include "Windows/Core/RegistersWindow.h"
+#include "RegistersBuffer.h"
 
 namespace Simulation {
 	std::shared_ptr<Emulator::CPU> cpu;
@@ -233,7 +233,7 @@ namespace Simulation {
 		}
 		
 		//Update buffers before deleting CPU.
-		RegistersWindow::Instance->UpdateBuffers(true);
+		RegistersBuffer::UpdateBuffers(true);
 
 		cpu = nullptr;
 		Paused = false;
