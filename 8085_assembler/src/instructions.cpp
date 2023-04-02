@@ -781,7 +781,7 @@ namespace InternalAssembler
 
     bool RAR(int bytes, std::shared_ptr<SourceFile> source, uint8_t* _Memory)
     {
-        _Memory[0] = 0xf1;
+        _Memory[0] = 0x1f;
 
         return true;
     }
