@@ -153,7 +153,7 @@ namespace InternalEmulator
 
         int8_t rA = cpu->A->GetSigned();
 
-        int16_t result16 = rA + data;
+        uint16_t result16 = (uint8_t)rA + (uint8_t)data;
         int8_t result = rA + data;
         int8_t result4 = rA + (data & 0x0f);
 
@@ -176,7 +176,7 @@ namespace InternalEmulator
         int8_t rA = cpu->A->GetSigned();
         int8_t rC = cpu->Flags->GetBit(CARRY_FLAG);
 
-        int16_t result16 = rA + data + rC;
+        uint16_t result16 = (uint8_t)rA + (uint8_t)data + (uint8_t)rC;
         int8_t result = rA + data + rC;
         int8_t result4 = rA + (data & 0x0f) + rC;
 
