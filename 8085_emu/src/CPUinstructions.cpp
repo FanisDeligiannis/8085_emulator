@@ -220,7 +220,7 @@ namespace InternalEmulator
     {
         CPU* cpu = CPU::cpu;
 
-        int8_t rA = cpu->A->GetUnsigned();
+        uint8_t rA = cpu->A->GetUnsigned();
 
         uint8_t result = rA & data;
 
