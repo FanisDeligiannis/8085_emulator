@@ -72,17 +72,18 @@ void Leds::Render()
 		ImDrawList* draw_list = ImGui::GetWindowDrawList();
 		ImU32 col = ImColor(ImVec4(1, 0, 0, 1));
 
-		//Draw green / red circles.
+		// Draw circle according to LED state.
+		// Negative logic, 0 bright red - 1 dim red
 
 		for (int i = 0; i < 8; i++)
 		{
 			if ((ledValues & (1 << i)) > 0)
 			{
-				draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(255, 0, 0, 255), 0);
+				draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(42, 0, 0, 255), 0);
 			}
 			else
 			{
-				draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(0, 255, 0, 255), 0);
+				draw_list->AddCircleFilled(ImVec2(p.x + 20.0f + ((radius * 2 + 5) * (7 - i)), p.y + 20.0f), radius, IM_COL32(255, 0, 0, 255), 0);
 			}
 		}
 	}
