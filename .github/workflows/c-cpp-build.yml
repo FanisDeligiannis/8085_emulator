@@ -1,0 +1,42 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  windows:
+    name: run on windows
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ilammy/msvc-dev-cmd@v1.4.1
+    - name: configure
+      run: premake5.exe vs2019
+    - name: compile
+      run: | 
+        cl.exe GUI/src/main.cpp /std:c++latest
+    - name: upload executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: Windows
+        path: Binaries/Windows/8085sim.exe
+  linux:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: install dependencies
+      run: sudo apt-get update && sudo apt-get install -y g++ libxi-dev libgl-dev libxcursor-dev libxrandr-dev libxinerama-dev
+    - name: configure
+      run: ./premake5 gmake2 
+    - name: make 
+      run: make config=dist
+    - name: upload executable
+      uses: actions/upload-artifact@v2
+      with:
+        name: Linux
+        path: Binaries/Linux/8085sim
