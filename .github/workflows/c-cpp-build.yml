@@ -37,7 +37,7 @@ jobs:
     - name: configure
       run: |
         mkdir Binaries
-        mkdir Binaries/Windows
+        mkdir Binaries/Linux
         ./premake5 gmake2 
     - name: make 
       run: make config=dist
