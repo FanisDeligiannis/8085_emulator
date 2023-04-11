@@ -38,6 +38,19 @@ void CodeEditor::Init()
 
 	DynamicLabelHighlight = ConfigIni::GetInt("Experimental", "DynamicLabelHighlight", 1);
 
+
+	std::string palette = ConfigIni::GetString("CodeEditor", "Palette", "Mariana");
+
+	if (palette == "Dark")
+		editor.SetPalette(TextEditor::GetDarkPalette());
+	else if (palette == "Mariana")
+		editor.SetPalette(TextEditor::GetMarianaPalette());
+	else if (palette == "Light")
+		editor.SetPalette(TextEditor::GetLightPalette());
+	else if (palette == "Retro")
+		editor.SetPalette(TextEditor::GetRetroBluePalette());
+
+
 	//editor.SetPalette(TextEditor::GetLightPalette());
 }
 
@@ -173,6 +186,11 @@ bool CodeEditor::TextEditorLoadFile(std::string path)
 		StuffToSave = false;
 		FileLoaded = true;
 
+		if (DynamicLabelHighlight)
+		{
+			LabelHighlight();
+		}
+
 		return true;
 	}
 	else
@@ -242,7 +260,7 @@ void CodeEditor::LabelHighlight()
 	boost::sregex_token_iterator iter(text.cbegin(), text.cend(), label_finder, 0);
 	boost::sregex_token_iterator end;
 
-	editor.GetLanguageDefinition().mLabels.clear();
+	editor.GetLanguageDefinition()->mLabels.clear();
 
 	for (; iter != end; ++iter)
 	{
@@ -250,7 +268,7 @@ void CodeEditor::LabelHighlight()
 		label.pop_back();
 		std::transform(label.begin(), label.end(), label.begin(), ::toupper);
 		TextEditor::Identifier id;
-		editor.GetLanguageDefinition().mLabels.insert(std::make_pair(label, id));
+		editor.GetLanguageDefinition()->mLabels.insert(std::make_pair(label, id));
 	}
 
 	editor.ForceColorizeAll();
@@ -506,11 +524,33 @@ void CodeEditor::Render()
 		if (ImGui::BeginMenu("View"))
 		{
 			if (ImGui::MenuItem("Dark palette"))
+			{
 				editor.SetPalette(TextEditor::GetDarkPalette());
+				
+				std::string palette = "Dark";
+				ConfigIni::SetString("CodeEditor", "Palette", palette);
+			}
+			if (ImGui::MenuItem("MarianaPalette"))
+			{
+				editor.SetPalette(TextEditor::GetMarianaPalette());
+
+				std::string palette = "Mariana";
+				ConfigIni::SetString("CodeEditor", "Palette", palette);
+			}
 			if (ImGui::MenuItem("Light palette"))
+			{
 				editor.SetPalette(TextEditor::GetLightPalette());
+
+				std::string palette = "Light";
+				ConfigIni::SetString("CodeEditor", "Palette", palette);
+			}
 			if (ImGui::MenuItem("Retro blue palette"))
+			{
 				editor.SetPalette(TextEditor::GetRetroBluePalette());
+
+				std::string palette = "Retro";
+				ConfigIni::SetString("CodeEditor", "Palette", palette);
+			}
 
 			ImGui::Separator();
 
@@ -520,7 +560,7 @@ void CodeEditor::Render()
 				{
 					ConfigIni::SetInt("Experimental", "DynamicLabelHighlight", 0);
 
-					editor.GetLanguageDefinition().mLabels.clear();
+					editor.GetLanguageDefinition()->mLabels.clear();
 					editor.ForceColorizeAll();
 				}
 				else
@@ -555,7 +595,7 @@ void CodeEditor::Render()
 
 	std::string base_filename = FilePath.substr(FilePath.find_last_of("/\\") + 1);
 	ImGui::Text("%6d/%-6d %6d lines  | %s | %s%s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
-		editor.GetLanguageDefinition().mName.c_str(), base_filename.c_str(), StuffToSave ? "*" : "");
+		editor.GetLanguageDefinition()->mName.c_str(), base_filename.c_str(), StuffToSave ? "*" : "");
 
 	editor.Render("TextEditor");
 		

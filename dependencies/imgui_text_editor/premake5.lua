@@ -10,7 +10,10 @@ project "ImGui_TextEditor"
 	files
 	{
         "TextEditor.cpp",
-        "TextEditor.h"
+        "TextEditor.h",
+		"LanguageDefinitions.cpp",
+		"UnitTests.cpp",
+		"ImGuiDebugPanel.cpp"
 	}
 
 	defines

@@ -362,3 +362,6 @@ bin-int
 **/*.vcxproj
 **/*.vcxproj.filters
 **/Makefile
+
+dependencies/imgui_text_editor_old/*
+dependencies/imgui_text_editor_old
