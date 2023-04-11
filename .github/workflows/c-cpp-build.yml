@@ -8,23 +8,24 @@ on:
 
 jobs:
   windows:
-    name: run on windows
+    name: Windows Build
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ilammy/msvc-dev-cmd@v1.4.1
+    - uses: actions/checkout@v3
     - name: configure
-      run: premake5.exe vs2019
-    - name: compile
+      run: |
+        ./premake5.exe vs2022
+    - uses: ilammy/msvc-dev-cmd@v1.12.1
+    - name: compile 
       run: | 
-        cl.exe GUI/src/main.cpp /std:c++latest
+        msbuild 8085_emulator.sln /p:Configuration=Dist
     - name: upload executable
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3.1.2
       with:
-        name: Windows
+        name: 8085sim-window.exe
         path: Binaries/Windows/8085sim.exe
   linux:
-
+    name: Linux Build
     runs-on: ubuntu-latest
 
     steps:
@@ -36,7 +37,7 @@ jobs:
     - name: make 
       run: make config=dist
     - name: upload executable
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3.1.2
       with:
-        name: Linux
+        name: 8085sim-linux
         path: Binaries/Linux/8085sim
