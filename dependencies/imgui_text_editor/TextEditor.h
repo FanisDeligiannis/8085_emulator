@@ -457,6 +457,7 @@ private:
 	void AddGlyphToLine(int aLine, int aTargetIndex, Glyph aGlyph);
 	Line& InsertLine(int aIndex);
 	void ChangeCurrentLinesIndentation(bool aIncrease);
+	void CommentLines();
 	void EnterCharacter(ImWchar aChar, bool aShift);
 	void Backspace(bool aWordMode = false);
 	void DeleteSelection(int aCursor = -1);
