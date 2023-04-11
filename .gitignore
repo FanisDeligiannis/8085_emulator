@@ -365,3 +365,5 @@ bin-int
 
 dependencies/imgui_text_editor_old/*
 dependencies/imgui_text_editor_old
+Binaries/*
+Binaries
