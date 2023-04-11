@@ -19,8 +19,9 @@ jobs:
       run: ./premake5 gmake2 
     - name: make 
       run: make config=dist
-    - name: Upload assets to a Release
-      uses: AButler/upload-release-assets@v2.0.2
-      with:
-          files: 'Binaries/*'
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+    - run: |
+        git config --global user.name 'Github Workflow'
+        git config --global user.email 'fanis.deligiannis@gmail.com'
+        git add -A
+        git commit -am "Automated binaries build."
+        git push
