@@ -175,6 +175,10 @@ project "GUI"
 	}
 
 	filter "system:windows"
+		postbuildcommands {
+			"{COPYFILE} %{cfg.buildtarget.relpath} %{wks.location}/Binaries/Windows/8085sim.exe"
+		}
+
 		systemversion "latest"
 
 		links
@@ -198,6 +202,10 @@ project "GUI"
 		}
 
 	filter "system:linux"
+		postbuildcommands {
+			"{COPYFILE} %{cfg.buildtarget.relpath} %{wks.location}/Binaries/Linux/8085sim"
+		}
+		
 		linkgroups "On"
 
 		links
@@ -231,7 +239,7 @@ project "GUI"
 		runtime "Release"
 		optimize "on"
 
-	filter "configurations:Dist"
+	filter "configurations:Dist"		
 		kind "WindowedApp"
 		defines "_DIST"
 		runtime "Release"

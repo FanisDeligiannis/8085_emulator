@@ -1707,7 +1707,7 @@ void TextEditor::CommentLines()
 			if (cursor.mSelectionStart.mLine == cursor.mSelectionEnd.mLine)
 			{
 
-				std::string& selectedText = GetSelectedText(cursorid);
+				std::string selectedText = GetSelectedText(cursorid);
 				if (selectedText.length() > 0 && selectedText[0] != ';')
 				{
 					AddGlyphToLine(cursor.mSelectionStart.mLine, GetCharacterIndexL(cursor.mSelectionStart), Glyph(';', PaletteIndex::Comment));
@@ -1739,7 +1739,7 @@ void TextEditor::CommentLines()
 				Coordinates firstLineCoords = { cursor.mSelectionStart.mLine, 0 };
 				Coordinates firstLineEndCoords = { cursor.mSelectionStart.mLine, GetLineMaxColumn(cursor.mSelectionStart.mLine) };
 
-				std::string& firstLine = GetText(firstLineCoords, firstLineEndCoords);
+				std::string firstLine = GetText(firstLineCoords, firstLineEndCoords);
 				if (firstLine.length() > 0 && firstLine[0] == ';')
 				{
 					for (int i = cursor.mSelectionStart.mLine; i <= cursor.mSelectionEnd.mLine; i++)
