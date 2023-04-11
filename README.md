@@ -1,6 +1,7 @@
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/98655332b8cf42158d32bdc87a52322d)](https://www.codacy.com/gh/FunIsDangerous/8085_emulator/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=FunIsDangerous/8085_emulator&amp;utm_campaign=Badge_Grade)
 [![GitHub license](https://img.shields.io/github/license/FunIsDangerous/8085_emulator)](https://github.com/FunIsDangerous/8085_emulator/blob/main/LICENSE.md)
 [![Release](https://img.shields.io/github/v/release/FunIsDangerous/8085_emulator?include_prereleases)](https://github.com/FunIsDangerous/8085_emulator/releases)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/FanisDeligiannis/8085_emulator/c-cpp-build.yml)
 
 # Wiki
 
@@ -8,13 +9,11 @@ Full documentation in [Wiki](https://github.com/FunIsDangerous/8085_emulator/wik
 
 # Binaries
 
-- Linux: (ProjectPath)/bin/Release-linux-x86_64/GUI/GUI
-- Windows: (ProjectPath)/bin/Release-windows-x86_64/GUI/GUI.exe
+Binaries of the latest semi-stable release, is on the releases tab.
 
-***OR*** download straight from the latest release.
+Latest binaries can be found in [Actions](https://github.com/FanisDeligiannis/8085_emulator/actions)
 
-
-If you've downloaded an older version before, I recommend deleting "imgui.ini" and "config.ini" in order to reset the UI to the default options.
+If you've downloaded an older version before and the UI looks a bit broken, try deleting "imgui.ini" and "config.ini" in order to reset the UI to the default options.
 
 # Examples
 
@@ -25,21 +24,23 @@ There are lots of examples in the "examples/" folder.
 # Usage
 
 ### Windows
-Run *GUI.exe* file, and the rest is pretty self explanatory.
+Run *8085sim.exe* file, and the rest is pretty self explanatory.
 
 OR if you want to open a file straight away:
-- Using commandline: ./GUI.exe [filename]
-- OR Drag and drop the file to *GUI.exe*
+- Using commandline: ./8085sim.exe [filename]
+- OR Drag and drop the file to *8085sim.exe*
 
 ### Linux
-- chmod +x GUI
-- ./GUI [filename]
+- chmod +x 8085sim
+- ./8085sim [filename]
 
 
 ---
 # Building
 
 [Build from source](https://github.com/FunIsDangerous/8085_emulator/wiki#build-from-source)
+
+When building from source, binaries will go in the "Binaries/" folder.
   
 ---
 
