@@ -15,6 +15,8 @@ class CodeEditor : public Window {
 private:
 	std::vector<std::string> RecentFiles;
 
+	TextEditor::LanguageDefinition LanguageDefinition;
+
 	ImFont* _Font;
 	int FontSize;
 	int InitialFontSize;
@@ -29,8 +31,12 @@ private:
 	bool StuffToSave = false;
 	bool ClosePopup = false;
 
+	bool DynamicLabelHighlight = true;
+
 private:
 	bool HasExtension(std::string filepath);
+
+	void LabelHighlight();
 
 public:
 	static CodeEditor* Instance;

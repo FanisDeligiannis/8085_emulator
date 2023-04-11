@@ -124,10 +124,10 @@ namespace InternalEmulator
     }
 
     //Compare Register A with another number. Set the flags accordingly.
-    void Compare(int8_t other)
+    void Compare(uint8_t other)
     {
         CPU* cpu = CPU::cpu;
-        int8_t A = cpu->A->GetSigned();
+        uint8_t A = cpu->A->GetUnsigned();
 
         if (A < other)
         {
@@ -536,7 +536,7 @@ namespace InternalEmulator
     int CMPB(int bytes)
     {
         CPU* cpu = CPU::cpu;
-        int8_t B = cpu->B->GetSigned();
+        uint8_t B = cpu->B->GetUnsigned();
     
         Compare(B);
 
@@ -546,7 +546,7 @@ namespace InternalEmulator
     int CMPC(int bytes)
     {
         CPU* cpu = CPU::cpu;
-        int8_t C = cpu->C->GetSigned();
+        uint8_t C = cpu->C->GetUnsigned();
 
         Compare(C);
 
@@ -556,7 +556,7 @@ namespace InternalEmulator
     int CMPD(int bytes)
     {
         CPU* cpu = CPU::cpu;
-        int8_t D = cpu->D->GetSigned();
+        uint8_t D = cpu->D->GetUnsigned();
 
         Compare(D);
 
@@ -566,7 +566,7 @@ namespace InternalEmulator
     int CMPE(int bytes)
     {
         CPU* cpu = CPU::cpu;
-        int8_t E = cpu->E->GetSigned();
+        uint8_t E = cpu->E->GetUnsigned();
 
         Compare(E);
 
@@ -576,7 +576,7 @@ namespace InternalEmulator
     int CMPH(int bytes)
     {
         CPU* cpu = CPU::cpu;
-        int8_t H = cpu->H->GetSigned();
+        uint8_t H = cpu->H->GetUnsigned();
 
         Compare(H);
 
@@ -586,7 +586,7 @@ namespace InternalEmulator
     int CMPL(int bytes)
     {
         CPU* cpu = CPU::cpu;
-        int8_t L = cpu->L->GetSigned();
+        uint8_t L = cpu->L->GetUnsigned();
 
         Compare(L);
 
@@ -596,7 +596,7 @@ namespace InternalEmulator
     int CMPM(int bytes)
     {
         CPU* cpu = CPU::cpu;
-        int8_t M= cpu->GetSignedM();
+        uint8_t M= cpu->GetUnsignedM();
 
         Compare(M);
 
@@ -714,7 +714,7 @@ namespace InternalEmulator
     int CPIData(int bytes)
     {
         CPU* cpu = CPU::cpu;
-        int8_t L = cpu->NextPC();
+        uint8_t L = cpu->NextPC();
 
         Compare(L);
 

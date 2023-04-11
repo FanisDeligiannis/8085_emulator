@@ -24,8 +24,9 @@ void CodeEditor::Init()
 
 	RecentFiles = getRecentFiles(RECENT_FILES);
 
-	auto lang = TextEditor::LanguageDefinition::ASM8085();
-	editor.SetLanguageDefinition(lang);
+	LanguageDefinition = TextEditor::LanguageDefinition::ASM8085();
+
+	editor.SetLanguageDefinition(LanguageDefinition);
 	editor.SetShowWhitespaces(false);
 
 	InitialFontSize = ConfigIni::GetInt("CodeEditor", "FontSize", 20);
@@ -34,6 +35,8 @@ void CodeEditor::Init()
 	FontSize = InitialFontSize;
 
 	_Font->Scale = (float)FontSize / (float)InitialFontSize;
+
+	DynamicLabelHighlight = ConfigIni::GetInt("Experimental", "DynamicLabelHighlight", 1);
 
 	//editor.SetPalette(TextEditor::GetLightPalette());
 }
@@ -221,6 +224,41 @@ bool CodeEditor::HasExtension(std::string filepath)
 	return extension != std::string::npos;
 }
 
+void CodeEditor::LabelHighlight()
+{
+	//std::vector<std::pair<std::string, uint16_t>> labels = Assembler::GetLabels(editor.GetText()); // Found it to be slow when trying with 100+ labels.
+
+	/*for (auto& k : labels)
+	{
+		TextEditor::Identifier id;
+		editor.GetLanguageDefinition().mLabels.insert(std::make_pair(k.first, id));
+	}*/
+
+	static const boost::regex label_finder("\\b([A-Za-z0-9]+):"); // seems to be a bit less reliable, but instant even with thousands of labels.
+
+
+	std::string text = editor.GetText();
+
+	boost::sregex_token_iterator iter(text.cbegin(), text.cend(), label_finder, 0);
+	boost::sregex_token_iterator end;
+
+	editor.GetLanguageDefinition().mLabels.clear();
+
+	for (; iter != end; ++iter)
+	{
+		std::string label = *iter;
+		label.pop_back();
+		std::transform(label.begin(), label.end(), label.begin(), ::toupper);
+		TextEditor::Identifier id;
+		editor.GetLanguageDefinition().mLabels.insert(std::make_pair(label, id));
+	}
+
+	editor.ForceColorizeAll();
+
+	//Tested with 5000 lines of labels and another 5000 lines of actual code. Everything was instant, CPU usage spiked from 3-5% to ~18% for a moment. Assembling such a program would be a much bigger issue than that right now. 
+	//More testing needed, but all looks good.
+}
+
 bool CodeEditor::TextEditorSaveFile()
 {
 	if (editor.SaveFileAs || FilePath == "")
@@ -275,11 +313,20 @@ void CodeEditor::Render()
 			StuffToSave = true;
 		else
 			FileLoaded = false;
+
+
+		if (DynamicLabelHighlight)
+		{
+			if (editor.GetCurrentLineText().find(':') != std::string::npos) // Let's only do that if there's a ':' in there. Issue: will not be done when removing a ':'. Maybe I can peek in the undo buffer?
+			{
+				LabelHighlight();
+			}
+		}
 	}
 
 	if (Simulation::GetRunning())
 	{
-		editor.SetReadOnly(true);	
+		editor.SetReadOnly(true);
 
 		if (editor._BreakpointsChanged)
 		{
@@ -464,6 +511,25 @@ void CodeEditor::Render()
 				editor.SetPalette(TextEditor::GetLightPalette());
 			if (ImGui::MenuItem("Retro blue palette"))
 				editor.SetPalette(TextEditor::GetRetroBluePalette());
+
+			ImGui::Separator();
+
+			if (ImGui::Checkbox("Dynamic Label Highlight (experimental)", &DynamicLabelHighlight))
+			{
+				if (!DynamicLabelHighlight)
+				{
+					ConfigIni::SetInt("Experimental", "DynamicLabelHighlight", 0);
+
+					editor.GetLanguageDefinition().mLabels.clear();
+					editor.ForceColorizeAll();
+				}
+				else
+				{
+					ConfigIni::SetInt("Experimental", "DynamicLabelHighlight", 1);
+					LabelHighlight();
+				}
+			}
+
 
 			ImGui::Separator();
 

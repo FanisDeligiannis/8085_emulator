@@ -668,3 +668,12 @@ std::shared_ptr<uint8_t> Assembler::GetAssembledMemory(std::string code, Assembl
 
 	return InternalAssembler::parse(source, result);
 }
+
+std::vector<std::pair<std::string, uint16_t>> Assembler::GetLabels(std::string code)
+{
+	std::shared_ptr<InternalAssembler::SourceFile> source = std::make_shared<InternalAssembler::SourceFile>(code);
+
+	Assembler::Assembly result;
+	InternalAssembler::parse(source, result, true);
+	return result.Labels;
+}

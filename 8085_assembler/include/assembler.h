@@ -30,7 +30,10 @@ namespace Assembler
 	std::shared_ptr<InternalAssembler::SourceFile> ReadSourceFile(std::string fileName); // Take in file name, return SourceFile* of it.
 
 	std::shared_ptr<uint8_t> GetAssembledMemory(std::shared_ptr<InternalAssembler::SourceFile> source, Assembler::Assembly& result); // Assembled memory from SourceFile*
+
 	std::shared_ptr<uint8_t> GetAssembledMemory(std::string code, Assembler::Assembly& result); // Assembled memory from std::string
+
+	std::vector<std::pair<std::string, uint16_t>> GetLabels(std::string code);
 }
 
 namespace InternalAssembler

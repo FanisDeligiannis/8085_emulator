@@ -1465,6 +1465,11 @@ void TextEditor::SetColorizerEnable(bool aValue)
 	mColorizerEnabled = aValue;
 }
 
+void TextEditor::ForceColorizeAll()
+{
+	ColorizeRange(0, GetTotalLines());
+}
+
 void TextEditor::SetCursorPosition(const Coordinates & aPosition)
 {
 	if (mState.mCursorPosition != aPosition)
@@ -2283,6 +2288,8 @@ void TextEditor::ColorizeRange(int aFromLine, int aToLine)
 							token_color = PaletteIndex::KnownIdentifier;
 						else if (mLanguageDefinition.mPreprocIdentifiers.count(id) != 0)
 							token_color = PaletteIndex::PreprocIdentifier;
+						else if (mLanguageDefinition.mLabels.count(id) != 0)
+							token_color = PaletteIndex::CharLiteral;
 					}
 					else
 					{
@@ -3185,9 +3192,9 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z0-9_]+:", PaletteIndex::CharLiteral));
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("L?\\\"(\\\\.|[^\\\"])*\\\"", PaletteIndex::String));
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("\\\'[^\\\']\\\'", PaletteIndex::String));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9]|[a-fA-F])+[hH]\\b", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-1]+)[bB]\\b", PaletteIndex::Number));
-		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("([0-9])+\\b", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("\\b([0-9]|[a-fA-F])+[hH]\\b", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("\\b([0-1]+)[bB]\\b", PaletteIndex::Number));
+		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("\\b([0-9])+\\b", PaletteIndex::Number));
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("[a-zA-Z0-9_]+ (?=equ|EQU)", PaletteIndex::Preprocessor));
 		langDef.mTokenRegexStrings.push_back(std::make_pair<std::string, PaletteIndex>("(?<=equ|EQU) [a-zA-Z0-9_]+", PaletteIndex::Preprocessor));
 		
