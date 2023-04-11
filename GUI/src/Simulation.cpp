@@ -16,6 +16,7 @@ namespace Simulation {
 	bool Paused = false;
 	bool _ScheduledStep = false;
 	bool _Stepping = false;
+	bool _FirstAssembly = false;
 
 	int CPU_Speed;
 	int CPU_Accuracy;
@@ -25,6 +26,7 @@ namespace Simulation {
 		Assembler::Assembly result;
 		Assembler::GetAssembledMemory(text, result);
 		program = result;
+		_FirstAssembly = true;
 	}
 
 	void Run(bool stepping)
@@ -34,6 +36,9 @@ namespace Simulation {
 			//TODO: Have a popup or something.
 			return;
 		}
+		
+		if (!_FirstAssembly)
+			return;
 
 		//If it's already running but pause/halted or if it's in stepping mode, start it again normally.
 		if (cpu != nullptr && cpu->GetRunning() && (Paused || cpu->GetHalted() || _Stepping))
