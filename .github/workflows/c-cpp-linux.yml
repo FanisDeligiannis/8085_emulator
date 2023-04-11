@@ -19,3 +19,8 @@ jobs:
       run: ./premake5 gmake2 
     - name: make 
       run: make config=dist
+    - name: Upload assets to a Release
+      uses: AButler/upload-release-assets@v2.0.2
+      with:
+          files: 'Binaries/*'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
