@@ -176,7 +176,7 @@ project "GUI"
 
 	filter "system:windows"
 		postbuildcommands {
-			"{COPYFILE} %{cfg.buildtarget.relpath} %{wks.location}/Binaries/Windows/8085sim.exe"
+			"{COPYFILE} %{cfg.buildtarget.abspath} %{wks.location}Binaries\\Windows\\8085sim.exe"
 		}
 
 		systemversion "latest"
@@ -200,6 +200,7 @@ project "GUI"
 			"PLATFORM_WINDOWS",
 			"NFD"
 		}
+
 
 	filter "system:linux"
 		postbuildcommands {
