@@ -1626,54 +1626,110 @@ void TextEditor::RenderFindInFile()
 
 		if (ImGui::Button("Replace"))
 		{
-			if (strcmp(GetSelectedText().c_str(), findInFileInput) != 0)
-			{
-				int length = strlen(findInFileInput);
-				if (length > 0)
-				{
-					SelectNextOccurrenceOf(findInFileInput, length, mState.mCurrentCursor);
-				}
-			}
-
-			Cursor& cursor = mState.mCursors[mState.mCurrentCursor];
-
-			Coordinates selectionStart = cursor.mSelectionStart;
-			Coordinates selectionEnd = cursor.mSelectionEnd;
-
-			if (selectionStart.mLine == selectionEnd.mLine && selectionEnd > selectionStart)
+			if (ImGui::GetIO().KeyShift)
 			{
 				UndoRecord u;
 				u.mBefore = mState;
-
-				int startIndex = GetCharacterIndexL(selectionStart);
-
-				u.mOperations.push_back({ GetSelectedText(mState.mCurrentCursor), selectionStart, selectionEnd, UndoOperationType::Delete });
-				RemoveGlyphsFromLine(selectionStart.mLine, startIndex, GetCharacterIndexR(selectionEnd));
-
-				for (int i = 0; i < strlen(toReplaceInput); i++)
+				
+				if (strcmp(GetSelectedText().c_str(), findInFileInput) != 0)
 				{
-					std::string str(1, toReplaceInput[i]);
+					int length = strlen(findInFileInput);
+					if (length > 0)
+					{
+						SelectNextOccurrenceOf(findInFileInput, length, mState.mCurrentCursor);
+					}
+				}
 
-					Coordinates start = Coordinates(selectionStart.mLine, startIndex);
-					Coordinates end = Coordinates(selectionStart.mLine, startIndex + 1);
-					u.mOperations.push_back({ str, start, end, UndoOperationType::Add });
+				AddCursorForAllOccurrences();
 
-					AddGlyphToLine(cursor.mCursorPosition.mLine, startIndex++, Glyph(toReplaceInput[i], PaletteIndex::Default));
+				for (int curCursor = 0; curCursor < mState.mCursors.size(); curCursor++)
+				{
+					Cursor& cursor = mState.mCursors[curCursor];
+
+					Coordinates selectionStart = cursor.mSelectionStart;
+					Coordinates selectionEnd = cursor.mSelectionEnd;
+
+					if (selectionStart.mLine == selectionEnd.mLine && selectionEnd > selectionStart)
+					{
+						int startIndex = GetCharacterIndexL(selectionStart);
+						
+						u.mOperations.push_back({ GetSelectedText(curCursor), selectionStart, selectionEnd, UndoOperationType::Delete });
+						RemoveGlyphsFromLine(selectionStart.mLine, startIndex, GetCharacterIndexR(selectionEnd));
+
+						for (int i = 0; i < strlen(toReplaceInput); i++)
+						{
+							std::string str(1, toReplaceInput[i]);
+
+							Coordinates start = Coordinates(selectionStart.mLine, startIndex);
+							Coordinates end = Coordinates(selectionStart.mLine, startIndex + 1);
+							u.mOperations.push_back({ str, start, end, UndoOperationType::Add });
+
+							AddGlyphToLine(cursor.mCursorPosition.mLine, startIndex++, Glyph(toReplaceInput[i], PaletteIndex::Default));
+						}
+
+					}
 				}
 
 				mCheckComments = true;
 				mColorizerEnabled = true;
-				ColorizeRange(std::max(0, selectionStart.mLine - 2), selectionStart.mLine+1);
+				ForceColorizeAll();
 
-				int length = strlen(findInFileInput);
-				if (length > 0)
-				{
-					SelectNextOccurrenceOf(findInFileInput, length, mState.mCurrentCursor);
-					ensureVisibility = true;
-				}
+				ClearExtraCursors();
 
 				if (u.mOperations.size() > 0)
 					AddUndo(u);
+			}
+			else
+			{
+				if (strcmp(GetSelectedText().c_str(), findInFileInput) != 0)
+				{
+					int length = strlen(findInFileInput);
+					if (length > 0)
+					{
+						SelectNextOccurrenceOf(findInFileInput, length, mState.mCurrentCursor);
+					}
+				}
+
+				Cursor& cursor = mState.mCursors[mState.mCurrentCursor];
+
+				Coordinates selectionStart = cursor.mSelectionStart;
+				Coordinates selectionEnd = cursor.mSelectionEnd;
+
+				if (selectionStart.mLine == selectionEnd.mLine && selectionEnd > selectionStart)
+				{
+					UndoRecord u;
+					u.mBefore = mState;
+
+					int startIndex = GetCharacterIndexL(selectionStart);
+
+					u.mOperations.push_back({ GetSelectedText(mState.mCurrentCursor), selectionStart, selectionEnd, UndoOperationType::Delete });
+					RemoveGlyphsFromLine(selectionStart.mLine, startIndex, GetCharacterIndexR(selectionEnd));
+
+					for (int i = 0; i < strlen(toReplaceInput); i++)
+					{
+						std::string str(1, toReplaceInput[i]);
+
+						Coordinates start = Coordinates(selectionStart.mLine, startIndex);
+						Coordinates end = Coordinates(selectionStart.mLine, startIndex + 1);
+						u.mOperations.push_back({ str, start, end, UndoOperationType::Add });
+
+						AddGlyphToLine(cursor.mCursorPosition.mLine, startIndex++, Glyph(toReplaceInput[i], PaletteIndex::Default));
+					}
+
+					mCheckComments = true;
+					mColorizerEnabled = true;
+					ColorizeRange(std::max(0, selectionStart.mLine - 2), selectionStart.mLine+1);
+
+					int length = strlen(findInFileInput);
+					if (length > 0)
+					{
+						SelectNextOccurrenceOf(findInFileInput, length, mState.mCurrentCursor);
+						ensureVisibility = true;
+					}
+
+					if (u.mOperations.size() > 0)
+						AddUndo(u);
+				}
 			}
 
 		}
