@@ -28,7 +28,6 @@ private:
 
 	bool ShouldLoadFile = false;
 	bool FileLoaded = false;
-	bool StuffToSave = false;
 	bool ClosePopup = false;
 
 	bool DynamicLabelHighlight = true;

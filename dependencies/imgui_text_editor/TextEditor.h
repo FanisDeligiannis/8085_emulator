@@ -17,6 +17,7 @@ public:
 	bool SaveFile = false;
 	bool SaveFileAs = false;
 	int CurrentLine = -1;
+	int lastSaveIndex = 0;
 
 	float startOfText = 0;
 
@@ -229,6 +230,7 @@ public:
 	void SetBreakpoints(const Breakpoints& aMarkers) { mBreakpoints = aMarkers; }
 
 	bool Render(const char* aTitle, bool aParentIsFocused = false, const ImVec2& aSize = ImVec2(), bool aBorder = false);
+	void RenderFindInFile();
 	void SetText(const std::string& aText);
 	std::string GetText() const;
 
@@ -251,6 +253,9 @@ public:
 	bool IsColorizerEnabled() const { return mColorizerEnabled; }
 	void SetColorizerEnable(bool aValue);
 	void ForceColorizeAll();
+
+	inline bool IsFileDirty() { return mUndoIndex > lastSaveIndex; }
+	inline void SetFileNotDirty() { lastSaveIndex = mUndoIndex; }
 
 	Coordinates GetCursorPosition() const { return GetActualCursorCoordinates(); }
 	void SetCursorPosition(const Coordinates& aPosition, int aCursor = -1);
@@ -354,6 +359,9 @@ public:
 	static const Palette& GetRetroBluePalette();
 
 	static bool IsGlyphWordChar(const Glyph& aGlyph);
+
+	void ShowFindInFile();
+	void ShowReplaceInFile();
 
 	void ImGuiDebugPanel(const std::string& panelName = "Debug");
 	void UnitTests();
@@ -496,6 +504,13 @@ private:
 	bool mShowWhitespaces;
 	bool mShowShortTabGlyphs;
 	bool mDraggingSelection = false;
+
+	bool showFindInFileJustOpened = false;
+	bool showFindInFile = false;
+	bool showReplaceInFile = false;
+	char* findInFileInput = (char*)calloc(200, sizeof(char));
+	char* toReplaceInput = (char*)calloc(200, sizeof(char));
+	bool isFindInFileFocused = false;
 
 	Palette mPaletteBase;
 	Palette mPalette;

@@ -871,6 +871,24 @@ bool TextEditor::IsGlyphWordChar(const Glyph& aGlyph)
 		aGlyph.mChar == '_';
 }
 
+void TextEditor::ShowFindInFile()
+{
+	showReplaceInFile = false;
+	showFindInFile = !showFindInFile;
+
+	showFindInFileJustOpened = true;
+}
+
+void TextEditor::ShowReplaceInFile()
+{
+	showReplaceInFile = true;
+	showFindInFile = !showFindInFile;
+	
+	showFindInFileJustOpened = true;
+}
+
+
+
 void TextEditor::HandleKeyboardInputs(bool aParentIsFocused)
 {
 	if (ImGui::IsWindowFocused() || aParentIsFocused)
@@ -932,9 +950,9 @@ void TextEditor::HandleKeyboardInputs(bool aParentIsFocused)
 			Backspace(ctrl);
 		else if (!IsReadOnly() && !alt && ctrl && shift && !super && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_K)))
 			RemoveCurrentLines();
-        else if (!IsReadOnly() && !alt && ctrl && !shift && !super && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftBracket)))
+		else if (!IsReadOnly() && !alt && ctrl && !shift && !super && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_LeftBracket)))
 			ChangeCurrentLinesIndentation(false);
-        else if (!IsReadOnly() && !alt && ctrl && !shift && !super && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightBracket)))
+		else if (!IsReadOnly() && !alt && ctrl && !shift && !super && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_RightBracket)))
 			ChangeCurrentLinesIndentation(true);
 		else if (!alt && !ctrl && !shift && !super && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Insert)))
 			mOverwrite ^= true;
@@ -956,7 +974,7 @@ void TextEditor::HandleKeyboardInputs(bool aParentIsFocused)
 			AddCursorForNextOccurrence();
 		else if (isShiftShortcut && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_D)))
 			AddCursorForAllOccurrences();
-        else if (!IsReadOnly() && !alt && !ctrl && !shift && !super && (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)) || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_KeypadEnter))))
+		else if (!IsReadOnly() && !alt && !ctrl && !shift && !super && (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Enter)) || ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_KeypadEnter))))
 			EnterCharacter('\n', false);
 		else if (!IsReadOnly() && !alt && !ctrl && !super && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Tab)))
 			EnterCharacter('\t', shift);
@@ -966,6 +984,10 @@ void TextEditor::HandleKeyboardInputs(bool aParentIsFocused)
 			SaveFileAs = true;
 		else if (!IsReadOnly() && ctrl && !shift && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Slash)))
 			CommentLines();
+		else if (!IsReadOnly() && ctrl && !shift && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F)))
+			ShowFindInFile();
+		else if (!IsReadOnly() && ctrl && shift && ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_F)))
+			ShowReplaceInFile();
 
 		if (!IsReadOnly() && !io.InputQueueCharacters.empty() && !ctrl && !super)
 		{
@@ -1530,6 +1552,8 @@ bool TextEditor::Render(const char* aTitle, bool aParentIsFocused, const ImVec2&
 	if (mHandleKeyboardInputs)
 		ImGui::PopAllowKeyboardFocus();
 
+	RenderFindInFile();
+	
 	if (!mIgnoreImGuiChild)
 		ImGui::EndChild();
 
@@ -1538,6 +1562,194 @@ bool TextEditor::Render(const char* aTitle, bool aParentIsFocused, const ImVec2&
 
 	mWithinRender = false;
 	return isFocused;
+}
+
+void TextEditor::RenderFindInFile()
+{
+	ImVec2 currentWindow = ImGui::GetWindowPos();
+	float width = ImGui::GetWindowWidth();
+
+	bool ensureVisibility = false;
+
+	if (showFindInFile && showReplaceInFile)
+	{
+		if (showFindInFileJustOpened)
+		{
+			ImGui::SetNextWindowPos(ImVec2(currentWindow.x + width - 22 * ImGui::GetFontSize() - 10, currentWindow.y + 10));
+
+			std::string selectedText = GetSelectedText();
+
+			strcpy(findInFileInput, selectedText.c_str());
+		}
+
+		ImGui::SetNextWindowSize(ImVec2(22 * ImGui::GetFontSize(), ImGui::CalcTextSize("Find").y * 3 + 48));
+
+		ImGui::Begin("Replace In File", &showFindInFile, ImGuiWindowFlags_NoResize);
+
+		isFindInFileFocused = ImGui::IsWindowFocused();
+
+		if (showFindInFileJustOpened)
+		{
+			ImGui::SetWindowFocus();
+			ImGui::SetKeyboardFocusHere();
+		}
+
+		ImGui::PushItemWidth(22 * ImGui::GetFontSize() - ImGui::CalcTextSize("Replace").x - 30);
+		ImGui::InputText("##s", findInFileInput, 200, ImGuiInputTextFlags_AutoSelectAll);
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5);
+
+		if (ImGui::Button("Next"))
+		{
+			int length = strlen(findInFileInput);
+			if (length > 0)
+			{
+				SelectNextOccurrenceOf(findInFileInput, length, mState.mCurrentCursor);
+				ensureVisibility = true;
+			}
+		}
+
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+		ImGui::Separator();
+		ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5);
+
+		ImGui::PushItemWidth(22 * ImGui::GetFontSize() - ImGui::CalcTextSize("Replace").x - 30);
+		ImGui::InputText("##r", toReplaceInput, 200, ImGuiInputTextFlags_AutoSelectAll);
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5);
+
+		if (ImGui::Button("Replace"))
+		{
+			if (strcmp(GetSelectedText().c_str(), findInFileInput) != 0)
+			{
+				int length = strlen(findInFileInput);
+				if (length > 0)
+				{
+					SelectNextOccurrenceOf(findInFileInput, length, mState.mCurrentCursor);
+				}
+			}
+
+			Cursor& cursor = mState.mCursors[mState.mCurrentCursor];
+
+			Coordinates selectionStart = cursor.mSelectionStart;
+			Coordinates selectionEnd = cursor.mSelectionEnd;
+
+			if (selectionStart.mLine == selectionEnd.mLine && selectionEnd > selectionStart)
+			{
+				UndoRecord u;
+				u.mBefore = mState;
+
+				int startIndex = GetCharacterIndexL(selectionStart);
+
+				u.mOperations.push_back({ GetSelectedText(mState.mCurrentCursor), selectionStart, selectionEnd, UndoOperationType::Delete });
+				RemoveGlyphsFromLine(selectionStart.mLine, startIndex, GetCharacterIndexR(selectionEnd));
+
+				for (int i = 0; i < strlen(toReplaceInput); i++)
+				{
+					std::string str(1, toReplaceInput[i]);
+
+					Coordinates start = Coordinates(selectionStart.mLine, startIndex);
+					Coordinates end = Coordinates(selectionStart.mLine, startIndex + 1);
+					u.mOperations.push_back({ str, start, end, UndoOperationType::Add });
+
+					AddGlyphToLine(cursor.mCursorPosition.mLine, startIndex++, Glyph(toReplaceInput[i], PaletteIndex::Default));
+				}
+
+				mCheckComments = true;
+				mColorizerEnabled = true;
+				ColorizeRange(std::max(0, selectionStart.mLine - 2), selectionStart.mLine+1);
+
+				int length = strlen(findInFileInput);
+				if (length > 0)
+				{
+					SelectNextOccurrenceOf(findInFileInput, length, mState.mCurrentCursor);
+					ensureVisibility = true;
+				}
+
+				if (u.mOperations.size() > 0)
+					AddUndo(u);
+			}
+
+		}
+
+		if (isFindInFileFocused)
+		{
+			if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+				showFindInFile = false;
+			if (ImGui::GetIO().KeyCtrl && !ImGui::GetIO().KeyShift && ImGui::IsKeyPressed(ImGuiKey_F))
+				showReplaceInFile = false;
+		}
+
+		ImGui::End();
+
+		showFindInFileJustOpened = false;
+	}
+	else if (showFindInFile)
+	{
+		if (showFindInFileJustOpened)
+		{
+			ImGui::SetNextWindowPos(ImVec2(currentWindow.x + width - 20 * ImGui::GetFontSize() - 10, currentWindow.y + 10));
+
+			std::string selectedText = GetSelectedText();
+
+			strcpy(findInFileInput, selectedText.c_str());
+		}
+
+		ImGui::SetNextWindowSize(ImVec2(20 * ImGui::GetFontSize(), ImGui::CalcTextSize("Find").y * 2 + 30));
+
+		ImGui::Begin("Find In File", &showFindInFile, ImGuiWindowFlags_NoResize);
+
+		isFindInFileFocused = ImGui::IsWindowFocused();
+
+		if (showFindInFileJustOpened)
+		{
+			ImGui::SetWindowFocus();
+			ImGui::SetKeyboardFocusHere();
+		}
+
+		ImGui::PushItemWidth(20 * ImGui::GetFontSize() - ImGui::CalcTextSize("Next").x - 35);
+		ImGui::InputText("##s", findInFileInput, 200, ImGuiInputTextFlags_AutoSelectAll);
+		ImGui::PopItemWidth();
+
+		ImGui::SameLine();
+
+		ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 5);
+
+		if (ImGui::Button("Next"))
+		{
+			int length = strlen(findInFileInput);
+			if (length > 0)
+			{
+				SelectNextOccurrenceOf(findInFileInput, length, mState.mCurrentCursor);
+				ensureVisibility = true;
+			}
+		}
+
+		if (isFindInFileFocused)
+		{
+			if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+				showFindInFile = false;
+			if (ImGui::GetIO().KeyCtrl && ImGui::GetIO().KeyShift && ImGui::IsKeyPressed(ImGuiKey_F))
+				showReplaceInFile = true;
+		}
+
+		ImGui::End();
+
+		showFindInFileJustOpened = false;
+	}
+	else
+	{
+		isFindInFileFocused = false;
+	}
+
+	if (ensureVisibility)
+		EnsureCursorVisible(mState.mCurrentCursor);
 }
 
 void TextEditor::SetText(const std::string& aText)
@@ -2826,6 +3038,8 @@ void TextEditor::AddCursorForNextOccurrence()
 
 void TextEditor::AddCursorForAllOccurrences()
 {
+	ClearExtraCursors();
+	
 	const Cursor& initialCursor = mState.mCursors[mState.GetLastAddedCursorIndex()];
 	Coordinates cursorPos = initialCursor.mCursorPosition;
 

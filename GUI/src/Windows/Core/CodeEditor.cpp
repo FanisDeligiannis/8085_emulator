@@ -183,7 +183,7 @@ bool CodeEditor::TextEditorLoadFile(std::string path)
 		editor.SetText(str);
 		editor.SetSelection({ 0,0 }, { 0,0 });
 		FilePath = path;
-		StuffToSave = false;
+		//editor.IsFileDirty = false;
 		FileLoaded = true;
 
 		if (DynamicLabelHighlight)
@@ -305,7 +305,8 @@ bool CodeEditor::TextEditorSaveFile()
 	editor.SaveFile = false;
 	editor.SaveFileAs = false;
 
-	StuffToSave = false;
+	//editor.IsFileDirty = false;
+	editor.SetFileNotDirty();
 
 	std::string text = editor.GetText();
 	text = text.substr(0, text.length() - 1);
@@ -327,9 +328,12 @@ void CodeEditor::Render()
 {
 	if (editor.IsTextChanged())
 	{
-		if (!FileLoaded)
-			StuffToSave = true;
-		else
+		//if (!FileLoaded)
+		//	editor.IsFileDirty = true;
+		//else
+		//	FileLoaded = false;
+
+		if (FileLoaded)
 			FileLoaded = false;
 
 
@@ -426,7 +430,7 @@ void CodeEditor::Render()
 
 	ImGui::PushFont(_Font);
 
-	ImGui::Begin("Code Editor", 0, ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_HorizontalScrollbar);
+	ImGui::Begin("Code Editor", 0, ImGuiWindowFlags_MenuBar);
 
 	if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_Equal, false))
 	{
@@ -594,10 +598,33 @@ void CodeEditor::Render()
 	}
 
 	std::string base_filename = FilePath.substr(FilePath.find_last_of("/\\") + 1);
-	ImGui::Text("%6d/%-6d %6d lines  | %s | %s%s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
-		editor.GetLanguageDefinition()->mName.c_str(), base_filename.c_str(), StuffToSave ? "*" : "");
 
-	editor.Render("TextEditor");
+
+	ImGui::Text("%6d/%-6d %6d lines  | %s | %s", cpos.mLine + 1, cpos.mColumn + 1, editor.GetTotalLines(),
+		editor.GetLanguageDefinition()->mName.c_str(), editor.IsFileDirty() ? "*" : " ");
+	
+	ImGui::SameLine();
+
+	ImVec2 cursorPos = ImGui::GetCursorPos();
+	ImGui::Text("%s", base_filename.c_str());
+
+
+	if (base_filename != "")
+	{
+		ImGui::SetCursorPos(cursorPos);
+		
+		ImVec2 hoverTriggerSize = ImGui::CalcTextSize(base_filename.c_str());
+		ImGui::InvisibleButton("##hoverTrigger", hoverTriggerSize);
+
+		if (ImGui::IsItemHovered())
+		{
+			ImGui::BeginTooltip();
+			ImGui::Text("%s", base_filename.c_str());
+			ImGui::EndTooltip();
+		}
+	}
+
+	editor.Render("TextEditor", ImGui::IsWindowFocused());
 		
 	ImGui::End();
 
@@ -610,7 +637,8 @@ void CodeEditor::Render()
 			if (TextEditorSaveFile())
 			{
 				ShouldLoadFile = true;
-				StuffToSave = false;
+				//editor.IsFileDirty = false;
+				editor.SetFileNotDirty();
 
 				ImGui::CloseCurrentPopup();
 			}	
@@ -621,7 +649,8 @@ void CodeEditor::Render()
 		if (ImGui::Button("Don't save"))
 		{
 			ShouldLoadFile = true;
-			StuffToSave = false;
+			//editor.IsFileDirty = false;
+			editor.SetFileNotDirty();
 
 			ImGui::CloseCurrentPopup();
 		}
@@ -676,7 +705,7 @@ void CodeEditor::Render()
 
 	if (ShouldLoadFile)
 	{
-		if (StuffToSave)
+		if (editor.IsFileDirty())
 		{
 			ImGui::OpenPopup("Load File");
 			ShouldLoadFile = false;
@@ -701,7 +730,8 @@ void CodeEditor::Render()
 				TextEditorLoadFile(NewFilePath);
 			}
 
-			StuffToSave = false;
+			//StuffToSave = false;
+			editor.SetFileNotDirty();
 			NewFilePath = "";
 		}
 	}
@@ -711,7 +741,7 @@ void CodeEditor::Render()
 
 void CodeEditor::PreDestroy()
 {
-	if (StuffToSave)
+	if (editor.IsFileDirty())
 	{
 		ClosePopup = true;
 	}
