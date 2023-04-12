@@ -14,8 +14,6 @@ jobs:
     - uses: actions/checkout@v3
     - name: configure
       run: |
-        mkdir Binaries
-        mkdir Binaries/Windows
         ./premake5.exe vs2022
     - uses: ilammy/msvc-dev-cmd@v1.12.1
     - name: compile 
@@ -36,8 +34,6 @@ jobs:
       run: sudo apt-get update && sudo apt-get install -y g++ libxi-dev libgl-dev libxcursor-dev libxrandr-dev libxinerama-dev
     - name: configure
       run: |
-        mkdir Binaries
-        mkdir Binaries/Linux
         ./premake5 gmake2 
     - name: make 
       run: make config=dist
