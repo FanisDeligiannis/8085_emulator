@@ -2901,6 +2901,30 @@ void TextEditor::Cut()
 			u.mAfter = mState;
 			AddUndo(u);
 		}
+		else
+		{
+			ClearExtraCursors();
+
+			int currentLine = mState.mCursors[mState.mCurrentCursor].mCursorPosition.mLine;
+
+			Coordinates start = Coordinates(currentLine, 0);
+			Coordinates end = Coordinates(currentLine, GetLineMaxColumn(currentLine));
+
+			SetSelection(start, end);
+
+			UndoRecord u;
+			u.mBefore = mState;
+
+			Copy();
+			for (int c = mState.mCurrentCursor; c > -1; c--)
+			{
+				u.mOperations.push_back({ GetSelectedText(c), mState.mCursors[c].mSelectionStart, mState.mCursors[c].mSelectionEnd, UndoOperationType::Delete });
+				DeleteSelection(c);
+			}
+
+			u.mAfter = mState;
+			AddUndo(u);
+		}
 	}
 }
 
