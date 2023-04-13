@@ -501,26 +501,34 @@ void CodeEditor::Render()
 		{
 			bool ro = editor.IsReadOnly();
 
-			if (ImGui::MenuItem("Undo", "ALT-Backspace", nullptr, !ro && editor.CanUndo()))
+			if (ImGui::MenuItem("Undo", "ALT+Backspace", nullptr, !ro && editor.CanUndo()))
 				editor.Undo();
-			if (ImGui::MenuItem("Redo", "Ctrl-Y", nullptr, !ro && editor.CanRedo()))
+			if (ImGui::MenuItem("Redo", "Ctrl+Y", nullptr, !ro && editor.CanRedo()))
 				editor.Redo();
 
 			ImGui::Separator();
 
-			if (ImGui::MenuItem("Copy", "Ctrl-C", nullptr, editor.HasSelection()))
+			if (ImGui::MenuItem("Copy", "Ctrl+C", nullptr, editor.HasSelection()))
 				editor.Copy();
-			if (ImGui::MenuItem("Cut", "Ctrl-X", nullptr, !ro && editor.HasSelection()))
+			if (ImGui::MenuItem("Cut", "Ctrl+X", nullptr, !ro && editor.HasSelection()))
 				editor.Cut();
 			if (ImGui::MenuItem("Delete", "Del", nullptr, !ro && editor.HasSelection()))
 				editor.Delete();
-			if (ImGui::MenuItem("Paste", "Ctrl-V", nullptr, !ro && ImGui::GetClipboardText() != nullptr))
+			if (ImGui::MenuItem("Paste", "Ctrl+V", nullptr, !ro && ImGui::GetClipboardText() != nullptr))
 				editor.Paste();
 
 			ImGui::Separator();
 
 			if (ImGui::MenuItem("Select all", nullptr, nullptr))
 				editor.SetSelection(TextEditor::Coordinates(), TextEditor::Coordinates(editor.GetTotalLines(), 0));
+
+			ImGui::Separator();
+			
+			if (ImGui::MenuItem("Find in file", "CTRL+F", nullptr, true))
+				editor.ShowFindInFile();
+			if (ImGui::MenuItem("Replace in file", "Ctrl+SHIFT+F", nullptr, !ro))
+				editor.ShowReplaceInFile();
+
 
 			ImGui::EndMenu();
 		}

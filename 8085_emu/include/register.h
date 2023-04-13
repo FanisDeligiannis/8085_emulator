@@ -19,19 +19,19 @@ namespace Emulator
 
 	public:
 		//Set data with an unsigned value
-		void SetUnsigned(uint8_t value = 0xff)
+		inline void SetUnsigned(uint8_t value = 0xff)
 		{
 			_Data._DataUnsigned = value;
 		}
 
 		//Set data with a signed value
-		void SetSigned(int8_t value = 0b01111111)
+		inline void SetSigned(int8_t value = 0b01111111)
 		{
 			_Data._DataSigned = value;
 		}
 
 		//Set a certain bit
-		void SetBit(uint8_t bit, uint8_t value = 1)
+		inline void SetBit(uint8_t bit, uint8_t value = 1)
 		{
 			value &= 0x01;
 			if (value)
@@ -41,43 +41,43 @@ namespace Emulator
 		}
 
 		//Clear the register
-		void Clear()
+		inline void Clear()
 		{
 			_Data._DataSigned = 0;
 		}
 
 		//Clear a certain bit.
-		void ClearBit(uint8_t bit)
+		inline void ClearBit(uint8_t bit)
 		{
 			_Data._DataUnsigned = _Data._DataUnsigned & (~(1 << bit));
 		}
 
 		//Increment signed data.
-		void Increment()
+		inline void Increment()
 		{
 			_Data._DataSigned++;
 		}
 
 		//Decrement signed data.
-		void Decrement()
+		inline void Decrement()
 		{
 			_Data._DataSigned--;
 		}
 
 		//Get data with type unsigned
-		uint8_t GetUnsigned()
+		inline uint8_t GetUnsigned()
 		{
 			return _Data._DataUnsigned;
 		}
 
 		//Get data with type signed
-		int8_t GetSigned()
+		inline int8_t GetSigned()
 		{
 			return _Data._DataSigned;
 		}
 
 		//Get a certain bit
-		uint8_t GetBit(uint8_t bit)
+		inline uint8_t GetBit(uint8_t bit)
 		{
 			return (_Data._DataUnsigned >> bit) & 0x01;
 		}
@@ -98,19 +98,19 @@ namespace Emulator
 			_Data = std::shared_ptr<uint16_t>((uint16_t*)calloc(1, sizeof(uint16_t)), free);
 		}
 
-		void SetRef(std::shared_ptr<uint16_t> ref) //Set the reference to point to
+		inline void SetRef(std::shared_ptr<uint16_t> ref) //Set the reference to point to
 		{
 			_Data = ref;
 		}
 
 		//Everything else is the same as Register8, but with pointer.
 
-		void Set(uint16_t value = 0xffff)
+		inline void Set(uint16_t value = 0xffff)
 		{
 			*(_Data.get()) = value;
 		}
 
-		void SetBit(uint8_t bit, int value = 1)
+		inline void SetBit(uint8_t bit, int value = 1)
 		{
 			value &= 0x01;
 			if (value)
@@ -119,42 +119,42 @@ namespace Emulator
 				ClearBit(bit);
 		}
 
-		void Clear()
+		inline void Clear()
 		{
 			*(_Data.get()) = 0;
 		}
 
-		void ClearBit(uint8_t bit)
+		inline void ClearBit(uint8_t bit)
 		{
 			*(_Data.get()) = *(_Data.get()) & (~(1 << bit));
 		}
 
-		void Increment()
+		inline void Increment()
 		{
 			(*(_Data.get()))++;
 		}
 
-		void Decrement()
+		inline void Decrement()
 		{
 			(*(_Data.get()))--;
 		}
 
-		uint16_t Get()
+		inline uint16_t Get()
 		{
 			return *_Data;
 		}
 
-		uint8_t GetHigh()
+		inline uint8_t GetHigh()
 		{
 			return (*(_Data.get())) >> 8;
 		}
 
-		uint8_t GetLow()
+		inline uint8_t GetLow()
 		{
 			return (*(_Data.get())) & 0xff;
 		}
 
-		uint8_t GetBit(uint8_t bit)
+		inline uint8_t GetBit(uint8_t bit)
 		{
 			return (*(_Data.get()) >> bit) & 0x01;
 		}

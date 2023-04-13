@@ -63,7 +63,7 @@ void TextEditor::SetLanguageDefinition(LanguageDefinition& aLanguageDef)
 
 	for (const auto& r : mLanguageDefinition->mTokenRegexStrings)
 		mRegexList.push_back(std::make_pair(boost::regex(r.first, boost::regex_constants::optimize), r.second));
-		//mRegexList.push_back(std::make_pair(std::regex(r.first, std::regex_constants::optimize), r.second));
+	//mRegexList.push_back(std::make_pair(std::regex(r.first, std::regex_constants::optimize), r.second));
 
 
 	Colorize();
@@ -321,6 +321,8 @@ void TextEditor::AddUndo(UndoRecord& aValue)
 	//	aValue.mRemoved.c_str(), aValue.mRemovedStart.mLine, aValue.mRemovedStart.mColumn, aValue.mRemovedEnd.mLine, aValue.mRemovedEnd.mColumn,
 	//	aValue.mAfter.mCursorPosition.mLine, aValue.mAfter.mCursorPosition.mColumn
 	//	);
+
+	isDirty = true;
 
 	mUndoBuffer.resize((size_t)(mUndoIndex + 1));
 	mUndoBuffer.back() = aValue;
@@ -873,17 +875,27 @@ bool TextEditor::IsGlyphWordChar(const Glyph& aGlyph)
 
 void TextEditor::ShowFindInFile()
 {
-	showReplaceInFile = false;
-	showFindInFile = !showFindInFile;
+	if (showReplaceInFile || !showFindInFile)
+	{
+		showReplaceInFile = false;
+		showFindInFile = true;
+	}
+	else
+		showFindInFile = false;
 
 	showFindInFileJustOpened = true;
 }
 
 void TextEditor::ShowReplaceInFile()
 {
-	showReplaceInFile = true;
-	showFindInFile = !showFindInFile;
-	
+	if (showReplaceInFile && showFindInFile)
+		showFindInFile = false;
+	else
+	{
+		showReplaceInFile = true;
+		showFindInFile = true;
+	}
+
 	showFindInFileJustOpened = true;
 }
 
@@ -1553,7 +1565,7 @@ bool TextEditor::Render(const char* aTitle, bool aParentIsFocused, const ImVec2&
 		ImGui::PopAllowKeyboardFocus();
 
 	RenderFindInFile();
-	
+
 	if (!mIgnoreImGuiChild)
 		ImGui::EndChild();
 
@@ -1630,41 +1642,38 @@ void TextEditor::RenderFindInFile()
 			{
 				UndoRecord u;
 				u.mBefore = mState;
-				
-				if (strcmp(GetSelectedText().c_str(), findInFileInput) != 0)
+
+				/*if (strcmp(GetSelectedText().c_str(), findInFileInput) != 0)
 				{
 					int length = strlen(findInFileInput);
 					if (length > 0)
 					{
 						SelectNextOccurrenceOf(findInFileInput, length, mState.mCurrentCursor);
 					}
-				}
+				}*/
 
-				AddCursorForAllOccurrences();
+				Coordinates nextStart, nextEnd;
 
-				for (int curCursor = 0; curCursor < mState.mCursors.size(); curCursor++)
+				std::string replacementText(findInFileInput);
+				
+				while (FindNextOccurrence(findInFileInput, strlen(findInFileInput), mState.mCursors[mState.mCurrentCursor].mCursorPosition, nextStart, nextEnd))
 				{
-					Cursor& cursor = mState.mCursors[curCursor];
-
-					Coordinates selectionStart = cursor.mSelectionStart;
-					Coordinates selectionEnd = cursor.mSelectionEnd;
-
-					if (selectionStart.mLine == selectionEnd.mLine && selectionEnd > selectionStart)
+					if (nextStart.mLine == nextEnd.mLine && nextEnd > nextStart)
 					{
-						int startIndex = GetCharacterIndexL(selectionStart);
-						
-						u.mOperations.push_back({ GetSelectedText(curCursor), selectionStart, selectionEnd, UndoOperationType::Delete });
-						RemoveGlyphsFromLine(selectionStart.mLine, startIndex, GetCharacterIndexR(selectionEnd));
+						int startIndex = GetCharacterIndexL(nextStart);
+
+						u.mOperations.push_back({ replacementText, nextStart, nextEnd, UndoOperationType::Delete });
+						RemoveGlyphsFromLine(nextStart.mLine, startIndex, GetCharacterIndexR(nextEnd));
 
 						for (int i = 0; i < strlen(toReplaceInput); i++)
 						{
 							std::string str(1, toReplaceInput[i]);
 
-							Coordinates start = Coordinates(selectionStart.mLine, startIndex);
-							Coordinates end = Coordinates(selectionStart.mLine, startIndex + 1);
+							Coordinates start = Coordinates(nextStart.mLine, startIndex);
+							Coordinates end = Coordinates(nextStart.mLine, startIndex + 1);
 							u.mOperations.push_back({ str, start, end, UndoOperationType::Add });
 
-							AddGlyphToLine(cursor.mCursorPosition.mLine, startIndex++, Glyph(toReplaceInput[i], PaletteIndex::Default));
+							AddGlyphToLine(nextStart.mLine, startIndex++, Glyph(toReplaceInput[i], PaletteIndex::Default));
 						}
 
 					}
@@ -1718,7 +1727,7 @@ void TextEditor::RenderFindInFile()
 
 					mCheckComments = true;
 					mColorizerEnabled = true;
-					ColorizeRange(std::max(0, selectionStart.mLine - 2), selectionStart.mLine+1);
+					ColorizeRange(std::max(0, selectionStart.mLine - 2), selectionStart.mLine + 1);
 
 					int length = strlen(findInFileInput);
 					if (length > 0)
@@ -1991,12 +2000,12 @@ void TextEditor::CommentLines()
 				else
 				{
 					int idx = GetCharacterIndexL(cursor.mSelectionStart);
-					RemoveGlyphsFromLine(cursor.mSelectionStart.mLine, idx, idx+1);
+					RemoveGlyphsFromLine(cursor.mSelectionStart.mLine, idx, idx + 1);
 					cursor.mSelectionEnd.mColumn--;
 
 					mCheckComments = true;
 					ColorizeRange(std::max(0, cursor.mSelectionStart.mLine - 2), cursor.mSelectionStart.mLine + 1);
-				
+
 					Coordinates end = { cursor.mSelectionStart.mLine, cursor.mSelectionStart.mColumn + 1 };
 
 					u.mOperations.push_back({ ";", cursor.mSelectionStart, end, UndoOperationType::Delete });
@@ -2013,10 +2022,10 @@ void TextEditor::CommentLines()
 					for (int i = cursor.mSelectionStart.mLine; i <= cursor.mSelectionEnd.mLine; i++)
 					{
 						RemoveGlyphsFromLine(i, 0, 1);
-					
+
 						if (i == cursor.mSelectionStart.mLine)
 							cursor.mSelectionStart.mColumn--;
-					
+
 						Coordinates start = { i, 0 };
 						Coordinates end = { i, 1 };
 
@@ -2081,10 +2090,10 @@ void TextEditor::EnterCharacter(ImWchar aChar, bool aShift)
 
 		std::string lineText = GetCurrentLineText();
 		int idx = GetCharacterIndexL(currentCursor.mCursorPosition);
-		
+
 		if (idx > 0)
 		{
-			if (lineText[idx-1] == '\t')
+			if (lineText[idx - 1] == '\t')
 			{
 				auto pos = GetActualCursorCoordinates(mState.mCurrentCursor);
 
@@ -2092,8 +2101,8 @@ void TextEditor::EnterCharacter(ImWchar aChar, bool aShift)
 
 				UndoRecord shiftTab;
 				shiftTab.mBefore = mState;
-				shiftTab.mOperations.push_back({ "\t", start, pos, UndoOperationType::Delete});
-				
+				shiftTab.mOperations.push_back({ "\t", start, pos, UndoOperationType::Delete });
+
 				RemoveGlyphsFromLine(currentCursor.mCursorPosition.mLine, idx - 1, idx);
 
 				AddUndo(shiftTab);
@@ -2504,7 +2513,7 @@ void TextEditor::MoveLeft(int aAmount, bool aSelect, bool aWordMode)
 			}
 
 			mState.mCursors[c].mCursorPosition = Coordinates(line, GetCharacterColumn(line, cindex));
-			std::cout << "changed from " << oldPos.mColumn << " to " << mState.mCursors[c].mCursorPosition.mColumn << std::endl;
+			//std::cout << "changed from " << oldPos.mColumn << " to " << mState.mCursors[c].mCursorPosition.mColumn << std::endl;
 
 			assert(mState.mCursors[c].mCursorPosition.mColumn >= 0);
 			if (aSelect)
@@ -2525,7 +2534,7 @@ void TextEditor::MoveLeft(int aAmount, bool aSelect, bool aWordMode)
 					mState.mCursors[c].mCursorPosition = mState.mCursors[c].mInteractiveStart;
 				mState.mCursors[c].mInteractiveStart = mState.mCursors[c].mInteractiveEnd = mState.mCursors[c].mCursorPosition;
 			}
-			std::cout << "Setting selection for " << c << std::endl;
+			//std::cout << "Setting selection for " << c << std::endl;
 			SetSelection(mState.mCursors[c].mInteractiveStart, mState.mCursors[c].mInteractiveEnd, aSelect && aWordMode ? SelectionMode::Word : SelectionMode::Normal, c);
 		}
 	}
@@ -3061,13 +3070,19 @@ bool TextEditor::CanRedo() const
 void TextEditor::Undo(int aSteps)
 {
 	while (CanUndo() && aSteps-- > 0)
+	{
+		isDirty = true;
 		mUndoBuffer[--mUndoIndex].Undo(this);
+	}
 }
 
 void TextEditor::Redo(int aSteps)
 {
 	while (CanRedo() && aSteps-- > 0)
+	{
+		isDirty = true;
 		mUndoBuffer[mUndoIndex++].Redo(this);
+	}
 }
 
 void TextEditor::ClearExtraCursors()
@@ -3116,10 +3131,10 @@ void TextEditor::AddCursorForNextOccurrence()
 	EnsureCursorVisible();
 }
 
-void TextEditor::AddCursorForAllOccurrences()
+void TextEditor::AddCursorForAllOccurrences(bool tryToMerge)
 {
 	ClearExtraCursors();
-	
+
 	const Cursor& initialCursor = mState.mCursors[mState.GetLastAddedCursorIndex()];
 	Coordinates cursorPos = initialCursor.mCursorPosition;
 
@@ -3145,7 +3160,8 @@ void TextEditor::AddCursorForAllOccurrences()
 		mState.mCursors[mState.mCurrentCursor].mCursorPosition = mState.mCursors[mState.mCurrentCursor].mInteractiveEnd = nextEnd;
 		SetSelection(mState.mCursors[mState.mCurrentCursor].mInteractiveStart, mState.mCursors[mState.mCurrentCursor].mInteractiveEnd, mSelectionMode, -1, true);
 		mState.SortCursorsFromTopToBottom();
-		MergeCursorsIfPossible();
+		if (tryToMerge)
+			MergeCursorsIfPossible();
 		EnsureCursorVisible();
 	}
 }

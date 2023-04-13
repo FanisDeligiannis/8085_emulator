@@ -29,33 +29,33 @@ namespace Emulator
 			_Data = data;
 		}
 
-		void _SetData(std::shared_ptr<uint8_t> data, size_t size)
+		inline void _SetData(std::shared_ptr<uint8_t> data, size_t size)
 		{
 			_Size = size;
 			_Data = data;
 		}
 
-		void SetDataAtAddr(uint16_t addr, uint8_t val)
+		inline void SetDataAtAddr(uint16_t addr, uint8_t val)
 		{
 			_Data.get()[addr] = val;
 		}
 
-		uint8_t GetDataAtAddr(uint16_t addr)
+		inline uint8_t GetDataAtAddr(uint16_t addr)
 		{
 			return _Data.get()[addr];
 		}
 
-		void CopyToMemory(uint16_t addr, uint8_t* values, uint16_t size)
+		inline void CopyToMemory(uint16_t addr, uint8_t* values, uint16_t size)
 		{
 			memcpy(_Data.get() + addr, values, size);
 		}
 
-		std::shared_ptr<uint8_t> GetData()
+		inline std::shared_ptr<uint8_t> GetData()
 		{
 			return _Data;
 		}
 
-		size_t GetSize()
+		inline size_t GetSize()
 		{
 			return _Size;
 		}

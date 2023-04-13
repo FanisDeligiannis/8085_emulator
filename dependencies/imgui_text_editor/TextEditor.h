@@ -17,7 +17,7 @@ public:
 	bool SaveFile = false;
 	bool SaveFileAs = false;
 	int CurrentLine = -1;
-	int lastSaveIndex = 0;
+	bool isDirty = false;
 
 	float startOfText = 0;
 
@@ -254,8 +254,8 @@ public:
 	void SetColorizerEnable(bool aValue);
 	void ForceColorizeAll();
 
-	inline bool IsFileDirty() { return mUndoIndex > lastSaveIndex; }
-	inline void SetFileNotDirty() { lastSaveIndex = mUndoIndex; }
+	inline bool IsFileDirty() { return isDirty; }
+	inline void SetFileNotDirty() { isDirty = false; }
 
 	Coordinates GetCursorPosition() const { return GetActualCursorCoordinates(); }
 	void SetCursorPosition(const Coordinates& aPosition, int aCursor = -1);
@@ -351,7 +351,7 @@ public:
 	void ClearSelections();
 	void SelectNextOccurrenceOf(const char* aText, int aTextSize, int aCursor = -1);
 	void AddCursorForNextOccurrence();
-	void AddCursorForAllOccurrences();
+	void AddCursorForAllOccurrences(bool tryToMerge = true);
 
 	static const Palette& GetMarianaPalette();
 	static const Palette& GetDarkPalette();

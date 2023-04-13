@@ -36,7 +36,7 @@ namespace Emulator
 		PC = std::make_shared<Register>();
 		PC->Clear();
 		SP = std::make_shared<Register>();
-
+		
 
 		//SP is literally a pointer to the address of the stack.
 		SP->SetRef(_Stack->GetSPPointer());
