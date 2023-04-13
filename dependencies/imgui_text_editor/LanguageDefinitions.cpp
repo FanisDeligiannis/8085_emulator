@@ -412,7 +412,7 @@ const TextEditor::LanguageDefinition& TextEditor::LanguageDefinition::ASM8085()
 		};
 
 		static const char* const Predefines[] = {
-			"CODE", "STDM", "DCD", "STDC", "BEEP", "BEEPFD", "CLEARDISPLAY", "KIND",
+			"CODE", "STDM", "DCD", "STDC", "BEEP", "BEEPFD", "CLEARDISPLAY", "KIND", "DELB", "DELA",
 
 			"RST0", "RST1", "RST2", "RST3", "RST4", "RST5", "RST6", "RST7", "RST45", "RST55", "RST65", "RST75"
 		};

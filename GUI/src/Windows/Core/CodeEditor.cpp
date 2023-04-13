@@ -252,7 +252,7 @@ void CodeEditor::LabelHighlight()
 		editor.GetLanguageDefinition().mLabels.insert(std::make_pair(k.first, id));
 	}*/
 
-	static const boost::regex label_finder("\\b([A-Za-z0-9]+):"); // seems to be a bit less reliable, but instant even with thousands of labels.
+	static const boost::regex label_finder("\\b([A-Za-z0-9_]+):"); // seems to be a bit less reliable, but instant even with thousands of labels.
 
 
 	std::string text = editor.GetText();
