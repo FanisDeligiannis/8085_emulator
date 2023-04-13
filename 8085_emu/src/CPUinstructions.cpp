@@ -1142,7 +1142,7 @@ namespace InternalEmulator
     int INRM(int bytes)
     {
         uint8_t M = CPU::cpu->GetUnsignedM();
-        M--;
+        M++;
 
         uint16_t addr = GetHLUnsigned();
         CPU::cpu->GetMemory()->SetDataAtAddr(addr, M);
