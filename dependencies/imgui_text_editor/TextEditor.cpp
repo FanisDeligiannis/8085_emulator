@@ -1638,7 +1638,14 @@ void TextEditor::RenderFindInFile()
 
 		if (ImGui::Button("Replace"))
 		{
-			if (ImGui::GetIO().KeyShift)
+			// If the "find" text is a subset of "replacement text", it's currently an infinite loop..
+			// so, let's just replace one at a time for now, I guess
+			
+			std::string findText(findInFileInput);
+			std::string replacementText(toReplaceInput);
+
+			bool isSubset = replacementText.find(findText) != std::string::npos;
+			if (ImGui::GetIO().KeyShift && !isSubset)
 			{
 				UndoRecord u;
 				u.mBefore = mState;
@@ -1653,16 +1660,14 @@ void TextEditor::RenderFindInFile()
 				}*/
 
 				Coordinates nextStart, nextEnd;
-
-				std::string replacementText(findInFileInput);
-				
+																					// SHOULD START AT PREVIOUS ENDPOINT.
 				while (FindNextOccurrence(findInFileInput, strlen(findInFileInput), mState.mCursors[mState.mCurrentCursor].mCursorPosition, nextStart, nextEnd))
 				{
 					if (nextStart.mLine == nextEnd.mLine && nextEnd > nextStart)
 					{
 						int startIndex = GetCharacterIndexL(nextStart);
 
-						u.mOperations.push_back({ replacementText, nextStart, nextEnd, UndoOperationType::Delete });
+						u.mOperations.push_back({ findText, nextStart, nextEnd, UndoOperationType::Delete });
 						RemoveGlyphsFromLine(nextStart.mLine, startIndex, GetCharacterIndexR(nextEnd));
 
 						for (int i = 0; i < strlen(toReplaceInput); i++)
