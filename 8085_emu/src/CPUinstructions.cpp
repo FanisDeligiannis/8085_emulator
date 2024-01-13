@@ -191,30 +191,6 @@ namespace InternalEmulator
         cpu->A->SetSigned(result);
     }
 
-    //Add unsigned number to Register A with carry
-    void AddUnignedWithCarry(uint8_t data)
-    {
-        CPU* cpu = CPU::cpu;
-
-        uint8_t rA = cpu->A->GetUnsigned();
-        uint8_t rC = cpu->Flags->GetBit(CARRY_FLAG);
-
-        uint16_t result16 = rA + data + rC;
-        uint8_t result = rA + data + rC;
-        uint8_t result4 = rA + (data & 0x0f) + rC;
-
-        //TODO CHECK FLAGS HERE
-        cpu->SetFlags(
-            0,
-            result == 0,
-            (result4 & 0xf0) > 0,
-            !(bits_in(result) % 2),
-            (result16 & 0b100000000) > 0
-        );
-
-        cpu->A->SetUnsigned(result);
-    }
-
     //Bitwise And Register A with another number.
     void And(uint8_t data)
     {
